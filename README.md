@@ -57,7 +57,7 @@ Located in `agents/.agents/skills/system-personalization/` and symlinked directl
 On any fresh Omarchy or Arch Linux system, run:
 
 ```bash
-git clone https://github.com/JValdivia23/hyprland-dots.git ~/dotfiles
+git clone https://github.com/JValdivia23/omarchy-dots.git ~/dotfiles
 cd ~/dotfiles
 ./install.sh
 ```

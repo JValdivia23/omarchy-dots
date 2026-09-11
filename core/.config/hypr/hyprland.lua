@@ -7,6 +7,13 @@ dofile((os.getenv("OMARCHY_PATH") or "/usr/share/omarchy") .. "/default/hypr/boo
 -- Load Omarchy defaults.
 require("default.hypr.omarchy")
 
+-- Core cursor & desktop behaviors.
+hl.config({
+  cursor = {
+    inactive_timeout = 3, -- Hide cursor after 3 seconds of inactivity (e.g. watching video)
+  },
+})
+
 -- Load core personal keybinding overrides.
 require("hypr.bindings-common")
 

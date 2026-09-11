@@ -2,6 +2,10 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.1] - 2026-09-11
+### Added
+- **Cursor Inactivity Timeout**: Configured `cursor:inactive_timeout = 3` in `core/.config/hypr/hyprland.lua`. Automatically hides the mouse cursor after 3 seconds of inactivity while watching videos, browsing, or reading across all machine profiles. Cursor immediately reappears upon mouse or touchpad movement.
+
 ## [2.2.0] - 2026-09-10
 ### Removed
 - **Legacy Root Directories Purged**: Deleted 15 legacy CachyOS / Noctalia folders from repository root: `alacritty/`, `bin/`, `btop/`, `fish/`, `gtk/`, `hypr/`, `kitty/`, `niri/`, `noctalia/`, `packages/`, `scripts/`, `swayimg/`, `waypaper/`, `webapps/`, and `zigoku/`.

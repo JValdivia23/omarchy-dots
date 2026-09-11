@@ -64,11 +64,3 @@ hl.unbind("SUPER + ALT + K")
 local home = os.getenv("HOME")
 local altwin_cmd = home and (home .. "/.local/bin/hypr-toggle-altwin") or "hypr-toggle-altwin"
 o.bind("SUPER + ALT + K", "Toggle Super/Alt layout swap", altwin_cmd)
-
--- Launch or focus YouTube via Brave Origin
--- Previously bound to: omarchy-launch-webapp (Chromium)
-hl.unbind("SUPER + SHIFT + Y")
-o.bind("SUPER + SHIFT + Y", "YouTube", {
-  focus = "YouTube",
-  launch = "brave-origin --new-window --ozone-platform=wayland --app=https://youtube.com --name=YouTube --class=YouTube"
-})

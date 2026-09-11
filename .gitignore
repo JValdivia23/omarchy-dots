@@ -18,7 +18,3 @@ __pycache__/
 *.pyc
 node_modules/
 .venv/
-
-# Large offline documentation git mirrors (if linked in agents)
-references/cachyos-wiki/
-references/noctalia-docs/

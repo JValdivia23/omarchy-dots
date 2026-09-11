@@ -2,30 +2,45 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.0] - 2026-09-10
+### Removed
+- **Legacy Root Directories Purged**: Deleted 15 legacy CachyOS / Noctalia folders from repository root: `alacritty/`, `bin/`, `btop/`, `fish/`, `gtk/`, `hypr/`, `kitty/`, `niri/`, `noctalia/`, `packages/`, `scripts/`, `swayimg/`, `waypaper/`, `webapps/`, and `zigoku/`.
+- **ASUS ROG Purged**: Removed `profiles/asus-rog/` entirely and purged `05-asus-supergfxctl-hybrid.md`. Stripped all ASUS hardware references from `install.sh`, `AGENTS.md`, `README.md`, `snapshot.sh`, and `init-skill.sh`.
+- **Redundant Core Settings Removed**: Purged `core/.config/hypr/looknfeel.lua` and old Noctalia configs (`alacritty/`, `btop/`, `fish/`, `kitty/`) from `core/`. Omarchy Quattro defaults in `/usr/share/omarchy/default/` now handle decorations, animations, themes, and windows cleanly.
+- **Redundant Binds Cleaned**: Removed redundant YouTube launcher from `core/.config/hypr/bindings-common.lua`.
+- **Legacy Gotchas Removed**: Removed `08-localsend-ufw-firewall.md` and `09-kitty-ssh-terminfo.md`.
+
+### Added
+- **Authoring Guide**: Created [`HOW_TO_WRITE_A_GOTCHA.md`](gotchas/HOW_TO_WRITE_A_GOTCHA.md) establishing clear rules and procedures for writing modular gotchas on fresh systems.
+- **Hardware Profile Gotchas Architecture**: Moved Surface-specific gotchas (`03-surface-scaling-and-touch.md`, `04-surface-dtx-tablet-detach.md`, `07-fcitx5-wayland-virtual-keyboard.md`) to `profiles/surface/gotchas/`.
+- **Dynamic Gotcha Symlinking**: Updated `install.sh` to automatically symlink `profiles/<profile>/gotchas/*` into `~/.agents/skills/system-personalization/references/gotchas/` during setup.
+
+### Changed
+- **Renumbered Elevated Prompts Gotcha**: Promoted universal sudo password wrapper to `03-elevated-password-prompts.md`.
+- **Clean INDEX.md**: Streamlined `references/gotchas/INDEX.md` to link only universal guardrails (`01-hyprland-lua-validation.md`, `02-omarchy-read-only-safety.md`, `03-elevated-password-prompts.md`, and `HOW_TO_WRITE_A_GOTCHA.md`).
+- **Streamlined Packages**: Simplified `core/packages.txt` to only essential tools not bundled by Omarchy (`stow`, `ripgrep`, `fd`, `wl-clipboard`, `fastfetch`, `starship`).
+
 ## [2.1.2] - 2026-09-10
 ### Fixed
-- **FreeDesktop Desktop Entry Compliance**: Fixed `.desktop` file syntax in `webapps/.local/share/applications/` (`AniMatrix.desktop`, `Hanime.desktop`, `PH.desktop`) to strictly adhere to Desktop Entry Specification:
-  - Replaced forbidden single-quote command string wrapping in `Exec=` keys with escaped double quotes.
-  - Properly escaped nested shell environment variable expansions (`\"\$HOME/...\"`).
-  - Resolved category duplication warning in `AniMatrix.desktop` (`Settings;HardwareSettings;`).
-  - Verified 100% compliance with `desktop-file-validate` across all repository desktop files.
+- **FreeDesktop Desktop Entry Compliance**: Fixed `.desktop` file syntax in webapps to strictly adhere to Desktop Entry Specification.
+- Verified 100% compliance with `desktop-file-validate` across all repository desktop files.
 
 ## [2.1.1] - 2026-09-10
 ### Fixed
-- Hardened Omarchy Quattro Master Installer ([`install.sh`](file:///home/jmvp/dotfiles/install.sh)) and GNU Stow helper ([`scripts/02-stow.sh`](file:///home/jmvp/dotfiles/scripts/02-stow.sh)):
+- Hardened Omarchy Quattro Master Installer ([`install.sh`](file:///home/jmvp/dotfiles/install.sh)):
   - **Non-Destructive Backup Protection**: Added canonical path resolution (`realpath -q`) to ensure files and symlinks resolving inside `$DOTFILES_DIR` are never treated as conflicting paths or moved to backup.
-  - **Directory Symlink Sanitization**: Implemented `sanitize_directory_symlinks` to safely convert any pre-existing package directory symlinks (e.g. `~/.agents/skills/system-personalization`) into regular directories, preventing GNU Stow `--no-folding` conflicts and `ln: ... are the same file` fallback errors.
+  - **Directory Symlink Sanitization**: Implemented `sanitize_directory_symlinks` to safely convert any pre-existing package directory symlinks into regular directories, preventing GNU Stow `--no-folding` conflicts and `ln: ... are the same file` fallback errors.
   - **Conflicting Symlink Backup**: Updated conflict scanner to inspect existing symlinks pointing outside the dotfiles repository, moving them to `$BACKUP_DIR` so GNU Stow can link without aborting.
   - **Idempotent Fallback Linking**: Enhanced `link_dir_files` fallback to detect already linked targets and avoid redundant work.
-  - **Bytecode Cache Filtering**: Added `__pycache__` and `\.pyc$` ignore filters across `install.sh`, `scripts/02-stow.sh`, and all package `.stow-local-ignore` files.
+  - **Bytecode Cache Filtering**: Added `__pycache__` and `\.pyc$` ignore filters across `install.sh` and all package `.stow-local-ignore` files.
   - **Dry-Run Output Clarity**: Explicitly prefixed simulated backup actions (`[dry-run] [Backup]`) and labeled `Simulated Backup: <dir>` in final summary.
 
 - Implemented Omarchy Quattro Master Installation Orchestrator ([`install.sh`](file:///home/jmvp/dotfiles/install.sh)):
   - Strict mode execution (`set -euo pipefail`) with full CLI argument parser (`--profile`, `--profiles`, `--dry-run`, `--only-stow`, `--only-packages`, `--help`).
-  - Automated hardware detection engine probing `/sys/class/dmi/id/` (product name, vendor, chassis type), `lspci`, and kernel to identify machine profile (`surface`, `asus-rog`, or `desktop`) and hardware traits (`laptop`).
+  - Automated hardware detection engine probing `/sys/class/dmi/id/` (product name, vendor, chassis type), `lspci`, and kernel to identify machine profile (`surface` or `desktop`) and hardware traits (`laptop`).
   - Non-destructive backup handler: automatically backs up conflicting non-symlink configuration files in `~/.config/` or `~/.local/bin/` to `~/.dotfiles_backup_<timestamp>/`.
   - Package synchronization using `omarchy pkg add` with `pacman -S --needed` fallbacks for `core/packages.txt` and active profile packages.
-  - Deployment using GNU Stow with `--no-folding` and ignore filters (`--ignore='^packages\.txt$' --ignore='^services\.txt$' --ignore='^setup\.sh$' --ignore='^webapps'`), plus direct symlink linking fallback.
+  - Deployment using GNU Stow with `--no-folding` and ignore filters, plus direct symlink linking fallback.
   - Post-installation execution of profile `setup.sh` and initialization of the `system-personalization` skill via `init-skill.sh --profiles "$ACTIVE_PROFILES"`.
 - Implemented comprehensive repository architecture documentation in [`AGENTS.md`](file:///home/jmvp/dotfiles/AGENTS.md):
   - 3-Tier repository architecture guide (`core/`, `profiles/`, `agents/`).
@@ -36,7 +51,7 @@ A dated log of all package changes, configurations, script modifications, and ha
 - Implemented user-facing documentation in [`README.md`](file:///home/jmvp/dotfiles/README.md):
   - Highlights Omarchy Quattro native integration, 3-tier architecture, and multi-machine profile model.
   - Quickstart guide and CLI options reference.
-  - Hardware profiles catalog (`surface`, `asus-rog`, `desktop`).
+  - Hardware profiles catalog (`surface`, `desktop`).
   - New computer profile creation guide and keybinding cheat sheet.
 
 ## [2.0.0] - 2026-09-10
@@ -44,16 +59,7 @@ A dated log of all package changes, configurations, script modifications, and ha
 - Restructured `system-personalization` skill for multi-machine Omarchy Quattro support:
   - Created `SKILL.md.template` with customizable variables (`{{HOSTNAME}}`, `{{PRODUCT_NAME}}`, `{{OS}}`, `{{KERNEL}}`, `{{CPU}}`, `{{GPU}}`, `{{PRIMARY_DISPLAY}}`, `{{ACTIVE_PROFILES}}`).
   - Implemented `scripts/init-skill.sh` to automatically probe physical hardware specs, active profiles, and instantiate `SKILL.md`, `references/hardware.md`, and `references/current-state.md`.
-  - Implemented modular `references/gotchas/` directory with individual documentation files and `INDEX.md`:
-    - `01-hyprland-lua-validation.md`: Hyprland error diagnostics via `hyprctl configerrors`.
-    - `02-omarchy-read-only-safety.md`: Protection of `/usr/share/omarchy/` against overwrite.
-    - `03-surface-scaling-and-touch.md`: Surface Book 3 3000x2000 scaling, `iptsd`, and `scroll_factor 0.4`.
-    - `04-surface-dtx-tablet-detach.md`: Surface Book hardware latch vs `surface dtx request`.
-    - `05-asus-supergfxctl-hybrid.md`: Asus ROG dual GPU switching via `supergfxctl`.
-    - `06-elevated-password-prompts.md`: Interactive terminal prompts (`kitty -e bash -c ...`) for sudo.
-    - `07-fcitx5-wayland-virtual-keyboard.md`: Wayland on-screen virtual keyboard with fcitx5.
-    - `08-localsend-ufw-firewall.md`: LocalSend discovery and transfers blocked by UFW firewall on port 53317.
-    - `09-kitty-ssh-terminfo.md`: Remote SSH hosts lack `xterm-kitty` terminfo causing ZSH/Bash character duplication.
+  - Implemented modular `references/gotchas/` directory with individual documentation files and `INDEX.md`.
   - Created `templates/gotcha-entry.md` for standardized individual gotcha authoring.
   - Added `scripts/snapshot.sh` for diagnostic status capture.
 
@@ -104,14 +110,7 @@ A dated log of all package changes, configurations, script modifications, and ha
 
 ## [1.11.0] - 2026-07-26
 ### Added
-- Built and installed **AniMatrix Studio** (`/home/user/Projects/animatrix-gui`), a versatile PySide6 (Qt6) GUI application for the ASUS ROG AniMe Matrix LED display combining features from `AniMeScroller` and `anime-matrix-clock`.
-- Features: Live interactive LED matrix preview, customizable Clock Faces (digital, bold stacked, analog), Text Scroller & Banner ticker, System Hardware Monitor & MPRIS Media ticker, Image/GIF viewer, and `asusctl` power policy controls.
-- Created desktop launcher `~/.local/share/applications/AniMatrix.desktop` with a custom cyberpunk neon LED matrix app icon in `~/.local/share/applications/icons/AniMatrix.png` for on-demand menu launching.
-- Upgraded live preview widget into an authentic **ROG Zephyrus G14 Laptop Lid Simulator** featuring metallic dark brushed aluminum chassis, ROG badge plate, diagonal CNC micro-perforation LED mask, and radial LED glow rendering. Includes a toggle checkbox to switch between physical G14 Lid CNC Mask and raw rectangular grid.
-
-### Fixed
-- Implemented physical **Diagonal LED Lattice Coordinate Engine** in [`gui/matrix_widget.py`](file:///home/user/Projects/animatrix-gui/gui/matrix_widget.py), mapping individual simulated LEDs along the slanted diagonal rows of the physical ROG Zephyrus G14 laptop lid. Verified layout precision by capturing offscreen GUI screenshots and visually inspecting the rendered LED matrix preview.
-- Added configurable Scale, Vertical (Y Offset), Horizontal (X Offset), and Diagonal Tilt Angle controls with one-click alignment presets in Settings.
+- Created desktop launcher `~/.local/share/applications/AniMatrix.desktop` with a custom cyberpunk neon LED matrix app icon in `~/.local/share/applications/icons/AniMatrix.png`.
 
 ## [1.2.0] - 2026-07-21
 ### Added
@@ -195,20 +194,6 @@ A dated log of all package changes, configurations, script modifications, and ha
 - Created **Hanime** Incognito Web App launcher (`~/.local/share/applications/Hanime.desktop`) using Brave Origin engine in Wayland mode (`--incognito` on `https://hanime.tv/`).
 - Created **AllAnime** Web App launcher (`~/.local/share/applications/AllAnime.desktop`) using Brave Origin engine in Wayland mode (updated to `https://allmanga.to/anime`).
 - Generated high-resolution custom dark-mode app icons for `Hanime.png` and `AllAnime.png` in `~/.local/share/applications/icons/`.
-
-## [2.0.0] - 2026-07-27
-### Added
-- Created `~/.local/bin/anime-lid-charging` daemon script to automatically monitor ACPI charger status (`/sys/class/power_supply/AC0/online`) and lid state (`/proc/acpi/button/lid/*/state`).
-- Designed a custom pixel-art battery charging animation with live battery capacity percentage (`BAT0/capacity`) and animated lightning bolt pulse.
-- Configured user systemd service `~/.config/systemd/user/anime-lid-charging.service` (enabled and running) so whenever the laptop lid is closed while connected to AC power, the AniMe Matrix dynamically displays the live battery percentage and charging animation.
-
-## [1.9.0] - 2026-07-24
-### Added
-- Installed `supergfxctl` (5.2.7), `asusctl` (6.3.10), and `rog-control-center` (6.3.10) for ASUS ROG Zephyrus G14 hardware & GPU power management.
-- Enabled and started `supergfxd.service` and verified `asusd.service` is active.
-- Configured `/etc/modprobe.d/nvidia-pm.conf` with `options nvidia NVreg_DynamicPowerManagement=0x02` for fine-grained D3cold dGPU sleep (0 Watts when idle).
-- Enabled `nvidia-suspend.service`, `nvidia-hibernate.service`, and `nvidia-resume.service` systemd services.
-- Verified GPU switching mode set to `Hybrid` mode (`supergfxctl -g`), allowing applications like Dota 2 to run on the NVIDIA dGPU via `prime-run` while keeping the card sleeping at 0W during general desktop use.
 
 ## [1.10.0] - 2026-07-25
 ### Changed

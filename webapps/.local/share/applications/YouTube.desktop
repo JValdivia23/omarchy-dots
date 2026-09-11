@@ -1,9 +1,0 @@
-[Desktop Entry]
-Version=1.0
-Name=YouTube
-Comment=YouTube Web App
-Exec=brave-origin --new-window --ozone-platform=wayland --app="https://youtube.com" --name="YouTube" --class="YouTube"
-Terminal=false
-Type=Application
-Icon=YouTube
-StartupNotify=true

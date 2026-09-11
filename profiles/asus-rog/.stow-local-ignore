@@ -1,7 +1,0 @@
-^packages\.txt$
-^services\.txt$
-^setup\.sh$
-^webapps
-^\.stow-local-ignore$
-^__pycache__
-\.pyc$

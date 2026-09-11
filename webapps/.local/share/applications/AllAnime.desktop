@@ -1,9 +1,0 @@
-[Desktop Entry]
-Version=1.0
-Name=AllAnime
-Comment=AllAnime Web App
-Exec=brave-origin --new-window --ozone-platform=wayland --app="https://allmanga.to/anime" --name="AllAnime" --class="AllAnime"
-Terminal=false
-Type=Application
-Icon=AllAnime
-StartupNotify=true

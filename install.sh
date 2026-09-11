@@ -34,7 +34,7 @@ Options:
 Examples:
   ./install.sh                           # Auto-detect hardware, install packages, stow, and configure
   ./install.sh --dry-run                 # Preview actions without changing system state
-  ./install.sh --profile asus-rog        # Force ASUS ROG profile deployment
+  ./install.sh --profile surface         # Force Surface profile deployment
   ./install.sh --only-stow               # Refresh symlinks without touching package manager
 HELP
 }
@@ -132,9 +132,6 @@ else
     # Check for Surface
     if [[ "${SYS_PRODUCT_NAME,,}" =~ surface ]] || [[ "${SYS_VENDOR,,}" =~ microsoft && "${SYS_PRODUCT_NAME,,}" =~ surface ]] || [[ "${KERNEL_RELEASE,,}" =~ surface ]]; then
         DETECTED+=("surface")
-    # Check for ASUS ROG / Zephyrus / TUF
-    elif [[ "${SYS_PRODUCT_NAME,,}" =~ (zephyrus|rog|tuf) ]] || [[ "${SYS_VENDOR,,}" =~ asus ]] || echo "$LSPCI_INFO" | grep -qi "ASUSTeK"; then
-        DETECTED+=("asus-rog")
     fi
 
     # Include laptop trait if hardware indicates portable/battery
@@ -219,7 +216,7 @@ sanitize_directory_symlinks() {
 
     while IFS= read -r -d '' src_d; do
         local rel_d="${src_d#$pkg_dir/}"
-        if [[ "$rel_d" =~ ^(webapps|\.stow)($|/) ]] || [[ "$rel_d" =~ ^(packages\.txt|services\.txt|setup\.sh)($|/) ]] || [[ "$rel_d" =~ __pycache__ ]]; then
+        if [[ "$rel_d" =~ ^(webapps|\.stow)($|/) ]] || [[ "$rel_d" =~ ^(packages\.txt|services\.txt|setup\.sh|gotchas)($|/) ]] || [[ "$rel_d" =~ __pycache__ ]]; then
             continue
         fi
 
@@ -249,7 +246,7 @@ scan_and_backup_package_conflicts() {
     while IFS= read -r -d '' src_item; do
         local rel_item="${src_item#$pkg_dir/}"
         # Exclude ignored metadata files, pycache, and non-dotfile trees
-        if [[ "$rel_item" =~ ^(packages\.txt|services\.txt|setup\.sh|webapps)($|/) ]] || [[ "$rel_item" =~ ^\.stow ]] || [[ "$rel_item" =~ __pycache__|\.pyc$ ]]; then
+        if [[ "$rel_item" =~ ^(packages\.txt|services\.txt|setup\.sh|webapps|gotchas)($|/) ]] || [[ "$rel_item" =~ ^\.stow ]] || [[ "$rel_item" =~ __pycache__|\.pyc$ ]]; then
             continue
         fi
 
@@ -389,6 +386,7 @@ if [ "$DO_STOW" = true ]; then
         "--ignore=^services\.txt$"
         "--ignore=^setup\.sh$"
         "--ignore=^webapps"
+        "--ignore=^gotchas"
         "--ignore=^\.stow-local-ignore$"
         "--ignore=__pycache__"
         "--ignore=\.pyc$"
@@ -428,7 +426,7 @@ if [ "$DO_STOW" = true ]; then
             local root_dir="$2"
             while IFS= read -r -d '' src_f; do
                 local rel="${src_f#$root_dir/}"
-                if [[ "$rel" =~ ^(packages\.txt|services\.txt|setup\.sh|webapps)($|/) ]] || [[ "$rel" =~ ^\.stow ]] || [[ "$rel" =~ __pycache__|\.pyc$ ]]; then
+                if [[ "$rel" =~ ^(packages\.txt|services\.txt|setup\.sh|webapps|gotchas)($|/) ]] || [[ "$rel" =~ ^\.stow ]] || [[ "$rel" =~ __pycache__|\.pyc$ ]]; then
                     continue
                 fi
                 local dest="$HOME/$rel"
@@ -474,7 +472,28 @@ if [ "$DO_SETUP" = true ]; then
         fi
     done
 
-    # 2. Run system-personalization skill initializer
+    # 2. Link profile-specific gotchas into system-personalization skill
+    DEST_GOTCHAS_DIR="$HOME/.agents/skills/system-personalization/references/gotchas"
+    for p in "${STOWABLE_PROFILES[@]}"; do
+        PROFILE_GOTCHAS_DIR="$DOTFILES_DIR/profiles/$p/gotchas"
+        if [ -d "$PROFILE_GOTCHAS_DIR" ]; then
+            echo "--> Linking profile gotchas for '$p'..."
+            for gotcha_file in "$PROFILE_GOTCHAS_DIR"/*; do
+                [ -f "$gotcha_file" ] || continue
+                gname="$(basename "$gotcha_file")"
+                dest="$DEST_GOTCHAS_DIR/$gname"
+                if [ "$DRY_RUN" = true ]; then
+                    echo "    [dry-run] ln -sf \"$gotcha_file\" \"$dest\""
+                else
+                    mkdir -p "$DEST_GOTCHAS_DIR"
+                    ln -sf "$gotcha_file" "$dest"
+                    echo "    Linked gotcha: $gname"
+                fi
+            done
+        fi
+    done
+
+    # 3. Run system-personalization skill initializer
     INIT_SKILL_SCRIPT="$DOTFILES_DIR/agents/.agents/skills/system-personalization/scripts/init-skill.sh"
     if [ -f "$INIT_SKILL_SCRIPT" ]; then
         echo "--> Initializing system-personalization AI skill..."
@@ -515,10 +534,7 @@ echo "     hyprctl reload"
 if [[ "$ACTIVE_PROFILES" =~ surface ]]; then
     echo "  2. Test active Surface hardware daemons:"
     echo "     systemctl status surface-dtx-daemon iptsd 2>/dev/null || true"
-elif [[ "$ACTIVE_PROFILES" =~ asus ]]; then
-    echo "  2. Test active ASUS hardware daemons:"
-    echo "     systemctl status asusd supergfxd 2>/dev/null || true"
 fi
 echo "  3. Log out and log back in (or restart your session) to"
-echo "     load all environment variables and fish shell profiles."
+echo "     load all environment variables."
 echo "======================================================="

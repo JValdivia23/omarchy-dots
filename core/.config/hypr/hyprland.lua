@@ -7,10 +7,7 @@ dofile((os.getenv("OMARCHY_PATH") or "/usr/share/omarchy") .. "/default/hypr/boo
 -- Load Omarchy defaults.
 require("default.hypr.omarchy")
 
--- Load core look and feel.
-require("hypr.looknfeel")
-
--- Load core universal keybindings.
+-- Load core personal keybinding overrides.
 require("hypr.bindings-common")
 
 -- Dynamically and safely load machine profile overrides if present.

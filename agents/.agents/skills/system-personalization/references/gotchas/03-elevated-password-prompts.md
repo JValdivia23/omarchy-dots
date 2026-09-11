@@ -1,6 +1,6 @@
 # Interactive Password Authentication for Sudo Operations (`kitty -e`)
 
-- **ID**: `06-elevated-password-prompts`
+- **ID**: `03-elevated-password-prompts`
 - **Category**: `System / Security`
 - **Hardware / Target**: `Universal`
 - **Severity**: `Critical`

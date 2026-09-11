@@ -1,6 +1,6 @@
 # AGENTS.md — Repository Architecture & AI Assistant Guide
 
-Welcome to the **Omarchy Quattro Dotfiles Repository** (`~/dotfiles`). This repository is designed for multi-machine Linux desktop automation, featuring Omarchy Quattro (Omarchy v4), Hyprland Lua configuration, Noctalia shell, GNU Stow orchestration, and a self-improving system personalization skill.
+Welcome to the **Omarchy Quattro Dotfiles Repository** (`~/dotfiles`). This repository is designed for multi-machine Linux desktop automation, featuring Omarchy Quattro (Omarchy v4), Hyprland Lua configuration, Omarchy shell (Quickshell), GNU Stow orchestration, and a self-improving system personalization skill.
 
 All AI coding assistants and developers modifying this repository MUST strictly follow the rules, architecture, and validation protocols detailed in this document.
 
@@ -20,15 +20,10 @@ This repository organizes configuration into three decoupled, modular tiers to e
 │   ├── .config/
 │   │   ├── hypr/
 │   │   │   ├── hyprland.lua    # Master Hyprland Lua entrypoint (loads common + pcalls profiles)
-│   │   │   ├── bindings-common.lua # Universal desktop shortcuts (apps, window ops, macOS nav)
-│   │   │   └── looknfeel.lua   # Window decorations, gaps, borders, animations
-│   │   ├── fish/               # Fish shell configuration, environment variables, aliases
-│   │   ├── kitty/              # Kitty terminal configuration & color schemes
-│   │   ├── alacritty/          # Alacritty terminal fallback configuration
-│   │   ├── btop/               # Resource monitor configuration & themes
+│   │   │   └── bindings-common.lua # Personal shortcuts (macOS nav, undo/redo, delete, altwin)
 │   │   └── git/                # Global Git configuration
 │   ├── .local/bin/             # Universal CLI utilities (hypr-toggle-altwin, mac-key-helper, etc.)
-│   ├── packages.txt            # Baseline packages (stow, fish, kitty, alacritty, btop, ripgrep, etc.)
+│   ├── packages.txt            # Baseline packages not bundled by Omarchy (stow, ripgrep, fd, etc.)
 │   └── .stow-local-ignore      # Prevents metadata (packages.txt) from stowing to $HOME
 │
 ├── profiles/                   # ─── TIER 2: MODULAR HARDWARE PROFILES ────────────────────
@@ -37,22 +32,13 @@ This repository organizes configuration into three decoupled, modular tiers to e
 │   │   │   ├── monitors.lua    # 3000x2000 @ 60Hz with 2.0 integer scaling
 │   │   │   ├── input.lua       # Touchscreen calibration, touchpad, stylus rules
 │   │   │   └── bindings-profile.lua # Tablet mode shortcuts, virtual keyboard toggle
+│   │   ├── gotchas/            # Surface-specific hardware gotchas (scaling, detach, OSK)
 │   │   ├── packages.txt        # surface-dtx-daemon, iptsd
 │   │   ├── services.txt        # surface-dtx-daemon.service, iptsd.service
 │   │   ├── setup.sh            # Enables hardware daemons via systemctl
 │   │   └── .stow-local-ignore
 │   │
-│   ├── asus-rog/               # ASUS ROG / Zephyrus Gaming Laptops
-│   │   ├── .config/hypr/
-│   │   │   └── bindings-profile.lua # ROG Key, Aura RGB toggles, supergfxctl mode switcher
-│   │   ├── .local/bin/         # AniMatrix lid charging script
-│   │   ├── .local/share/       # Desktop entries and application icons
-│   │   ├── packages.txt        # asusctl, supergfxctl
-│   │   ├── services.txt        # asusd.service, supergfxd.service
-│   │   ├── setup.sh            # Enables ASUS services, registers AniMatrix webapps
-│   │   └── .stow-local-ignore
-│   │
-│   └── desktop/                # Multi-Monitor Workstation & Non-Specialized Laptops
+│   └── desktop/                # Multi-Monitor Workstations & Generic PCs
 │       ├── .config/hypr/
 │       │   ├── monitors.lua    # Multi-head layout template
 │       │   └── input.lua       # Full desktop mouse sensitivity & keyboard layout
@@ -74,7 +60,7 @@ This repository organizes configuration into three decoupled, modular tiers to e
     │       ├── config-paths.md # Reference of Omarchy Quattro configuration files
     │       ├── keybindings.md  # Active shortcuts reference
     │       ├── changelog.md    # Dated change log of all configuration modifications
-    │       └── gotchas/        # Single-file modular gotcha documentation + INDEX.md
+    │       └── gotchas/        # Universal guardrails + HOW_TO_WRITE_A_GOTCHA.md
     └── .stow-local-ignore
 ```
 
@@ -112,7 +98,6 @@ Omarchy Quattro configures Hyprland entirely in **Lua** (`~/.config/hypr/hyprlan
    ```lua
    dofile((os.getenv("OMARCHY_PATH") or "/usr/share/omarchy") .. "/default/hypr/bootstrap.lua")
    require("default.hypr.omarchy")
-   require("hypr.looknfeel")
    require("hypr.bindings-common")
 
    -- Dynamically load profile overrides
@@ -140,24 +125,18 @@ To keep agent context concise and prevent bloated prompt windows:
 
 1. **NEVER create or append to a monolithic `gotchas.md` file.**
 2. When discovering a bug, hardware workaround, API change, or environment quirk:
-   - Create a new focused markdown document in:
-     `agents/.agents/skills/system-personalization/references/gotchas/<category-or-num>-<slug>.md`
-   - Use `templates/gotcha-entry.md` as the format template:
-     - Clear title and tags
-     - Symptom (exact error or unexpected behavior)
-     - Root cause analysis
-     - Verified fix / solution
-     - Preventive rules for agents
-3. Update `agents/.agents/skills/system-personalization/references/gotchas/INDEX.md`:
-   - Add a 1-line link with description and trigger tags.
-4. Existing Gotchas:
-   - `01-hyprland-lua-validation.md`: Config errors not logged to journalctl.
-   - `02-omarchy-read-only-safety.md`: Protection of `/usr/share/omarchy/`.
-   - `03-surface-scaling-and-touch.md`: Surface Book 3 HiDPI 2.0 integer scaling and iptsd touchscreen.
-   - `04-surface-dtx-tablet-detach.md`: Surface Book 3 clipboard detachment and surface-dtx-daemon.
-   - `05-asus-supergfxctl-hybrid.md`: ASUS ROG GPU switching and supergfxd modes.
-   - `06-elevated-password-prompts.md`: Interactive kitty -e wrapper for sudo password prompts.
-   - `07-fcitx5-wayland-virtual-keyboard.md`: Wayland on-screen touch keyboard and IME handling.
+   - For **Universal Guardrails** (all machines): create a new markdown document in `agents/.agents/skills/system-personalization/references/gotchas/<category-or-num>-<slug>.md`.
+   - For **Hardware Quirks**: create the document in `profiles/<profile>/gotchas/<category-or-num>-<slug>.md`.
+   - Follow the comprehensive guide in [`HOW_TO_WRITE_A_GOTCHA.md`](agents/.agents/skills/system-personalization/references/gotchas/HOW_TO_WRITE_A_GOTCHA.md) and use `templates/gotcha-entry.md`.
+3. Active Universal Guardrails:
+   - `01-hyprland-lua-validation.md`: Hyprland error diagnostics via `hyprctl configerrors`.
+   - `02-omarchy-read-only-safety.md`: Read-only protection of `/usr/share/omarchy/`.
+   - `03-elevated-password-prompts.md`: Interactive `kitty -e` wrapper for sudo password prompts.
+   - `HOW_TO_WRITE_A_GOTCHA.md`: Comprehensive authoring and troubleshooting guide.
+4. Active Profile Gotchas (dynamically linked during `./install.sh`):
+   - `profiles/surface/gotchas/03-surface-scaling-and-touch.md`: Surface Book 3 HiDPI 2.0 integer scaling and iptsd touchscreen.
+   - `profiles/surface/gotchas/04-surface-dtx-tablet-detach.md`: Surface Book 3 clipboard detachment and surface-dtx-daemon.
+   - `profiles/surface/gotchas/07-fcitx5-wayland-virtual-keyboard.md`: Wayland on-screen touch keyboard and IME handling.
 
 ---
 

@@ -1,11 +1,6 @@
 stow
-fish
-kitty
-alacritty
-btop
 ripgrep
 fd
-jq
 wl-clipboard
 fastfetch
 starship

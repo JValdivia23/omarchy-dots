@@ -2,7 +2,7 @@
 
 - **ID**: `[XX-slug]`
 - **Category**: `[Hyprland | Hardware | Display | Power | Wayland | Input | System]`
-- **Hardware / Target**: `[Specific device (e.g. Surface Book 3, ASUS ROG G14) or Universal]`
+- **Hardware / Target**: `[Specific device (e.g. Surface Book 3, ThinkPad X1) or Universal]`
 - **Severity**: `[Critical | Warning | Info]`
 
 ---

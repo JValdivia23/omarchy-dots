@@ -1,7 +1,0 @@
-// ────────────── User Custom Keybindings ──────────────
-// https://github.com/YaLTeR/niri/wiki/Configuration:-Key-Bindings
-
-binds {
-	// ─── Wallpaper Selector ───
-	Alt+Space hotkey-overlay-title="Wallpaper Selector" { spawn-sh "qs -c noctalia-shell ipc call wallpaper toggle || waypaper"; }
-}

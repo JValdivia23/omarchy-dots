@@ -1,4 +1,0 @@
-asusctl
-rog-control-center
-supergfxctl
-python-pillow

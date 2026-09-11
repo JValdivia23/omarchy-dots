@@ -79,6 +79,6 @@ Omarchy Quattro supports multiple modern Wayland terminals.
 
 | Path | Purpose | Safe Editing Pattern |
 |------|---------|----------------------|
-| `/etc/pacman.conf` | Arch Linux / CachyOS / Omarchy repositories | Edit with targeted diffs; preserve repository signing keys. |
+| `/etc/pacman.conf` | Arch Linux / Omarchy repositories | Edit with targeted diffs; preserve repository signing keys. |
 | `/etc/fstab` | Filesystem mount definitions | Never overwrite; always verify UUIDs and mount options with `findmnt`. |
 | `/etc/systemd/system/` | System-wide systemd services | Reload after changes using `sudo systemctl daemon-reload`. |

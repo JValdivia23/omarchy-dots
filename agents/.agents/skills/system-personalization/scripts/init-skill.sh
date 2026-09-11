@@ -8,7 +8,7 @@
 # Usage:
 #   bash scripts/init-skill.sh
 #   bash scripts/init-skill.sh --profiles "surface, laptop"
-#   bash scripts/init-skill.sh "asus, laptop"
+#   bash scripts/init-skill.sh --profiles "desktop"
 
 set -euo pipefail
 
@@ -124,10 +124,6 @@ else
     # Check for Surface
     if [[ "${SYS_PRODUCT_NAME,,}" =~ surface ]] || [[ "${SYS_KERNEL,,}" =~ surface ]]; then
         DETECTED+=("surface")
-    fi
-    # Check for ASUS
-    if [[ "${SYS_PRODUCT_NAME,,}" =~ (rog|zephyrus|tuf|asus) ]] || command -v supergfxctl &>/dev/null || command -v asusctl &>/dev/null; then
-        DETECTED+=("asus")
     fi
     # Check for Laptop vs Desktop
     if [ -d /sys/class/power_supply ] && ls /sys/class/power_supply/ 2>/dev/null | grep -q -E "BAT|battery"; then
@@ -262,8 +258,6 @@ PACKAGES=(
     lazygit
     surface-dtx-daemon-bin
     iptsd
-    supergfxctl
-    asusctl
     fcitx5
     localsend
 )
@@ -275,7 +269,7 @@ for pkg in "${PACKAGES[@]}"; do
 done
 
 DAEMON_STATUS=""
-for unit in surface-dtx-daemon "iptsd@dev-hidraw4" supergfxd asusd bluetooth ufw fcitx5; do
+for unit in surface-dtx-daemon "iptsd@dev-hidraw4" bluetooth ufw fcitx5; do
     if systemctl is-active "$unit" &>/dev/null; then
         DAEMON_STATUS="${DAEMON_STATUS}- **$unit**: \`active\`\n"
     fi

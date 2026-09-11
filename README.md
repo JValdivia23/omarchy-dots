@@ -15,11 +15,10 @@ This repository is built around a **3-Tier Architecture** that cleanly isolates 
 
 ```
 ~/dotfiles/
-├── core/                       # Tier 1: Universal configs (Fish, Kitty, Alacritty, Hyprland core)
-├── profiles/                   # Tier 2: Modular hardware profiles (Surface, ASUS ROG, Desktop)
+├── core/                       # Tier 1: Universal configs (Git, Hyprland master, macOS nav overrides)
+├── profiles/                   # Tier 2: Modular hardware profiles (Surface, Desktop)
 │   ├── surface/                # Microsoft Surface Book 3 / Surface Pro
-│   ├── asus-rog/               # ASUS ROG Zephyrus gaming laptops
-│   └── desktop/                # Multi-monitor workstations
+│   └── desktop/                # Multi-monitor workstations & standard PCs
 └── agents/                     # Tier 3: Dynamic AI System Personalization Skill
     └── .agents/skills/system-personalization/
 ```
@@ -27,28 +26,27 @@ This repository is built around a **3-Tier Architecture** that cleanly isolates 
 ### 1. Omarchy Quattro Native Integration
 - Built specifically for **Omarchy Quattro** (Omarchy v4).
 - Uses Omarchy's official Lua bootstrap (`default.hypr.omarchy`, `default.hypr.toggles`).
-- Respects Omarchy's system boundaries: `/usr/share/omarchy/` is treated as strictly read-only, and all customizations cleanly overlay via `~/.config/`.
-- Uses `omarchy pkg add` for intelligent package reconciliation.
+- Respects Omarchy's system boundaries: `/usr/share/omarchy/` is treated as strictly read-only, and all personal overrides cleanly overlay via `~/.config/`.
+- Default themes, decorations, window rules, and application launchers are inherited directly from Omarchy Quattro.
 
 ### 2. Native Hyprland Lua Configuration
 - **Zero legacy `.conf` files**: Configured 100% in native Lua.
-- Core configuration (`core/.config/hypr/hyprland.lua`) dynamically checks for and safely loads hardware profile modules via `pcall(require, ...)`:
+- Universal configuration (`core/.config/hypr/hyprland.lua`) cleanly bootstraps Omarchy defaults, loads personal keybinding overrides (`bindings-common.lua`), and dynamically loads active profile modules via `pcall(require, ...)`:
   - `hypr.monitors`
   - `hypr.input`
   - `hypr.bindings-profile`
   - `hypr.autostart`
 
-### 3. Multi-Machine Profiles
+### 3. Modular Hardware Profiles
 | Profile | Hardware Focus | Included Overrides |
 | :--- | :--- | :--- |
-| **`surface`** | Microsoft Surface Book 3 / Pro | 3000x2000 @ 2.0 integer scaling, Intel Precise Touch (`iptsd`), clipboard detach daemon (`surface-dtx-daemon`), tablet mode bindings. |
-| **`asus-rog`** | ASUS ROG Zephyrus Laptops | GPU hybrid switcher (`supergfxctl`), RGB controls (`asusctl`), ROG Key shortcuts, AniMatrix LED lid display scripts. |
+| **`surface`** | Microsoft Surface Book 3 / Pro | 3000x2000 @ 2.0 integer scaling, Intel Precise Touch (`iptsd`), clipboard detach daemon (`surface-dtx-daemon`), tablet mode & OSK bindings. |
 | **`desktop`** | Standard Workstations | Multi-head display templates, mouse input profiles, audio routing (`pavucontrol`), gaming mode (`gamemode`). |
 
 ### 4. Self-Improving System Personalization Skill
 Located in `agents/.agents/skills/system-personalization/` and symlinked directly to `~/.agents/`:
-- **Dynamic Hardware Probing**: Automatically detects your exact CPU, GPU, monitors, and active profiles to personalize `SKILL.md` and `references/hardware.md`.
-- **Modular Gotchas Architecture**: Individual single-file gotcha notes in `references/gotchas/` so AI assistants only read targeted documentation.
+- **Dynamic Hardware Probing**: Automatically detects CPU, GPU, monitors, and active profiles to personalize `SKILL.md` and `references/hardware.md`.
+- **Modular Gotchas Architecture**: Core universal guardrails live in `agents/.../gotchas/` with [`HOW_TO_WRITE_A_GOTCHA.md`](agents/.agents/skills/system-personalization/references/gotchas/HOW_TO_WRITE_A_GOTCHA.md). Hardware-specific gotchas travel inside `profiles/<profile>/gotchas/` and are symlinked dynamically.
 - **Changelog Tracker**: Maintains a persistent record of all configuration modifications and bug fixes in `references/changelog.md`.
 
 ---
@@ -65,11 +63,11 @@ cd ~/dotfiles
 ```
 
 ### 2. What `install.sh` Does Automatically:
-1. **Hardware Detection**: Probes DMI, chassis type, and PCI devices to identify your machine profile (`surface`, `asus-rog`, or `desktop`).
-2. **Package Synchronization**: Installs missing core tools (`stow`, `fish`, `kitty`, `btop`, etc.) and profile-specific utilities via `omarchy pkg add`.
+1. **Hardware Detection**: Probes DMI, chassis type, and PCI devices to identify your machine profile (`surface` or `desktop`).
+2. **Package Synchronization**: Installs missing core tools (`stow`, `ripgrep`, `fd`, `wl-clipboard`, `fastfetch`, `starship`) and profile-specific utilities.
 3. **Non-Destructive Backup**: Detects any existing non-symlink configuration files in `~/.config/` or `~/.local/bin/` and safely moves them to `~/.dotfiles_backup_<timestamp>/`.
-4. **GNU Stow Deployment**: Links `core/`, the active profile, and `agents/` into your `$HOME` directory using `--no-folding`.
-5. **Post-Install Setup**: Starts hardware services (such as `surface-dtx-daemon` or `supergfxd`) and initializes the AI system personalization skill.
+4. **Deployment**: Links `core/`, the active profile, and `agents/` into your `$HOME` directory using GNU Stow (with native symlink fallback).
+5. **Post-Install Setup**: Runs profile setup scripts (enabling daemons like `surface-dtx-daemon` or `iptsd`), symlinks profile gotchas, and initializes the AI system personalization skill.
 
 ---
 
@@ -82,7 +80,8 @@ The installer supports flexible flags for testing and targeted updates:
 ./install.sh --dry-run
 
 # Manually force a specific hardware profile
-./install.sh --profile asus-rog
+./install.sh --profile surface
+./install.sh --profile desktop
 ./install.sh --profiles "surface,laptop"
 
 # Only backup conflicts and re-stow symlinks (skips package installation and setup)
@@ -99,23 +98,24 @@ The installer supports flexible flags for testing and targeted updates:
 
 ## ➕ Adding a New Computer Profile
 
-Adding support for a new laptop or desktop takes only a few minutes:
+Adding support for a new laptop or workstation is simple:
 
 1. **Create the profile folder**:
    ```bash
    mkdir -p profiles/my-laptop/.config/hypr
+   mkdir -p profiles/my-laptop/gotchas
    ```
 
 2. **Add display and input overrides** (optional):
    - `profiles/my-laptop/.config/hypr/monitors.lua`:
      ```lua
      local hl = require("hyprland")
-     hl.monitor("eDP-1, 1920x1080@60, 0x0, 1")
+     hl.monitor({ output = "eDP-1", mode = "1920x1080@60", position = "auto", scale = 1 })
      ```
    - `profiles/my-laptop/.config/hypr/input.lua`:
      ```lua
      local hl = require("hyprland")
-     hl.input.touchpad.natural_scroll = true
+     hl.config({ input = { touchpad = { natural_scroll = true } } })
      ```
 
 3. **Specify required packages and daemons**:
@@ -129,6 +129,7 @@ Adding support for a new laptop or desktop takes only a few minutes:
      ^packages\.txt$
      ^services\.txt$
      ^setup\.sh$
+     ^gotchas
      ^\.stow-local-ignore$
      ```
 
@@ -141,46 +142,31 @@ Adding support for a new laptop or desktop takes only a few minutes:
 
 ## ⌨️ Custom Keybindings Quick Reference
 
-### Applications & Utilities
-| Shortcut | Action | Description |
-| :--- | :--- | :--- |
-| **`Super + Return`** | Terminal | Launches Kitty terminal emulator |
-| **`Super + Space`** | App Launcher | Opens Noctalia / Omarchy application launcher |
-| **`Super + Shift + B`** | Web Browser | Launches Zen Browser |
-| **`Super + Shift + F`** | File Manager | Launches Dolphin file manager |
-| **`Super + Shift + U`** | Terminal Files | Launches Yazi file manager |
-| **`Super + Shift + A`** | Git Manager | Launches LazyGit |
-| **`Super + Shift + D`** | Docker Manager | Launches LazyDocker |
-| **`Ctrl + Shift + Esc`** | Task Manager | Launches Btop resource monitor |
+Default window management, applications, and workspace controls are provided out-of-the-box by **Omarchy Quattro** (`/usr/share/omarchy/default/hypr/bindings/`).
 
-### Desktop & Session Controls
+### Personal Overrides (`core/.config/hypr/bindings-common.lua`)
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
-| **`Alt + Space`** | Wallpaper App | Opens Waypaper dynamic wallpaper selector |
-| **`Super + Shift + W`** | Wallpaper Gallery | Opens interactive wallpaper picker |
-| **`Super + E`** | Control Center | Opens Noctalia quick settings panel |
-| **`Super + A`** | Notifications | Opens notification panel |
-| **`Super + Escape`** | Power Menu | Opens session lock/shutdown menu |
-| **`Super + L`** | Lock Session | Locks current session |
+| **`Ctrl + Left / Right / Up / Down`** | Window Focus | Move focus across tiled windows |
+| **`Super + Left`** | Line Start | Move cursor to start of line (`Home`) |
+| **`Super + Right`** | Line End | Move cursor to end of line (`End`) |
+| **`Super + Up`** | Document Start | Jump to top of document (`Ctrl + Home`) |
+| **`Super + Down`** | Document End | Jump to bottom of document (`Ctrl + End`) |
+| **`Alt + Left / Right`** | Word Jump | Move cursor one word backward / forward |
+| **`Alt + Shift + Left / Right`** | Word Select | Select text word by word |
+| **`Alt + BackSpace`** | Delete Word | Delete previous word |
+| **`Super + BackSpace`** | Delete Line | Delete entire line (`Ctrl + U` in terminal, `Shift + Home + BackSpace` in GUI) |
+| **`Super + Z`** | Undo | Undo last edit (`Ctrl + Z`) |
+| **`Super + Shift + Z`** | Redo | Redo edit (`Ctrl + Shift + Z`) |
+| **`Super + Alt + K`** | Layout Swap | Toggle Alt / Super key positions (Mac vs PC layout) |
+| **`Super + Alt + BackSpace`** | Window Transparency | Toggle active window opacity |
 
-### Window Management & Pop-outs
+### Surface Profile Shortcuts (`profiles/surface/.config/hypr/bindings-profile.lua`)
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
-| **`Super + O`** | Window Pop-out | Floats, centers (1100x700), and pins active window |
-| **`Super + Shift + O`** | PiP Pop-out | Floats small Picture-in-Picture window |
-| **`Super + T`** | Toggle Float | Toggles floating mode for active window |
-| **`Super + F`** | Fullscreen | Toggles true fullscreen |
-| **`Super + D`** | Maximize | Toggles maximized / monocle layout |
-| **`Super + Q` / `Super + W`** | Close Window | Closes focused window |
-
-### macOS Navigation Layer
-| Shortcut | Action | Description |
-| :--- | :--- | :--- |
-| **`Super + Alt + K`** | Toggle Layout | Toggles macOS (Command) vs PC (Ctrl) modifier keys |
-| **`Super + C / V / X / Z`** | Edit Actions | Mac-style Copy, Paste, Cut, and Undo |
-| **`Super + Left / Right`** | Line Jump | Beginning / End of line (`Home` / `End`) |
-| **`Alt + Left / Right`** | Word Jump | Word jump backward / forward |
-| **`Print` / `Super + Shift + S`**| Region Snip | Interactive region screenshot to Satty |
+| **`Super + D`** | Detach Tablet | Request hardware clipboard release (`surface dtx request`) |
+| **`Super + R`** | Rotate Screen | Cycle display transform orientation (0° → 90° → 270° → 0°) |
+| **`Super + Shift + U`** | On-Screen Keyboard | Toggle Fcitx5 virtual keyboard panel |
 
 ---
 
@@ -195,9 +181,8 @@ hyprctl configerrors
 # Reload compositor without restarting session
 hyprctl reload
 
-# Check status of hardware services
-systemctl status surface-dtx-daemon iptsd # On Surface
-systemctl status asusd supergfxd         # On ASUS ROG
+# Check status of Surface hardware daemons
+systemctl status surface-dtx-daemon iptsd
 ```
 
 ---

@@ -67,8 +67,6 @@ PACKAGES=(
     lazygit
     surface-dtx-daemon
     iptsd
-    supergfxctl
-    asusctl
     fcitx5
     localsend
 )
@@ -93,7 +91,7 @@ echo -e "\n=== DISK MOUNTS & USAGE ==="
 df -h / /home 2>/dev/null | tail -n +2 | awk '{printf "%-15s %-6s %-6s %-6s %-5s %s\n", $1, $2, $3, $4, $5, $6}' || true
 
 echo -e "\n=== RELEVANT HARDWARE DAEMONS ==="
-for unit in surface-dtx-daemon "iptsd@dev-hidraw4" supergfxd asusd bluetooth ufw; do
+for unit in surface-dtx-daemon "iptsd@dev-hidraw4" bluetooth ufw; do
     if systemctl list-unit-files "$unit.service" &>/dev/null || systemctl is-active "$unit" &>/dev/null; then
         STATUS=$(systemctl is-active "$unit" 2>/dev/null || echo "inactive")
         printf "%-30s %s\n" "$unit:" "$STATUS"

@@ -14,6 +14,7 @@ require("hypr.bindings-common")
 pcall(require, "hypr.monitors")
 pcall(require, "hypr.input")
 pcall(require, "hypr.bindings-profile")
+pcall(require, "hypr.bindings")
 pcall(require, "hypr.autostart")
 
 -- Toggle config flags dynamically.

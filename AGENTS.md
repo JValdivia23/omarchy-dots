@@ -66,6 +66,22 @@ This repository organizes configuration into three decoupled, modular tiers to e
 
 ---
 
+## 🤝 Coexistence: Built-in `omarchy` Skill vs. `system-personalization` Skill
+
+Omarchy Quattro includes an official, system-maintained skill at `~/.agents/skills/omarchy/`. Both skills work together with a clean division of responsibility:
+
+| Skill | Primary Role | When to Consult |
+|---|---|---|
+| **`omarchy`** (Built-in) | **OS & Tooling Authority** | Consult for **HOW** to interact with Omarchy Linux:<br>• `omarchy theme set <theme>` (theme engine)<br>• `omarchy pkg add <pkg>` (package management)<br>• `omarchy webapp install <name> <url>` (PWA creation)<br>• `omarchy bar` & `omarchy plugin` (status bar layout)<br>• `omarchy hook install` (automation)<br>• `omarchy refresh <component>` (safe resets) |
+| **`system-personalization`** (This Repo) | **Machine & Preference Authority** | Consult for **WHO** this machine is and **WHAT** the user prefers:<br>• Live hardware specifications ([`references/hardware.md`](references/hardware.md))<br>• Active profile (`surface`, etc.) and hardware daemons<br>• User macOS text navigation bindings & custom shortcuts<br>• Touchpad scroll speed and gesture preferences<br>• Hardware gotchas ([`references/gotchas/`](references/gotchas/INDEX.md))<br>• Machine change history ([`references/changelog.md`](references/changelog.md)) |
+
+**Rule for AI Agents**:
+- When performing actions on the operating system, **always defer to the `omarchy` skill** for the proper command patterns.
+- Do not reinvent package installation, theme switching, or bar customization; use Omarchy's native CLI tools.
+- Use `system-personalization` to know what hardware you are running on, what display scaling to use, and what personal shortcuts the user expects.
+
+---
+
 ## ⚠️ Omarchy Quattro Critical Safety Rules
 
 1. **NEVER Edit `/usr/share/omarchy/` (Omarchy Quattro System Space)**:

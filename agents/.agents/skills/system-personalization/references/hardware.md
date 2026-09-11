@@ -6,7 +6,7 @@ Live physical system specifications and active peripherals probed automatically.
 - **Product / Model**: Surface Book 3
 - **Hostname**: `omarchy`
 - **Architecture**: x86_64
-- **Active Profiles**: surface, laptop
+- **Active Profiles**: surface,laptop
 
 ## CPU & Processing
 - **Processor**: Intel(R) Core(TM) i5-1035G7 CPU @ 1.20GHz
@@ -28,8 +28,8 @@ Live physical system specifications and active peripherals probed automatically.
 ## Storage & Filesystems
 ```
 Filesystem        Size  Used Avail Use% Mounted on
-/dev/mapper/root  237G   19G  218G   8% /
-/dev/mapper/root  237G   19G  218G   8% /home
+/dev/mapper/root  237G   19G  217G   8% /
+/dev/mapper/root  237G   19G  217G   8% /home
 ```
 
 ## Displays & Monitors
@@ -48,5 +48,5 @@ Monitor eDP-1 (ID 0):
 - **Touchscreen**: Intel Precise Touch & Stylus Daemon (iptsd) active
 - **Surface DTX Latch**: Supported via surface-dtx-daemon
 ### Batteries
-- **BAT1**: 97% (Discharging)
-- **BAT2**: 94% (Discharging)
+- **BAT1**: 84% (Discharging)
+- **BAT2**: 85% (Discharging)

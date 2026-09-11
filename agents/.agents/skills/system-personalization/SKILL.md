@@ -13,17 +13,39 @@ Complete documentation of this machine's configuration and personalization. This
 
 ## Core Rules
 
-1. **NEVER edit `/usr/share/omarchy/` (Omarchy Quattro package space).** This directory is owned by the `omarchy` package. Any local changes will be overwritten on the next `omarchy update`. Reading is safe and encouraged for inspecting commands, stock themes, and default configs.
-2. **Always edit user configuration in `~/.config/` (or repository dotfiles).** Use targeted edits (`replace_file_content`, patch, append). Never overwrite entire configuration files blindly.
-3. **Validate Hyprland Lua changes with `hyprctl configerrors`.** When modifying Hyprland configuration in `~/.config/hypr/`, `journalctl` does NOT capture config validation errors. ALWAYS run `hyprctl reload` followed by `hyprctl configerrors` to inspect syntax and error messages.
-4. **Elevated Password & Interactive Prompts (`kitty -e`).** When a system command requires user password authentication (such as `sudo pacman` package installations), launch an interactive terminal window using:
+1. **Companion to the built-in `omarchy` skill.** Omarchy ships with its own official skill at `~/.agents/skills/omarchy/`. The division of responsibility is clean:
+   - **`omarchy` skill**: The **OS & Tooling Authority** (HOW to do things on Omarchy Linux). Defer to it for CLI commands (`omarchy theme`, `omarchy pkg`, `omarchy hook`, `omarchy webapp`, `omarchy refresh`), Quickshell bar layout, and upstream system conventions.
+   - **`system-personalization` skill (this skill)**: The **Machine & Preference Authority** (WHO this machine is and WHAT the user prefers). Use it for live hardware specs, active profile (`surface`, etc.), personal macOS navigation bindings, touchpad sensitivity, device gotchas, and change logs.
+   - **Rule**: When executing OS tasks, use Omarchy's native tools (`omarchy pkg add`, `omarchy theme set`, etc.) as documented in the `omarchy` skill. Never reinvent or bypass what Omarchy already handles.
+2. **NEVER edit `/usr/share/omarchy/` (Omarchy package space).** This directory is owned by the `omarchy` package. Any local changes will be overwritten on `omarchy update`. Always edit user configurations in `~/.config/` or repository dotfiles.
+3. **Always edit user configuration in `~/.config/` (or repository dotfiles).** Use targeted edits (`replace_file_content`, patch, append). Never overwrite entire configuration files blindly.
+4. **Validate Hyprland Lua changes with `hyprctl configerrors`.** When modifying Hyprland configuration in `~/.config/hypr/`, `journalctl` does NOT capture config validation errors. ALWAYS run `hyprctl reload` followed by `hyprctl configerrors` to inspect syntax and error messages.
+5. **Elevated Password & Interactive Prompts (`kitty -e`).** When a system command requires user password authentication (such as `sudo pacman` package installations), launch an interactive terminal window using:
    ```bash
    kitty -e bash -c "sudo <command>; echo 'Done! Press Enter to close...'; read"
    ```
    so the user can securely enter their password directly.
-5. **Gotchas Rule (Single-File Modular Structure).** When encountering a new bug, hardware quirk, API breakage, or solution, DO NOT append it to a single giant file. Instead, create a new individual markdown file into [`references/gotchas/`](references/gotchas/INDEX.md) (e.g. `references/gotchas/<category-or-number>-<slug>.md`) using [`templates/gotcha-entry.md`](templates/gotcha-entry.md), and update [`references/gotchas/INDEX.md`](references/gotchas/INDEX.md). This ensures agents and users can read only relevant gotchas on demand without bloating context.
-6. **Changelog Rule.** After every system configuration change, package installation/removal, or hardware tuning, record the change in [`references/changelog.md`](references/changelog.md) using the format in [`templates/change-entry.md`](templates/change-entry.md).
-7. **Explain -> Ask -> Act.** Always explain the situation and ask if the user agrees with the solution before making changes to the system or installing anything.
+6. **Gotchas Rule (Single-File Modular Structure).** When encountering a new bug, hardware quirk, or solution:
+   - If hardware-specific (e.g. Surface Book detach): place it in `profiles/<profile>/gotchas/<slug>.md`.
+   - If universal: place it in [`references/gotchas/<slug>.md`](references/gotchas/INDEX.md).
+   - Follow [`references/gotchas/HOW_TO_WRITE_A_GOTCHA.md`](references/gotchas/HOW_TO_WRITE_A_GOTCHA.md) and update [`references/gotchas/INDEX.md`](references/gotchas/INDEX.md).
+7. **Changelog Rule.** After every system configuration change, package installation/removal, or hardware tuning, record the change in [`references/changelog.md`](references/changelog.md) using the format in [`templates/change-entry.md`](templates/change-entry.md).
+8. **Explain -> Ask -> Act.** Always explain the situation and ask if the user agrees with the solution before making changes to the system or installing anything.
+
+---
+
+## Skill Synergy Matrix
+
+| Task | Consult Skill | Action Pattern |
+|---|---|---|
+| Installing packages | `omarchy` | Use `omarchy pkg add <pkg>` or `omarchy pkg aur add <pkg>` |
+| Managing status bar / widgets | `omarchy` | Edit `~/.config/omarchy/shell.json` or `omarchy bar ...` |
+| Switching or creating themes | `omarchy` | Use `omarchy theme set <name>` or overlay `~/.config/omarchy/themes/` |
+| Creating Webapps | `omarchy` | Use `omarchy webapp install [name] [url] [icon]` |
+| Checking hardware & display specs | `system-personalization` | Read [`references/hardware.md`](references/hardware.md) (e.g. 3000x2000 scale 2) |
+| Device quirks & tablet detach | `system-personalization` | Read [`references/gotchas/`](references/gotchas/INDEX.md) and profile binds |
+| macOS navigation & user shortcuts | `system-personalization` | Read [`references/keybindings.md`](references/keybindings.md) & `bindings-common.lua` |
+| Machine change tracking | `system-personalization` | Update [`references/changelog.md`](references/changelog.md) |
 
 ---
 
@@ -49,7 +71,7 @@ Complete documentation of this machine's configuration and personalization. This
 | **CPU** | `Intel(R) Core(TM) i5-1035G7 CPU @ 1.20GHz` |
 | **GPU** | `Intel Corporation Iris Plus Graphics G7` |
 | **Primary Display** | `eDP-1 (3000x2000@60Hz, scale 2)` |
-| **Active Profiles** | `surface, laptop` |
+| **Active Profiles** | `surface,laptop` |
 
 ---
 

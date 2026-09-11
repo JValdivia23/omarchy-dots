@@ -40,17 +40,23 @@ backup_needed=false
 
 check_and_backup() {
     local target="$1"
-    if [ -e "$target" ] && [ ! -L "$target" ]; then
-        if [ "$backup_needed" = false ]; then
-            echo "--> Backing up existing non-symlink configs to $BACKUP_DIR..."
-            mkdir -p "$BACKUP_DIR"
-            backup_needed=true
-        fi
-        local rel_path="${target#$HOME/}"
-        mkdir -p "$BACKUP_DIR/$(dirname "$rel_path")"
-        mv "$target" "$BACKUP_DIR/$rel_path"
-        echo "    Backed up: ~/$rel_path"
+    [ ! -e "$target" ] && [ ! -L "$target" ] && return 0
+
+    local target_real
+    target_real=$(realpath -q "$target" 2>/dev/null || true)
+    if [ -n "$target_real" ] && [[ "$target_real" == "$DOTFILES_DIR"* ]]; then
+        return 0
     fi
+
+    if [ "$backup_needed" = false ]; then
+        echo "--> Backing up existing non-symlink configs to $BACKUP_DIR..."
+        mkdir -p "$BACKUP_DIR"
+        backup_needed=true
+    fi
+    local rel_path="${target#$HOME/}"
+    mkdir -p "$BACKUP_DIR/$(dirname "$rel_path")"
+    mv "$target" "$BACKUP_DIR/$rel_path"
+    echo "    Backed up: ~/$rel_path"
 }
 
 # Check all target config paths
@@ -75,14 +81,17 @@ done
 
 # Check agent skill documentation files
 check_and_backup "$HOME/.agents/skills/system-personalization/SKILL.md"
+check_and_backup "$HOME/.agents/skills/system-personalization/SKILL.md.template"
 check_and_backup "$HOME/.agents/skills/system-personalization/references/changelog.md"
 check_and_backup "$HOME/.agents/skills/system-personalization/references/config-paths.md"
 check_and_backup "$HOME/.agents/skills/system-personalization/references/current-state.md"
-check_and_backup "$HOME/.agents/skills/system-personalization/references/gotchas.md"
+check_and_backup "$HOME/.agents/skills/system-personalization/references/gotchas"
 check_and_backup "$HOME/.agents/skills/system-personalization/references/hardware.md"
 check_and_backup "$HOME/.agents/skills/system-personalization/references/keybindings.md"
+check_and_backup "$HOME/.agents/skills/system-personalization/scripts/init-skill.sh"
 check_and_backup "$HOME/.agents/skills/system-personalization/scripts/snapshot.sh"
 check_and_backup "$HOME/.agents/skills/system-personalization/templates/change-entry.md"
+check_and_backup "$HOME/.agents/skills/system-personalization/templates/gotcha-entry.md"
 
 # Check webapps desktop entries & icons
 for app in AllAnime AniMatrix Hanime PH YouTube; do

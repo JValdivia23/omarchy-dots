@@ -1,0 +1,7 @@
+pavucontrol
+nvtop
+numlockx
+vulkan-tools
+mesa-utils
+smartmontools
+gamemode

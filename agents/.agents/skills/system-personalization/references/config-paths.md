@@ -1,116 +1,84 @@
-# Configuration Paths
+# Configuration Paths & Architecture
 
-Every configuration file on this system, what it controls, and the editing rules.
-
-## Core Rules
-
-1. **NEVER Overwrite configuration files.** Use `patch` (targeted search and replace) or append. Overwriting a configuration file destroys settings placed there by other packages, themes, or the user.
-2. **Respect the Lua config syntax.** Hyprland on this machine uses a Lua configuration API (`hl.config`, `hl.bind`, etc.). Do not append traditional Hyprland `.conf` syntax.
-3. **Noctalia integration.** Changing `noctalia` configurations may require running `noctalia msg restart` or restarting the service.
+Comprehensive guide to configuration files on Omarchy Quattro, their functional roles, and precise editing rules.
 
 ---
 
-## Hyprland Configs (`~/.config/hypr/`)
+## Critical Safety Rules
 
-All configurations are modularized under `~/.config/hypr/config/` and loaded in order by the entrypoint.
-
-| File | Controls | Edit Rule |
-|------|----------|-----------|
-| `hyprland.lua` | Main entrypoint — sources all sub-configs | Append `require("config.<module>")` calls only. |
-| `config/animations.lua` | Curves, spring animations, leaf-specific speeds | Modify spring/bezier curves or add `hl.animation` rules. |
-| `config/autostart.lua` | Auto-started programs (DBus envs, Noctalia, xhost) | Modify commands executed inside the `hl.on("hyprland.start", ...)` handler. |
-| `config/binds.lua` | Global keyboard shortcuts, hardware controls, workspace binds | Modify or add `hl.bind(...)` key mappings. |
-| `config/colors.lua` | Custom color constants (active/inactive border colors) | Edit color strings/rgba values inside the theme settings. |
-| `config/decorations.lua` | Window rounding, active/inactive opacity, shadows, blurs | Patch configuration parameters inside `hl.config`. |
-| `config/environment.lua` | Wayland & compositor environment variables | Append `hl.env("<VAR>", "<VAL>")` commands. |
-| `config/inputs.lua` | Touchpad gesture profiles, cursor options, mouse parameters | Edit parameters inside `hl.config` or `hl.gesture`. |
-| `config/misc.lua` | Miscellaneous settings (e.g., mouse focus, tearing) | Edit specific flags. |
-| `config/monitors.lua` | Display panels, workspace associations, refresh rates | Patch monitors configurations via `hl.monitor`. |
-| `config/variables.lua` | Default applications (`TERMINAL`, `BROWSER`, etc.) | Edit global string constants for applications or workspaces. |
-| `config/windowrules.lua` | Window positioning rules, workspace routing rules | Append window rules or class matching rules. |
-| `config/workspaces.lua` | Workspaces configuration rules | Edit workspace counts or layout settings. |
-| `xdph.conf` | XDG Desktop Portal Hyprland configuration | Edit line parameters. |
-
-### Touchpad & Input Customization (`~/.config/hypr/config/inputs.lua`)
-
-#### Pointer Acceleration Profile
-- `input.accel_profile = "adaptive"` (macOS-like velocity-based acceleration) or `"flat"` (linear 1:1 acceleration).
-
-#### Supported `input.touchpad` Options (Hyprland 0.55+ Lua API)
-| Option | Type | Description |
-|--------|------|-------------|
-| `natural_scroll` | `boolean` | Set `true` for reverse/natural scrolling (macOS standard). |
-| `tap_to_click` | `boolean` | Set `true` to enable tap-to-click. |
-| `clickfinger_behavior` | `boolean` | Set `true` for finger-count clicks (1 finger = left, 2 fingers = right, 3 fingers = middle). |
-| `middle_button_emulation` | `boolean` | Set `true` to emulate middle click by pressing both buttons. |
-| `scroll_factor` | `float` | Multiplier for trackpad scroll distance (default `1.0`). |
-| `disable_while_typing` | `boolean` | Set `true` to disable trackpad input when typing. |
-| `drag_lock` | `integer` | Drag lock duration / behavior (`0` = disabled). |
-
-#### Cursor Settings (`cursor`)
-| Option | Type | Description |
-|--------|------|-------------|
-| `inactive_timeout` | `float`/`integer` | Inactivity timeout in seconds before auto-hiding the cursor (`3` = 3s). `0` disables. |
-| `hide_on_key_press` | `boolean` | Set `true` to automatically hide cursor when typing. |
-
-> [!WARNING]
-> Do NOT use `tap_to_drag` or `tap-to-drag` as option keys under `input.touchpad` in Hyprland 0.55. These are unsupported option keys that throw Hyprland configuration errors. Tap-to-drag is handled natively when `tap_to_click = true`.
-
-#### Touchpad Gesture API (`hl.gesture`)
-Syntax:
-```lua
-hl.gesture({ fingers = <N>, direction = "<dir>", action = "<action>" })
-```
-- **Fingers (`fingers`)**: `3`, `4`
-- **Direction (`direction`)**: `"horizontal"`, `"vertical"`, `"up"`, `"down"`, `"left"`, `"right"`
-- **Actions (`action`)**: `"workspace"`, `"fullscreen"`, `"close"`, `"float"`
+1. **NEVER modify `/usr/share/omarchy/`.**
+   This directory is owned by the system package manager. Any edits here will be overwritten on the next `omarchy update`. Reading is safe and encouraged for inspecting stock commands, themes, and default Lua configs.
+2. **Always edit user configurations in `~/.config/`.**
+   Use targeted edits (`replace_file_content`, patch, append). Never overwrite whole configuration files blindly, as this deletes existing user customizations and theme hooks.
+3. **Hyprland Lua validation.**
+   Hyprland on Omarchy Quattro uses Lua configuration files. After making changes, always test and validate using:
+   ```bash
+   hyprctl reload
+   hyprctl configerrors
+   ```
+4. **Elevated privileges.**
+   For commands requiring sudo, launch an interactive terminal (`kitty -e bash -c "sudo <cmd>; read"`) so the user can provide credentials securely.
 
 ---
 
-## Noctalia Configs (`~/.config/noctalia/`)
+## Hyprland Configuration (`~/.config/hypr/`)
 
-| Path | Controls | Edit Rule |
-|------|----------|-----------|
-| `config.toml` | Main Wayland Shell settings: widgets, panels, tray icons, themes | Patch specific key-value pairs (TOML structure). Run `noctalia msg reload` or restart after editing. |
+Omarchy Quattro loads system defaults from `/usr/share/omarchy/default/hypr/`, followed by user overrides in `~/.config/hypr/`.
 
----
-
-## Terminal & Editor Configs (`~/.config/`)
-
-| Path | Purpose | Edit Rule |
-|------|---------|-----------|
-| `alacritty/alacritty.toml` | Alacritty terminal emulator profile | Patch TOML values. |
-| `kitty/kitty.conf` | Kitty terminal emulator configuration | Patch values; imports custom theme. |
-
----
-
-## Shell Configs (`~/.config/fish/`)
-
-The system uses `fish` as its default interactive shell.
-
-| Path | Purpose | Edit Rule |
-|------|---------|-----------|
-| `config.fish` | Shell aliases, variables, interactive startup settings | Append functions or variables. Do not overwrite. |
+| File | Purpose | Customization & Edit Rules |
+|------|---------|----------------------------|
+| `hyprland.lua` | Compositor entrypoint | Sources Omarchy defaults, then loads user modules. Append `require(...)` statements or global options. |
+| `bindings.lua` | Keyboard shortcuts & hardware keys | Use `o.bind("MOD + KEY", "Description", action)`. If rebinding an existing key, call `hl.unbind("MOD + KEY")` first. |
+| `monitors.lua` | Display panels, resolutions, and scales | Set `hl.monitor({ output = "...", mode = "...", position = "...", scale = ... })` and export `hl.env("GDK_SCALE", ...)`. |
+| `input.lua` | Touchpad, mouse, gestures, cursor options | Use `hl.config({ input = { ... } })` and `hl.gesture({ fingers = N, direction = "...", action = "..." })`. |
+| `looknfeel.lua` | Visual styling: gaps, borders, rounding, blur, shadows | Edit decorative values inside `hl.config({ general = { ... }, decoration = { ... } })`. |
+| `autostart.lua` | User applications launched on compositor boot | Append commands to run upon session startup. |
+| `hyprsunset.conf` | Blue light filter / Night light schedule | Standard config syntax. Reload via `omarchy restart hyprsunset`. |
+| `xdph.conf` | XDG Desktop Portal Hyprland settings | Screen sharing and screencopy portal configuration. Reloads on session login. |
 
 ---
 
-## User Binaries & Helper Scripts (`~/.local/bin/`)
+## Omarchy Shell & Desktop Services (`~/.config/omarchy/`)
 
-Custom shell scripts executed by Hyprland keybindings or desktop workflows.
+The Omarchy Shell is built with Quickshell, providing an ultra-responsive status bar, notification center, on-screen display (OSD), and menus.
 
-| Path | Purpose | Description |
-|------|---------|-------------|
-| `mac-key-helper` | macOS Text Navigation Helper | Inspects active window class/floating state and dispatches context-aware shortcuts. |
-| `hypr-window-pop` | Window Pop-out & Pin Script | Triggered by `SUPER+O` to float, resize to 1300x900, center, and pin active window across workspaces. |
-| `hypr-toggle-altwin` | Alt/Super Layout Toggle | Triggered by `SUPER+ALT+K` to dynamically toggle `kb_options` between Mac (Swapped) and PC (Normal) layouts on the fly. |
+| File / Directory | Purpose | Customization & Edit Rules |
+|------------------|---------|----------------------------|
+| `shell.json` | Status bar layout, widgets, and idle timers | Modify widget arrays under `bar.layout` (`left`, `center`, `right`) and idle timers (`idle.lock`, `idle.screensaver`). Hot-reloads on save, or run `omarchy restart shell`. |
+| `extensions/omarchy-menu.jsonc` | Application launcher and menu structure | Hot-reloads on file save. |
+| `themes/<custom-theme>/` | Custom user themes | Overlay `colors.toml`, icons, wallpapers, and fonts. Apply via `omarchy theme set <custom-theme>`. |
+| `hooks/` | Automation event hooks | Executable scripts in event subdirectories (e.g. `theme-set.d/`, `workspace-changed.d/`). Install via `omarchy hook install <event> <script>`. |
+| `plugins/` | Cloned or custom Quickshell plugins | Clone stock plugins via `omarchy plugin clone <plugin>` to edit them locally in user space without modifying vendor files. |
 
 ---
 
-## System Configs (Require Sudo Approval)
+## Terminal Emulators (`~/.config/`)
 
-These commands will prompt the user for confirmation and password access.
+Omarchy Quattro supports multiple modern Wayland terminals.
 
-| Path | Purpose | Edit Rule |
-|------|---------|-----------|
-| `/etc/pacman.conf` | Pacman configuration and repository listings | Patch lines only. |
-| `/etc/fstab` | File systems and mount configurations | Append or patch only; always verify partition UUIDs. |
+| Path | Emulator | Reload / Apply Command |
+|------|----------|------------------------|
+| `~/.config/kitty/kitty.conf` | Kitty | `omarchy restart terminal` or `kill -SIGUSR1 $(pidof kitty)` |
+| `~/.config/alacritty/alacritty.toml` | Alacritty | Hot-reloads on save or `omarchy restart terminal` |
+| `~/.config/foot/foot.ini` | Foot | Applied to newly opened windows |
+| `~/.config/ghostty/config` | Ghostty | Hot-reloads on save or `omarchy restart terminal` |
+
+---
+
+## Shell & Command Environment
+
+| Path | Purpose | Edit Rules |
+|------|---------|------------|
+| `~/.config/fish/config.fish` | Interactive Fish shell configuration | Add functions, environment exports, and aliases. Keep fish-compatible syntax. |
+| `~/.local/bin/` | User executable binaries & helper scripts | Must have `chmod +x`. Precedence given over system paths in user session. |
+| `~/.local/share/applications/` | User desktop entry files & Webapps | Custom `.desktop` launchers for PWAs (e.g. YouTube, AllAnime) and custom icons. |
+
+---
+
+## System Configuration (Requires Elevated Sudo)
+
+| Path | Purpose | Safe Editing Pattern |
+|------|---------|----------------------|
+| `/etc/pacman.conf` | Arch Linux / CachyOS / Omarchy repositories | Edit with targeted diffs; preserve repository signing keys. |
+| `/etc/fstab` | Filesystem mount definitions | Never overwrite; always verify UUIDs and mount options with `findmnt`. |
+| `/etc/systemd/system/` | System-wide systemd services | Reload after changes using `sudo systemctl daemon-reload`. |

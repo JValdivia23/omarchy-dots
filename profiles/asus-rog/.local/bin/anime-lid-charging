@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# anime-lid-charging - ASUS ROG AniMe Matrix Lid Charging Daemon
+# Monitors ACPI charger status and lid state to render dynamic battery animations
+# ==============================================================================
+exec python3 - "$@" << 'EOF'
+import os
+import sys
+import time
+import glob
+import subprocess
+from PIL import Image, ImageDraw, ImageFont
+
+PICTURES_DIR = os.path.expanduser("~/Pictures/anime-matrix")
+os.makedirs(PICTURES_DIR, exist_ok=True)
+GIF_PATH = os.path.join(PICTURES_DIR, "lid_charging.gif")
+
+WIDTH, HEIGHT = 74, 36
+
+def get_lid_closed():
+    lid_files = glob.glob("/proc/acpi/button/lid/*/state")
+    for f in lid_files:
+        try:
+            with open(f, "r") as fp:
+                if "closed" in fp.read().lower():
+                    return True
+        except Exception:
+            pass
+    return False
+
+def get_ac_online():
+    ac_files = glob.glob("/sys/class/power_supply/*/online")
+    for f in ac_files:
+        try:
+            with open(f, "r") as fp:
+                if fp.read().strip() == "1":
+                    return True
+        except Exception:
+            pass
+    return False
+
+def get_battery_info():
+    cap = 80
+    status = "Charging"
+    try:
+        with open("/sys/class/power_supply/BAT0/capacity", "r") as fp:
+            cap = int(fp.read().strip())
+    except Exception:
+        pass
+    try:
+        with open("/sys/class/power_supply/BAT0/status", "r") as fp:
+            status = fp.read().strip()
+    except Exception:
+        pass
+    return cap, status
+
+def create_battery_frame(capacity, charging, frame):
+    img = Image.new("1", (WIDTH, HEIGHT), 0)
+    draw = ImageDraw.Draw(img)
+    
+    # 1. Outer Battery Box
+    draw.rectangle([(4, 4), (54, 20)], outline=1, width=2)
+    # Battery positive terminal tip
+    draw.rectangle([(55, 8), (58, 16)], fill=1)
+    
+    # 2. Fill level (max width = 46px)
+    fill_w = max(2, int((capacity / 100.0) * 46))
+    draw.rectangle([(7, 7), (7 + fill_w, 17)], fill=1)
+    
+    # 3. Animated Lightning Bolt in center when charging
+    if charging and (frame % 2 == 0):
+        bolt_pts = [(30, 2), (24, 12), (30, 12), (26, 22), (36, 10), (30, 10)]
+        draw.polygon(bolt_pts, fill=1)
+        
+    # 4. Text Percentage at bottom
+    text = f"{capacity}%"
+    try:
+        font = ImageFont.load_default()
+        draw.text((24, 23), text, fill=1, font=font)
+    except Exception:
+        pass
+        
+    return img
+
+def generate_charging_gif(capacity, charging):
+    frames = []
+    for f in range(10):
+        img = create_battery_frame(capacity, charging, f)
+        frames.append(img.convert("L"))
+        
+    frames[0].save(
+        GIF_PATH,
+        save_all=True,
+        append_images=frames[1:],
+        duration=150,
+        loop=0
+    )
+    return GIF_PATH
+
+def main():
+    active_charging_mode = False
+    last_cap = -1
+    last_status = ""
+    gif_proc = None
+
+    while True:
+        lid_closed = get_lid_closed()
+        ac_online = get_ac_online()
+        cap, status = get_battery_info()
+
+        # Trigger condition: Lid CLOSED AND Charger PLUGGED IN
+        should_show_charging = lid_closed and ac_online
+
+        if should_show_charging:
+            if not active_charging_mode or cap != last_cap or status != last_status:
+                # 1. Allow AniMe Matrix while lid closed
+                subprocess.run(["asusctl", "anime", "--off-when-lid-closed", "false"], stderr=subprocess.DEVNULL)
+                
+                # 2. Generate updated battery GIF
+                generate_charging_gif(cap, status in ["Charging", "Full"])
+                
+                # 3. Stop old animation process if running
+                if gif_proc:
+                    gif_proc.terminate()
+                    gif_proc = None
+                    
+                # 4. Start playing live charging GIF
+                gif_proc = subprocess.Popen(["asusctl", "anime", "gif", "--path", GIF_PATH])
+                
+                active_charging_mode = True
+                last_cap = cap
+                last_status = status
+        else:
+            if active_charging_mode:
+                if gif_proc:
+                    gif_proc.terminate()
+                    gif_proc = None
+                
+                # Restore lid-closed power-off setting
+                subprocess.run(["asusctl", "anime", "--off-when-lid-closed", "true"], stderr=subprocess.DEVNULL)
+                subprocess.run(["asusctl", "anime", "--clear"], stderr=subprocess.DEVNULL)
+                active_charging_mode = False
+                last_cap = -1
+                last_status = ""
+
+        time.sleep(3)
+
+if __name__ == "__main__":
+    main()
+EOF

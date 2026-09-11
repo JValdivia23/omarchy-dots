@@ -1,113 +1,147 @@
 # Keyboard Shortcuts (Keybindings)
 
-A reference sheet of keyboard bindings on `cachy-asus`. All bindings are defined in `~/.config/hypr/config/binds.lua`.
+A comprehensive reference sheet of keyboard bindings on Omarchy Quattro (`omarchy` - Surface Book 3).
 
-The modifier key `SUPER` (Windows/Command key) is denoted as **`SUPER`**.
+Configuration files:
+- User overrides: [`~/.config/hypr/bindings.lua`](file:///home/jmvp/.config/hypr/bindings.lua)
+- System defaults: `/usr/share/omarchy/default/hypr/bindings/`
+- Interactive reference: Run `omarchy menu keybindings` or press `SUPER + K`
 
-## Window Management & System Controls
+The primary modifier key is **`SUPER`** (Windows / Command key).
+
+---
+
+## Surface Book 3 & Hardware Functions
+
+| Shortcut | Command / Action | Description |
+|----------|------------------|-------------|
+| `SUPER` + `D` | `surface dtx request` | Request hardware latch release to detach tablet |
+| `SUPER` + `R` | `hyprctl keyword monitor ...` | Manually rotate display transform (0° → 90° → 270° → 0°) |
+| `SUPER` + `SHIFT` + `U` | `fcitx5-remote -t` | Toggle on-screen virtual keyboard panel (Fcitx5) |
+| `SUPER` + `ALT` + `K` | `~/.local/bin/hypr-toggle-altwin` | Toggle Alt / Super key swap (Mac vs PC layout) |
+| `SUPER` + `ALT` + `BACKSPACE` | `omarchy-hyprland-window-transparency-toggle` | Toggle window transparency / opacity |
+| `SUPER` + `/` | `omarchy monitor scale up` | Increase monitor scaling |
+| `SUPER` + `ALT` + `/` | `omarchy monitor scale down` | Decrease monitor scaling |
+
+---
+
+## macOS-Style Navigation & Editing Overrides
+
+Configured in `~/.config/hypr/bindings.lua` to provide smooth, familiar text editing:
+
+| Shortcut | Action | Scope / Behavior |
+|----------|--------|------------------|
+| `CTRL` + `Left` / `Right` / `Up` / `Down` | Focus Window | Move window focus in directional grid |
+| `SUPER` + `Left` | Line Start (Home) | Jump to beginning of line (repeating) |
+| `SUPER` + `Right` | Line End (End) | Jump to end of line (repeating) |
+| `SUPER` + `Up` | Document Start | Jump to top of document (`CTRL + Home`) |
+| `SUPER` + `Down` | Document End | Jump to end of document (`CTRL + End`) |
+| `ALT` + `Left` / `Right` | Word Navigation | Jump one word left / right (`CTRL + Left/Right`) |
+| `ALT` + `SHIFT` + `Left` / `Right` | Word Selection | Select one word left / right (`CTRL + SHIFT + Left/Right`) |
+| `ALT` + `BackSpace` | Delete Word | Delete word backward (`CTRL + BackSpace`) |
+| `SUPER` + `BackSpace` | Delete Line | Delete line backward (`CTRL + U` in terminal, `SHIFT + Home + BackSpace` in GUI) |
+| `SUPER` + `Z` | Undo | Undo last action (`CTRL + Z`) |
+| `SUPER` + `SHIFT` + `Z` | Redo | Redo last action (`CTRL + SHIFT + Z`) |
+| `SUPER` + `C` | Copy | Universal copy (`CTRL + C` in GUI, `CTRL + SHIFT + C` in terminal) |
+| `SUPER` + `V` | Paste | Universal paste (`CTRL + V` in GUI, `CTRL + SHIFT + V` in terminal) |
+| `SUPER` + `X` | Cut | Universal cut (`CTRL + X`) |
+
+---
+
+## Window Management & Tiling
 
 | Shortcut | Action | Description |
 |----------|--------|-------------|
-| `SUPER` + `Escape` | Session Menu | Open Noctalia shutdown, reboot, logout, suspend menu |
-| `SUPER` + `Q` / `W` | Close Window | Close the focused window |
-| `SUPER` + `T` | Toggle Floating | Toggle floating/tiling state of active window |
-| `SUPER` + `D` | Fullscreen Mode 1 | Fullscreen window keeping workspace bar |
-| `SUPER` + `C` | macOS Copy | `CTRL` + `C` in GUI apps / `CTRL` + `SHIFT` + `C` in terminals |
-| `SUPER` + `V` | macOS Paste | `CTRL` + `V` in GUI apps / `CTRL` + `SHIFT` + `V` in terminals |
-| `SUPER` + `F` | Fullscreen | Fullscreen window |
-| `SUPER` + `J` | Toggle Split | Toggle split direction (dwindle layout) |
-| `SUPER` + `P` | Pseudo Split | Toggle pseudo dwindle layout |
-| `SUPER` + `O` | Pop-out & Pin | Float, resize (1100x700), center, & pin window across workspaces |
-| `SUPER` + `SHIFT` + `O` | Video PiP & Pin | Small video PiP (560x315) in bottom-right corner & pin across workspaces |
-| `CTRL` + `Left` / `Right` / `Up` / `Down` | Focus Direction | Change focus to adjacent window |
-| `ALT` + `Tab` | Cycle Next | Cycle focus through windows |
-| `SUPER` + `ALT` + `Left` / `Right` / `Up` / `Down` | Swap Window | Swap positions with adjacent window |
-| `SUPER` + `Tab` / `SUPER` + `SHIFT` + `Tab` | Workspace Switch | Switch to next / previous workspace |
-| `SUPER` + `CONTROL` + `Left` / `Right` | Move WS (Relative) | Move active window to next/prev workspace |
-| `SUPER` + Left Click Drag | Drag Move | Move floating window |
-| `SUPER` + Right Click Drag | Drag Resize | Resize floating window |
+| `SUPER` + `W` | Close Window | Close the focused window |
+| `SUPER` + `F` | Fullscreen | Toggle fullscreen mode |
+| `SUPER` + `ALT` + `F` | Full Width | Maximize window width |
+| `SUPER` + `T` | Toggle Floating | Toggle floating / tiling state for active window |
+| `SUPER` + `J` | Toggle Split | Toggle horizontal / vertical window split (dwindle) |
+| `SUPER` + `P` | Pseudo Tiling | Toggle pseudo-tiled layout |
+| `SUPER` + `O` | Pop-out & Pin | Float, center, and pin window across workspaces |
+| `SUPER` + `L` | Toggle Layout | Switch between tiling layouts |
+| `SUPER` + `G` | Group Windows | Toggle window grouping / tabs |
+| `SUPER` + `SHIFT` + `Backspace` | Window Gaps | Toggle outer and inner window gaps |
+| `CTRL` + `ALT` + `Delete` | Close All | Terminate all active windows |
+| `SUPER` + Left Click Drag | Move Window | Drag floating window |
+| `SUPER` + Right Click Drag | Resize Window | Resize floating window |
 
-## Application Launchers (`SUPER + SHIFT + <key>`)
+---
 
-| Shortcut | Launch Command | Target App |
-|----------|----------------|------------|
-| `SUPER` + `Return` | `kitty` | Default Terminal |
-| `SUPER` + `SHIFT` + `Return` | `ghostty` | Ghostty Terminal |
-| `SUPER` + `SHIFT` + `B` | `zen-browser` | Zen Web Browser |
-| `SUPER` + `SHIFT` + `F` | `dolphin` | Dolphin File Manager |
-| `SUPER` + `SHIFT` + `A` | `kitty -e lazygit` | LazyGit CLI |
-| `SUPER` + `SHIFT` + `D` | `kitty -e lazydocker` | LazyDocker CLI |
-| `SUPER` + `SHIFT` + `N` | `kitty -e nvim ~/Documents/Notes` | Neovim Notes |
-| `SUPER` + `SHIFT` + `Y` | `gtk-launch YouTube.desktop` | YouTube Web App |
-| `SUPER` + `SHIFT` + `U` | `kitty -e yazi` | Yazi CLI File Manager |
+## Applications & Webapps
 
-## System Panels & Utilities (`SUPER + <key>`)
+| Shortcut | Target Application | Launch Command |
+|----------|--------------------|----------------|
+| `SUPER` + `Return` | Terminal | Default terminal (Kitty / Foot) |
+| `SUPER` + `SHIFT` + `Return` | Browser | Zen Web Browser (`zen-browser-bin`) |
+| `SUPER` + `SHIFT` + `B` | Browser | Zen Web Browser |
+| `SUPER` + `SHIFT` + `ALT` + `B` | Browser (Private) | Zen Browser in private browsing mode |
+| `SUPER` + `SHIFT` + `F` | File Manager | Dolphin (`dolphin`) |
+| `SUPER` + `SHIFT` + `Y` | YouTube | YouTube Web App via Brave Origin (`brave-origin`) |
+| `SUPER` + `SHIFT` + `O` | Obsidian | Obsidian markdown notes |
+| `SUPER` + `SHIFT` + `N` | Editor | Text editor (Neovim / GUI editor) |
+| `SUPER` + `SHIFT` + `A` | ChatGPT | AI assistant webapp |
+| `SUPER` + `SHIFT` + `D` | Docker | Docker CLI / Manager |
+| `SUPER` + `SHIFT` + `M` | Music | Audio & music player |
+| `SUPER` + `SHIFT` + `X` | X | Social webapp |
+
+---
+
+## System Menus & Quick Settings
+
+| Shortcut | Menu / Action | Description |
+|----------|---------------|-------------|
+| `SUPER` + `Space` | Omarchy Menu | Open root application launcher |
+| `SUPER` + `K` | Keybindings | Searchable keybindings browser overlay |
+| `SUPER` + `Escape` | System Menu | Shutdown, restart, lock, suspend menu |
+| `SUPER` + `CTRL` + `L` | Lock Session | Lock screen immediately |
+| `SUPER` + `CTRL` + `V` | Clipboard | Clipboard history manager |
+| `SUPER` + `CTRL` + `E` | Emojis | Emoji selector menu |
+| `SUPER` + `CTRL` + `Space` | Wallpaper | Wallpaper and background selector |
+| `SUPER` + `SHIFT` + `CTRL` + `Space` | Themes | Omarchy theme switcher |
+| `SUPER` + `SHIFT` + `Space` | Top Bar | Toggle Quickshell top bar visibility |
+| `SUPER` + `CTRL` + `A` | Audio Panel | Audio volume and output settings |
+| `SUPER` + `CTRL` + `B` | Bluetooth Panel | Bluetooth device pairing and management |
+| `SUPER` + `CTRL` + `D` | Display Panel | Display and monitor settings |
+| `SUPER` + `CTRL` + `W` | Network Panel | Wi-Fi and network configuration |
+| `SUPER` + `CTRL` + `P` | Power Panel | Power profiles and battery management |
+| `SUPER` + `CTRL` + `C` | Capture Menu | Screenshot & screenrecording options |
+| `SUPER` + `CTRL` + `H` | Hardware Menu | System hardware diagnostics |
+
+---
+
+## Screenshots & Recording
 
 | Shortcut | Action | Description |
 |----------|--------|-------------|
-| `SUPER` + `Space` | Launcher | Toggle Noctalia Application Launcher |
-| `SUPER` + `A` | Notifications | Toggle Notifications panel |
-| `SUPER` + `L` | Lock Session | Lock screen session |
-| `SUPER` + `E` | Control Center | Toggle Noctalia Control Center |
-| `SUPER` + `,` | Noctalia Settings | Toggle Noctalia Settings menu |
-| `SUPER` + `CONTROL` + `V` | Clipboard | Toggle Clipboard history panel |
-| `SUPER` + `ALT` + `K` / `SUPER` + `SHIFT` + `K` | Layout Toggle | Toggle Super/Alt position swap (Mac vs PC layout) |
-| `SUPER` + `K` | Dynamic Cheat Sheet | Open searchable, floating keybindings cheat sheet |
-| `SUPER` + `Escape` | Session Menu | Open Noctalia shutdown, reboot, logout, suspend menu |
-| `SUPER` + `ALT` + `C` | Force-Kill Window | Turn cursor into crosshair to click & kill any window |
-| `SUPER` + `SHIFT` + `L` / `XF86Sleep` | Lock & Suspend | Lock screen and put system to sleep / suspend |
-| `SUPER` + `SHIFT` + `P` | Color Picker | Launch `hyprpicker -a` (click to copy hex) |
-| `Print` / `SUPER` + `SHIFT` + `S` | Region Screenshot | Select region screenshot with annotation editor (Satty) |
-| `SHIFT` + `Print` | Window / Pick Screenshot | Interactive monitor / window pick screenshot |
-| `CTRL` + `Print` / `SUPER` + `Print` | Fullscreen Screenshot | Fullscreen screenshot with annotation editor (Satty) |
-| `SUPER` + `SHIFT` + `W` | Wallpaper Panel | Toggle Noctalia wallpaper panel |
-| `ALT` + `Space` | Waypaper GUI | Open Waypaper GUI (folder/subfolder browsing, rotation timer, random wallpaper) |
-| `ALT` + `Return` | Quick Look Preview | Open macOS-style floating Quick Look overlay (`swayimg`) over highlighted file |
-| `SUPER` + `ALT` + `N` | Night Light Toggle | Toggle night light / warm temperature color filter |
-| `SUPER` + `ALT` + `T` | Dark/Light Toggle | Toggle desktop theme between dark and light mode |
-| `SUPER` + `CONTROL` + `I` | Caffeine Toggle | Toggle Caffeine (idle inhibitor) to prevent automatic sleep/idle |
+| `Print` | Screenshot | Capture selected region with Satty annotation |
+| `ALT` + `Print` | Screen Recording | Record selected region or desktop |
+| `SUPER` + `Print` | Color Picker | Pick color hex code from screen |
+| `SUPER` + `CTRL` + `Print` | OCR Text Extract | Extract text from on-screen region via OCR |
 
-## macOS Text Editing & Selection
+---
 
-| Shortcut | Context | Target Action |
-|----------|---------|---------------|
-| `SUPER` + `Left` / `Right` | Global | Jump to line HOME / END |
-| `SUPER` + `Up` / `Down` | Terminal / GUI | Jump to document top / bottom |
-| `SUPER` + `Backspace` | Terminal / GUI | Delete line (`CTRL+U` or `SHIFT+HOME -> BACKSPACE`) |
-| `ALT` + `Backspace` | Terminal / GUI | Delete word (`ALT+BACKSPACE` or `CTRL+BACKSPACE`) |
-| `ALT` + `Left` / `Right` | Terminal / GUI | Jump word left / right |
-| `ALT` + `SHIFT` + `Left` / `Right` | Terminal / GUI | Select word left / right |
-| `SUPER` + `SHIFT` + Arrows | Floating / Tiled | Fine window resize (20px) if floating, text selection if tiled |
-| `SUPER` + `C` / `V` / `X` | Global | macOS-style Copy / Paste / Cut (`CTRL+SHIFT+C`, `CTRL+V`, `CTRL+X`) |
-| `SUPER` + `Z` / `SUPER` + `SHIFT` + `Z` | Global | macOS-style Undo / Redo (`CTRL+Z`, `CTRL+SHIFT+Z`) |
+## Workspaces
 
-## Hardware Controls
+| Shortcut | Action |
+|----------|--------|
+| `SUPER` + `1` .. `9`, `0` | Switch to workspace 1 through 10 |
+| `SUPER` + `SHIFT` + `1` .. `9`, `0` | Move active window to workspace 1 through 10 |
+| `SUPER` + `Tab` / `SUPER` + `SHIFT` + `Tab` | Cycle next / previous workspace |
+| `SUPER` + `CTRL` + `Tab` | Switch to formerly active workspace |
+| `SUPER` + Mouse Wheel Up / Down | Scroll active workspace forward / backward |
+
+---
+
+## Hardware Media & Brightness Controls
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| `XF86AudioRaiseVolume` | `noctalia msg volume-up` | Raise sound volume |
-| `XF86AudioLowerVolume` | `noctalia msg volume-down` | Lower sound volume |
-| `XF86AudioMute` | `noctalia msg volume-mute` | Mute sound volume |
-| `XF86AudioMicMute` | `noctalia msg mic-mute` | Mute/unmute microphone |
-| `XF86AudioPlay` / `Pause` | `noctalia msg media toggle` | Play/Pause audio playback |
-| `XF86AudioNext` | `noctalia msg media next` | Next audio track |
-| `XF86AudioPrev` | `noctalia msg media previous` | Previous audio track |
-| `XF86MonBrightnessUp` | `noctalia msg brightness-up` | Increase screen brightness (5%) |
-| `XF86MonBrightnessDown` | `noctalia msg brightness-down` | Decrease screen brightness (5%) |
-| `SHIFT` + `XF86MonBrightnessUp` / `Down` | Fine Brightness | Fine-tune screen brightness in 1% steps |
-| `CONTROL` + `XF86MonBrightnessUp` / `Down` | Coarse Brightness | Coarse-tune screen brightness in 10% steps |
-| `XF86KbdBrightnessUp` / `Down` (`Fn` + `Up` / `Down`) | Keyboard Brightness | Adjust keyboard backlight brightness (0-3) with OSD |
-
-## Workspaces & Monitor Control
-
-| Shortcut | Action | Description |
-|----------|--------|-------------|
-| `SUPER` + `1` .. `9`, `0` | Switch Workspace | Switch active workspace to 1 through 10 |
-| `SUPER` + `SHIFT` + `1` .. `9`, `0` | Move Window to WS | Move active window to workspace 1 through 10 |
-| `SUPER` + `` ` `` (`grave` / `~`) | Focus Next Monitor | Cycle focus to the next monitor |
-| `SUPER` + `SHIFT` + `` ` `` | Move Window Next Mon | Move active window to the next monitor |
-| `SUPER` + `CONTROL` + `` ` `` | Move Workspace Next Mon | Move current workspace to the next monitor |
-| `SUPER` + `ALT` + `1` / `2` / `3` | Focus Monitor | Focus monitor 1, 2, or 3 |
-| `Fn` + `F6` / `SUPER` + `SHIFT` + `S` / `Print` | Region Screenshot | Select region screenshot with annotation editor (Satty) |
-| `SUPER` + `S` | Toggle Scratchpad | Toggle visibility of hidden Scratchpad overlay |
-| `SUPER` + `ALT` + `S` | Move to Scratchpad | Move focused window to Scratchpad silently |
+| `XF86AudioRaiseVolume` / `LowerVolume` | Volume Up / Down | Adjust audio output volume |
+| `XF86AudioMute` | Mute Audio | Toggle audio mute |
+| `XF86AudioMicMute` | Mute Microphone | Toggle microphone input mute |
+| `XF86AudioPlay` / `Pause` / `Next` / `Prev` | Media Controls | Control active MPRIS media playback |
+| `XF86MonBrightnessUp` / `Down` | Screen Brightness | Adjust panel backlight brightness |
+| `XF86KbdBrightnessUp` / `Down` | Keyboard Backlight | Adjust keyboard backlight illumination |
+| `XF86KbdLightOnOff` | Keyboard Light Cycle | Toggle keyboard illumination |
+| `XF86TouchpadToggle` | Touchpad Toggle | Enable / disable precision touchpad |

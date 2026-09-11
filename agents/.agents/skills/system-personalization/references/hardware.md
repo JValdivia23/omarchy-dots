@@ -1,33 +1,52 @@
-# Hardware Specifications
+# Hardware Specifications (`omarchy` - Surface Book 3)
 
-Documentation of the physical machine specs and active peripherals.
+Live physical system specifications and active peripherals probed automatically.
 
-## CPU & System Architecture
-- **Processor**: AMD Ryzen 9 4900HS (8 Cores, 16 Threads)
+## System & Architecture
+- **Product / Model**: Surface Book 3
+- **Hostname**: `omarchy`
 - **Architecture**: x86_64
-- **Base/Boost Clock**: 3.0 GHz / 4.3 GHz
+- **Active Profiles**: surface, laptop
+
+## CPU & Processing
+- **Processor**: Intel(R) Core(TM) i5-1035G7 CPU @ 1.20GHz
+- **Physical Cores / Threads**: 8
+- **CPU max MHz**: 3700.0000
+- **CPU min MHz**: 400.0000
+- **L3 cache**: 6 MiB (1 instance)
 
 ## Graphics Processing Units (GPUs)
-- **Dedicated GPU**: NVIDIA GeForce RTX 2060 Max-Q (6 GB GDDR6)
-  - Driver: proprietary NVIDIA driver (recommended) or open-source nouveau depending on setup
-  - Role: High-performance rendering & external displays
-- **Integrated GPU**: AMD Renoir (Radeon Vega Mobile Series)
-  - Driver: `amdgpu` (open-source kernel module)
-  - Role: Low-power display rendering (eDP-1) and energy saving
+- **Detected GPU(s)**: Intel Corporation Iris Plus Graphics G7
+  00:02.0 VGA compatible controller: Intel Corporation Iris Plus Graphics G7 (rev 07)
+  	Subsystem: Microsoft Corporation Device 0043
+  	Kernel driver in use: i915
 
-## Memory & Storage
-- **System Memory (RAM)**: 22 GiB
-- **Primary Disk**: NVMe SSD (Partition `/dev/nvme0n1p7` mounted on `/` and `/home` with 232 GB total size)
+## Memory & Swap
+- **Total System RAM**: 7.4Gi
+- **Swap Space**: 14Gi
 
-## Monitors & Display Panel
-- **Panel**: Internal Laptop Display (`eDP-1`)
-  - Make/Model: AU Optronics 0xE68C
-  - Physical Size: 310mm x 170mm (~14 inches)
-  - Native Resolution: 2560 x 1440
-  - Refresh Rate: 60.01 Hz
-  - Scale Factor: 1.33 (fractional scaling)
+## Storage & Filesystems
+```
+Filesystem        Size  Used Avail Use% Mounted on
+/dev/mapper/root  237G   19G  218G   8% /
+/dev/mapper/root  237G   19G  218G   8% /home
+```
 
-## Peripherals (Input/Output)
-- **Keyboard**: Built-in laptop keyboard
-- **Pointing Device**: Built-in touchpad
-- **Audio Device**: AMD Renoir Audio Controller / NVIDIA TU106 HDMI Audio Controller (managed via Wireplumber/Pipewire)
+## Displays & Monitors
+- **Primary Display**: eDP-1 (3000x2000@60Hz, scale 2)
+```
+Monitor eDP-1 (ID 0):
+	3000x2000@59.98500 at 0x0
+	make: Panasonic Industry Company
+	model: TDM13O56    
+	scale: 2
+	transform: 0
+	availableModes: 3000x2000@59.98Hz 
+```
+
+## Input Devices & Peripherals
+- **Touchscreen**: Intel Precise Touch & Stylus Daemon (iptsd) active
+- **Surface DTX Latch**: Supported via surface-dtx-daemon
+### Batteries
+- **BAT1**: 97% (Discharging)
+- **BAT2**: 94% (Discharging)

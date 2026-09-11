@@ -2,6 +2,67 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.1.2] - 2026-09-10
+### Fixed
+- **FreeDesktop Desktop Entry Compliance**: Fixed `.desktop` file syntax in `webapps/.local/share/applications/` (`AniMatrix.desktop`, `Hanime.desktop`, `PH.desktop`) to strictly adhere to Desktop Entry Specification:
+  - Replaced forbidden single-quote command string wrapping in `Exec=` keys with escaped double quotes.
+  - Properly escaped nested shell environment variable expansions (`\"\$HOME/...\"`).
+  - Resolved category duplication warning in `AniMatrix.desktop` (`Settings;HardwareSettings;`).
+  - Verified 100% compliance with `desktop-file-validate` across all repository desktop files.
+
+## [2.1.1] - 2026-09-10
+### Fixed
+- Hardened Omarchy Quattro Master Installer ([`install.sh`](file:///home/jmvp/dotfiles/install.sh)) and GNU Stow helper ([`scripts/02-stow.sh`](file:///home/jmvp/dotfiles/scripts/02-stow.sh)):
+  - **Non-Destructive Backup Protection**: Added canonical path resolution (`realpath -q`) to ensure files and symlinks resolving inside `$DOTFILES_DIR` are never treated as conflicting paths or moved to backup.
+  - **Directory Symlink Sanitization**: Implemented `sanitize_directory_symlinks` to safely convert any pre-existing package directory symlinks (e.g. `~/.agents/skills/system-personalization`) into regular directories, preventing GNU Stow `--no-folding` conflicts and `ln: ... are the same file` fallback errors.
+  - **Conflicting Symlink Backup**: Updated conflict scanner to inspect existing symlinks pointing outside the dotfiles repository, moving them to `$BACKUP_DIR` so GNU Stow can link without aborting.
+  - **Idempotent Fallback Linking**: Enhanced `link_dir_files` fallback to detect already linked targets and avoid redundant work.
+  - **Bytecode Cache Filtering**: Added `__pycache__` and `\.pyc$` ignore filters across `install.sh`, `scripts/02-stow.sh`, and all package `.stow-local-ignore` files.
+  - **Dry-Run Output Clarity**: Explicitly prefixed simulated backup actions (`[dry-run] [Backup]`) and labeled `Simulated Backup: <dir>` in final summary.
+
+- Implemented Omarchy Quattro Master Installation Orchestrator ([`install.sh`](file:///home/jmvp/dotfiles/install.sh)):
+  - Strict mode execution (`set -euo pipefail`) with full CLI argument parser (`--profile`, `--profiles`, `--dry-run`, `--only-stow`, `--only-packages`, `--help`).
+  - Automated hardware detection engine probing `/sys/class/dmi/id/` (product name, vendor, chassis type), `lspci`, and kernel to identify machine profile (`surface`, `asus-rog`, or `desktop`) and hardware traits (`laptop`).
+  - Non-destructive backup handler: automatically backs up conflicting non-symlink configuration files in `~/.config/` or `~/.local/bin/` to `~/.dotfiles_backup_<timestamp>/`.
+  - Package synchronization using `omarchy pkg add` with `pacman -S --needed` fallbacks for `core/packages.txt` and active profile packages.
+  - Deployment using GNU Stow with `--no-folding` and ignore filters (`--ignore='^packages\.txt$' --ignore='^services\.txt$' --ignore='^setup\.sh$' --ignore='^webapps'`), plus direct symlink linking fallback.
+  - Post-installation execution of profile `setup.sh` and initialization of the `system-personalization` skill via `init-skill.sh --profiles "$ACTIVE_PROFILES"`.
+- Implemented comprehensive repository architecture documentation in [`AGENTS.md`](file:///home/jmvp/dotfiles/AGENTS.md):
+  - 3-Tier repository architecture guide (`core/`, `profiles/`, `agents/`).
+  - Omarchy Quattro safety rules (read-only `/usr/share/omarchy/`, targeted edits in `~/.config/`, interactive `kitty -e` privilege escalation).
+  - Hyprland Lua validation protocol (`hyprctl configerrors` and `hyprctl reload`).
+  - Single-file modular gotchas protocol and `init-skill.sh` personalization protocol.
+  - Step-by-step instructions for creating a new machine profile.
+- Implemented user-facing documentation in [`README.md`](file:///home/jmvp/dotfiles/README.md):
+  - Highlights Omarchy Quattro native integration, 3-tier architecture, and multi-machine profile model.
+  - Quickstart guide and CLI options reference.
+  - Hardware profiles catalog (`surface`, `asus-rog`, `desktop`).
+  - New computer profile creation guide and keybinding cheat sheet.
+
+## [2.0.0] - 2026-09-10
+### Added
+- Restructured `system-personalization` skill for multi-machine Omarchy Quattro support:
+  - Created `SKILL.md.template` with customizable variables (`{{HOSTNAME}}`, `{{PRODUCT_NAME}}`, `{{OS}}`, `{{KERNEL}}`, `{{CPU}}`, `{{GPU}}`, `{{PRIMARY_DISPLAY}}`, `{{ACTIVE_PROFILES}}`).
+  - Implemented `scripts/init-skill.sh` to automatically probe physical hardware specs, active profiles, and instantiate `SKILL.md`, `references/hardware.md`, and `references/current-state.md`.
+  - Implemented modular `references/gotchas/` directory with individual documentation files and `INDEX.md`:
+    - `01-hyprland-lua-validation.md`: Hyprland error diagnostics via `hyprctl configerrors`.
+    - `02-omarchy-read-only-safety.md`: Protection of `/usr/share/omarchy/` against overwrite.
+    - `03-surface-scaling-and-touch.md`: Surface Book 3 3000x2000 scaling, `iptsd`, and `scroll_factor 0.4`.
+    - `04-surface-dtx-tablet-detach.md`: Surface Book hardware latch vs `surface dtx request`.
+    - `05-asus-supergfxctl-hybrid.md`: Asus ROG dual GPU switching via `supergfxctl`.
+    - `06-elevated-password-prompts.md`: Interactive terminal prompts (`kitty -e bash -c ...`) for sudo.
+    - `07-fcitx5-wayland-virtual-keyboard.md`: Wayland on-screen virtual keyboard with fcitx5.
+    - `08-localsend-ufw-firewall.md`: LocalSend discovery and transfers blocked by UFW firewall on port 53317.
+    - `09-kitty-ssh-terminfo.md`: Remote SSH hosts lack `xterm-kitty` terminfo causing ZSH/Bash character duplication.
+  - Created `templates/gotcha-entry.md` for standardized individual gotcha authoring.
+  - Added `scripts/snapshot.sh` for diagnostic status capture.
+
+### Changed
+- Converted monolithic `references/gotchas.md` into modular directory structure (`references/gotchas/`).
+- Modernized `references/keybindings.md` for Omarchy Quattro on Surface Book 3 (`omarchy`), documenting macOS-style text editing and Surface hardware tablet helpers from `~/.config/hypr/bindings.lua`.
+- Updated `references/config-paths.md` to document Omarchy Quattro configuration architecture, rules, and commands.
+- Updated `SKILL.md` to version 2.0.0 reflecting live machine specs on Surface Book 3 (`omarchy`).
+
 ## [1.16.0] - 2026-08-13
 ### Added
 - Added multi-compositor support for **Niri** in `hyprland-dots` dotfiles repository:

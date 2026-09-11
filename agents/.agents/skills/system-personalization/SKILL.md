@@ -1,28 +1,29 @@
 ---
 name: system-personalization
-description: "Comprehensive system personalization tracker for cachy-asus — OS, hardware, configs, keybindings, gotchas, offline documentation (CachyOS Wiki & Noctalia), and changelog. Self-improving: update after every change."
-version: 1.0.0
-created: 2026-07-20
-tags: [system, personalization, dotfiles, desktop, hyprland, lua, cachyos, noctalia, fish, keybindings, gotchas, offline-docs]
+description: "Comprehensive system personalization tracker for omarchy (Surface Book 3) — OS, hardware, configs, keybindings, modular gotchas, and changelog. Self-improving: update after every change."
+version: 2.0.0
+tags: [system, personalization, dotfiles, desktop, hyprland, lua, omarchy, gotchas, changelog]
 ---
 
-# System Personalization (`cachy-asus`)
+# System Personalization (`omarchy` - Surface Book 3)
 
-Complete documentation of this machine's configuration and personalization. This is a **self-improving skill** — after any system configuration change, software install, or gotcha discovery, update this skill's references (`references/changelog.md` and `references/gotchas.md`).
+Complete documentation of this machine's configuration and personalization. This is a **self-improving skill** — after any system configuration change, software install, or gotcha discovery, update this skill's references ([`references/changelog.md`](references/changelog.md) and individual gotchas in [`references/gotchas/`](references/gotchas/INDEX.md)).
 
 ---
 
 ## Core Rules
 
-1. **NEVER overwrite config files.** Use targeted edits (`patch`, append) to modify what's needed. Overwriting deletes previous settings from themes, packages, or other tools.
-2. **Respect the modular Lua configuration.** Hyprland on this machine is configured in Lua. All config files are loaded by `~/.config/hypr/hyprland.lua` and reside in `~/.config/hypr/config/`. Never append traditional Hyprland `.conf` syntax.
-3. **Noctalia panel integration.** The Wayland shell is Noctalia. After modifying `~/.config/noctalia/config.toml`, reload it via `noctalia msg reload` or restart it via `noctalia msg restart`.
-4. **Fish Shell environment.** The system shell is `fish`. Do not write `bash`/`zsh` syntax to shell scripts without a proper shebang. Keep aliases and commands fish-compatible.
-5. **Self-improving.** After every config change, software install, bug fix, or gotcha discovery, update this skill — specifically `references/changelog.md` and `references/gotchas.md` if relevant.
-6. **Explain -> Ask -> Act.** Always explain the situation and ask if the user agrees with the solution before making changes to the system or installing anything.
-7. **Hyprland Error Diagnostics.** When the user reports a desktop error, red banner, or system error after modifying Hyprland configs, `journalctl` does NOT log config validation errors. ALWAYS run `hyprctl configerrors` first to inspect the exact line number and error message.
-8. **Elevated Password & Interactive Prompts (`kitty -e`).** When a system command requires user password authentication (such as `sudo pacman` package installations), launch an interactive terminal window using `kitty -e bash -c "sudo <command>; echo 'Done! Press Enter to close...'; read"` so the user can securely enter their password directly.
-
+1. **NEVER edit `/usr/share/omarchy/` (Omarchy Quattro package space).** This directory is owned by the `omarchy` package. Any local changes will be overwritten on the next `omarchy update`. Reading is safe and encouraged for inspecting commands, stock themes, and default configs.
+2. **Always edit user configuration in `~/.config/` (or repository dotfiles).** Use targeted edits (`replace_file_content`, patch, append). Never overwrite entire configuration files blindly.
+3. **Validate Hyprland Lua changes with `hyprctl configerrors`.** When modifying Hyprland configuration in `~/.config/hypr/`, `journalctl` does NOT capture config validation errors. ALWAYS run `hyprctl reload` followed by `hyprctl configerrors` to inspect syntax and error messages.
+4. **Elevated Password & Interactive Prompts (`kitty -e`).** When a system command requires user password authentication (such as `sudo pacman` package installations), launch an interactive terminal window using:
+   ```bash
+   kitty -e bash -c "sudo <command>; echo 'Done! Press Enter to close...'; read"
+   ```
+   so the user can securely enter their password directly.
+5. **Gotchas Rule (Single-File Modular Structure).** When encountering a new bug, hardware quirk, API breakage, or solution, DO NOT append it to a single giant file. Instead, create a new individual markdown file into [`references/gotchas/`](references/gotchas/INDEX.md) (e.g. `references/gotchas/<category-or-number>-<slug>.md`) using [`templates/gotcha-entry.md`](templates/gotcha-entry.md), and update [`references/gotchas/INDEX.md`](references/gotchas/INDEX.md). This ensures agents and users can read only relevant gotchas on demand without bloating context.
+6. **Changelog Rule.** After every system configuration change, package installation/removal, or hardware tuning, record the change in [`references/changelog.md`](references/changelog.md) using the format in [`templates/change-entry.md`](templates/change-entry.md).
+7. **Explain -> Ask -> Act.** Always explain the situation and ask if the user agrees with the solution before making changes to the system or installing anything.
 
 ---
 
@@ -41,15 +42,14 @@ Complete documentation of this machine's configuration and personalization. This
 
 | Category | Detail |
 |----------|--------|
-| **OS** | CachyOS Linux (Arch-based rolling release), kernel `7.1.3-2-cachyos` |
-| **WM** | Hyprland 0.55.4 (Lua-based configuration) |
-| **Wayland Shell** | Noctalia 5.0.0_beta.3-2 (bar, launcher, system menus) |
-| **Primary Display** | `eDP-1` (Internal Monitor, 2560x1440@60Hz, scale 1.33) |
-| **GPUs** | NVIDIA GeForce RTX 2060 Max-Q & AMD Renoir (Vega) |
-| **CPU** | AMD Ryzen 9 4900HS (8 Cores, 16 Threads) |
-| **Shell** | `/bin/fish` |
-| **Terminal** | `kitty` (primary), `alacritty` (installed) |
-| **Package Manager**| `pacman` |
+| **Hostname** | `omarchy` |
+| **Hardware / Model** | `Surface Book 3` |
+| **OS** | `Omarchy 4.0.3` |
+| **Kernel** | `6.19.8-arch1-3-surface` |
+| **CPU** | `Intel(R) Core(TM) i5-1035G7 CPU @ 1.20GHz` |
+| **GPU** | `Intel Corporation Iris Plus Graphics G7` |
+| **Primary Display** | `eDP-1 (3000x2000@60Hz, scale 2)` |
+| **Active Profiles** | `surface, laptop` |
 
 ---
 
@@ -57,31 +57,13 @@ Complete documentation of this machine's configuration and personalization. This
 
 | File | Content |
 |------|---------|
-| `references/current-state.md` | Live system snapshot (OS, active packages, version checks) |
-| `references/hardware.md` | CPU, GPU, RAM, monitor, and system specification logs |
-| `references/config-paths.md` | Every config file, what it controls, and custom editing rules |
-| `references/keybindings.md` | Comprehensive list of keyboard shortcuts from `config/binds.lua` |
-| `references/changelog.md` | Dated log of every system configuration change |
-| `references/gotchas.md` | Curated troubleshooting issues, failures, and their fixes |
-| `templates/change-entry.md` | Template for changelog updates |
-| `scripts/snapshot.sh` | Bash script to capture current system state to stdout |
-
----
-
-## Offline Documentation Search
-
-To assist in solving issues offline, this skill contains shallow clones of the official CachyOS Wiki and the Noctalia Documentation. You can search these files directly to find setup guides, commands, or configurations.
-
-### Directory Structure
-- **CachyOS Wiki**: `references/cachyos-wiki/src/content/docs/`
-- **Noctalia Docs**: `references/noctalia-docs/`
-
-### Searching the Docs
-Use `grep_search` to query these folders. Examples:
-
-*   *Search for how to configure Noctalia widgets:*
-    - Query: `widget`
-    - SearchPath: `~/.agents/skills/system-personalization/references/noctalia-docs/`
-*   *Search for systemd service setup in CachyOS:*
-    - Query: `systemd`
-    - SearchPath: `~/.agents/skills/system-personalization/references/cachyos-wiki/src/content/docs/`
+| [`references/current-state.md`](references/current-state.md) | Live system snapshot (OS, kernel, active packages, version checks) |
+| [`references/hardware.md`](references/hardware.md) | CPU, GPU, RAM, monitor, and system specification logs |
+| [`references/config-paths.md`](references/config-paths.md) | Omarchy Quattro configuration locations, roles, and edit rules |
+| [`references/keybindings.md`](references/keybindings.md) | Comprehensive list of keyboard shortcuts from `~/.config/hypr/bindings.lua` |
+| [`references/changelog.md`](references/changelog.md) | Dated log of every system configuration change |
+| [`references/gotchas/INDEX.md`](references/gotchas/INDEX.md) | Curated directory of modular, individual gotcha documents |
+| [`templates/change-entry.md`](templates/change-entry.md) | Template for changelog updates |
+| [`templates/gotcha-entry.md`](templates/gotcha-entry.md) | Template for creating individual gotcha files |
+| [`scripts/init-skill.sh`](scripts/init-skill.sh) | Automated hardware probing and SKILL.md generation script |
+| [`scripts/snapshot.sh`](scripts/snapshot.sh) | Diagnostic bash script to capture current system state to stdout |

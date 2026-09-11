@@ -1,0 +1,6 @@
+^packages\.txt$
+^services\.txt$
+^setup\.sh$
+^\.stow-local-ignore$
+^__pycache__
+\.pyc$

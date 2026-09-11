@@ -1,4 +1,4 @@
-## [Version/Date]
+## [Version/Date] - YYYY-MM-DD
 ### Added
 - [Details of new configurations, scripts, or directories added]
 

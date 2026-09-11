@@ -1,12 +1,62 @@
-# 🪐 Dotfiles & Automated System Setup
+# 🪐 Omarchy Quattro Multi-Machine Dotfiles
 
-Automated dotfiles and environment provisioning for **CachyOS / Arch Linux** featuring **Hyprland (Lua API)**, **Noctalia Wayland Shell**, **Fish Shell**, **Kitty Terminal**, and **GNU Stow**.
+Automated, reproducible, and hardware-aware desktop environment configured for **Omarchy Quattro (Omarchy v4)** on Arch Linux, powered by **Hyprland (Native Lua API)**, **GNU Stow**, and a **Self-Improving AI System Skill**.
+
+[![Omarchy Quattro](https://img.shields.io/badge/Omarchy-Quattro%20v4-blue?style=flat-square)](https://omarchy.org/)
+[![Hyprland Lua](https://img.shields.io/badge/Hyprland-Lua%20API-teal?style=flat-square)](https://hyprland.org/)
+[![GNU Stow](https://img.shields.io/badge/GNU-Stow%20Managed-orange?style=flat-square)](https://www.gnu.org/software/stow/)
+[![AI Skill](https://img.shields.io/badge/AI-Self--Improving%20Skill-purple?style=flat-square)](./AGENTS.md)
 
 ---
 
-## ⚡ Quick Start (Fresh Machine Installation)
+## 🌟 Highlights & Architecture
 
-On a fresh CachyOS or Arch Linux installation, run:
+This repository is built around a **3-Tier Architecture** that cleanly isolates universal configurations from hardware-specific overrides and AI system knowledge:
+
+```
+~/dotfiles/
+├── core/                       # Tier 1: Universal configs (Fish, Kitty, Alacritty, Hyprland core)
+├── profiles/                   # Tier 2: Modular hardware profiles (Surface, ASUS ROG, Desktop)
+│   ├── surface/                # Microsoft Surface Book 3 / Surface Pro
+│   ├── asus-rog/               # ASUS ROG Zephyrus gaming laptops
+│   └── desktop/                # Multi-monitor workstations
+└── agents/                     # Tier 3: Dynamic AI System Personalization Skill
+    └── .agents/skills/system-personalization/
+```
+
+### 1. Omarchy Quattro Native Integration
+- Built specifically for **Omarchy Quattro** (Omarchy v4).
+- Uses Omarchy's official Lua bootstrap (`default.hypr.omarchy`, `default.hypr.toggles`).
+- Respects Omarchy's system boundaries: `/usr/share/omarchy/` is treated as strictly read-only, and all customizations cleanly overlay via `~/.config/`.
+- Uses `omarchy pkg add` for intelligent package reconciliation.
+
+### 2. Native Hyprland Lua Configuration
+- **Zero legacy `.conf` files**: Configured 100% in native Lua.
+- Core configuration (`core/.config/hypr/hyprland.lua`) dynamically checks for and safely loads hardware profile modules via `pcall(require, ...)`:
+  - `hypr.monitors`
+  - `hypr.input`
+  - `hypr.bindings-profile`
+  - `hypr.autostart`
+
+### 3. Multi-Machine Profiles
+| Profile | Hardware Focus | Included Overrides |
+| :--- | :--- | :--- |
+| **`surface`** | Microsoft Surface Book 3 / Pro | 3000x2000 @ 2.0 integer scaling, Intel Precise Touch (`iptsd`), clipboard detach daemon (`surface-dtx-daemon`), tablet mode bindings. |
+| **`asus-rog`** | ASUS ROG Zephyrus Laptops | GPU hybrid switcher (`supergfxctl`), RGB controls (`asusctl`), ROG Key shortcuts, AniMatrix LED lid display scripts. |
+| **`desktop`** | Standard Workstations | Multi-head display templates, mouse input profiles, audio routing (`pavucontrol`), gaming mode (`gamemode`). |
+
+### 4. Self-Improving System Personalization Skill
+Located in `agents/.agents/skills/system-personalization/` and symlinked directly to `~/.agents/`:
+- **Dynamic Hardware Probing**: Automatically detects your exact CPU, GPU, monitors, and active profiles to personalize `SKILL.md` and `references/hardware.md`.
+- **Modular Gotchas Architecture**: Individual single-file gotcha notes in `references/gotchas/` so AI assistants only read targeted documentation.
+- **Changelog Tracker**: Maintains a persistent record of all configuration modifications and bug fixes in `references/changelog.md`.
+
+---
+
+## ⚡ Quick Start
+
+### 1. Fresh Installation
+On any fresh Omarchy or Arch Linux system, run:
 
 ```bash
 git clone https://github.com/JValdivia23/hyprland-dots.git ~/dotfiles
@@ -14,118 +64,144 @@ cd ~/dotfiles
 ./install.sh
 ```
 
-### What `install.sh` Does Automatically:
-1. **Installs System Packages**: Synchronizes all official/CachyOS packages (`hyprland`, `noctalia`, `kitty`, `fish`, `dolphin`, `satty`, `btop`, etc.) from `packages/pacman-packages.txt`.
-2. **Safe Backup & Stow**: Backs up any conflicting default configs to `~/.dotfiles_backup_<timestamp>/` and creates clean symlinks with `stow`.
-3. **Services & Firewall**: Enables `bluetooth.service`, configures UFW firewall rules (including LocalSend discovery on port `53317`), and ASUS ROG daemons if applicable.
-4. **Shell Environment**: Sets `fish` as the default user shell with custom paths and fastfetch greeting.
+### 2. What `install.sh` Does Automatically:
+1. **Hardware Detection**: Probes DMI, chassis type, and PCI devices to identify your machine profile (`surface`, `asus-rog`, or `desktop`).
+2. **Package Synchronization**: Installs missing core tools (`stow`, `fish`, `kitty`, `btop`, etc.) and profile-specific utilities via `omarchy pkg add`.
+3. **Non-Destructive Backup**: Detects any existing non-symlink configuration files in `~/.config/` or `~/.local/bin/` and safely moves them to `~/.dotfiles_backup_<timestamp>/`.
+4. **GNU Stow Deployment**: Links `core/`, the active profile, and `agents/` into your `$HOME` directory using `--no-folding`.
+5. **Post-Install Setup**: Starts hardware services (such as `surface-dtx-daemon` or `supergfxd`) and initializes the AI system personalization skill.
 
 ---
 
-## 📁 Repository Layout
+## 🎛️ Command-Line Options
 
-```
-~/dotfiles/
-├── install.sh                  # One-line automated bootstrap entrypoint
-├── packages/
-│   └── pacman-packages.txt     # Explicit packages list
-├── scripts/
-│   ├── 01-packages.sh          # Package installer
-│   ├── 02-stow.sh              # Stow deployment & backup handler
-│   ├── 03-services.sh          # Systemd & firewall setup
-│   └── 04-shell.sh             # Fish shell default configuration
-│
-├── hypr/                       # ~/.config/hypr/ (Modular Lua config)
-├── niri/                       # ~/.config/niri/ (Niri keybinds & configuration)
-├── noctalia/                   # ~/.config/noctalia/ (Wayland bar, launcher, session)
-├── kitty/                      # ~/.config/kitty/ (Terminal config & themes)
-├── alacritty/                  # ~/.config/alacritty/ (Alacritty config)
-├── fish/                       # ~/.config/fish/ (Fish config & greetings)
-├── btop/                       # ~/.config/btop/ (Resource monitor)
-├── waypaper/                   # ~/.config/waypaper/ (Wallpaper manager)
-├── gtk/                        # ~/.config/gtk-3.0, gtk-4.0, nwg-look (GTK styling)
-├── swayimg/                    # ~/.config/swayimg/ (Image viewer)
-├── zigoku/                     # ~/.config/zigoku/ (Anime streaming app config)
-├── bin/                        # ~/.local/bin/ (Custom helper scripts)
-├── webapps/                    # ~/.local/share/applications/ (Web apps & custom icons)
-└── agents/                     # ~/.agents/ (System personalization & AI documentation)
-```
-
----
-
-## 🛠️ Managing Dotfiles with GNU Stow
-
-To apply or update symlinks individually:
+The installer supports flexible flags for testing and targeted updates:
 
 ```bash
-# Stow all modules
-cd ~/dotfiles
-stow -v -R -t ~ hypr niri noctalia kitty alacritty fish btop waypaper gtk swayimg zigoku bin webapps agents
+# Preview actions without modifying the filesystem or installing packages
+./install.sh --dry-run
 
-# Stow a specific module (e.g. hyprland)
-stow -v -R -t ~ hypr
+# Manually force a specific hardware profile
+./install.sh --profile asus-rog
+./install.sh --profiles "surface,laptop"
+
+# Only backup conflicts and re-stow symlinks (skips package installation and setup)
+./install.sh --only-stow
+
+# Only install core and profile packages
+./install.sh --only-packages
+
+# Show usage help
+./install.sh --help
 ```
+
+---
+
+## ➕ Adding a New Computer Profile
+
+Adding support for a new laptop or desktop takes only a few minutes:
+
+1. **Create the profile folder**:
+   ```bash
+   mkdir -p profiles/my-laptop/.config/hypr
+   ```
+
+2. **Add display and input overrides** (optional):
+   - `profiles/my-laptop/.config/hypr/monitors.lua`:
+     ```lua
+     local hl = require("hyprland")
+     hl.monitor("eDP-1, 1920x1080@60, 0x0, 1")
+     ```
+   - `profiles/my-laptop/.config/hypr/input.lua`:
+     ```lua
+     local hl = require("hyprland")
+     hl.input.touchpad.natural_scroll = true
+     ```
+
+3. **Specify required packages and daemons**:
+   - Create `profiles/my-laptop/packages.txt` (one package per line).
+   - Create `profiles/my-laptop/services.txt` (one systemd service per line).
+
+4. **Create `setup.sh` and ignore file**:
+   - Create an executable `profiles/my-laptop/setup.sh` to enable services.
+   - Create `profiles/my-laptop/.stow-local-ignore`:
+     ```
+     ^packages\.txt$
+     ^services\.txt$
+     ^setup\.sh$
+     ^\.stow-local-ignore$
+     ```
+
+5. **Deploy**:
+   ```bash
+   ./install.sh --profile my-laptop
+   ```
 
 ---
 
 ## ⌨️ Custom Keybindings Quick Reference
 
-### Applications & Terminals
+### Applications & Utilities
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
 | **`Super + Return`** | Terminal | Launches Kitty terminal emulator |
-| **`Super + Shift + Return`** | Alt Terminal | Launches Ghostty terminal emulator |
+| **`Super + Space`** | App Launcher | Opens Noctalia / Omarchy application launcher |
 | **`Super + Shift + B`** | Web Browser | Launches Zen Browser |
-| **`Super + Shift + F`** | File Manager | Launches Dolphin |
+| **`Super + Shift + F`** | File Manager | Launches Dolphin file manager |
 | **`Super + Shift + U`** | Terminal Files | Launches Yazi file manager |
 | **`Super + Shift + A`** | Git Manager | Launches LazyGit |
 | **`Super + Shift + D`** | Docker Manager | Launches LazyDocker |
-| **`Super + Shift + N`** | Quick Notes | Opens Neovim in `~/Documents/Notes` |
-| **`Super + Shift + Y`** | Web App | Launches YouTube Web Application |
 | **`Ctrl + Shift + Esc`** | Task Manager | Launches Btop resource monitor |
 
-### Desktop & System Controls
+### Desktop & Session Controls
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
-| **`Super + Space`** | App Launcher | Opens Noctalia application launcher |
-| **`Alt + Space`** | Wallpaper App | Launches Waypaper / Noctalia dynamic wallpaper selector |
-| **`Super + Shift + W`** | Wallpaper Gallery | Opens Noctalia interactive wallpaper carousel |
-| **`Super + E`** | Control Center | Opens Noctalia control center & quick settings |
-| **`Super + A`** | Notifications | Opens Noctalia notification center |
-| **`Super + Escape`** | Power Menu | Opens Noctalia session and power menu |
+| **`Alt + Space`** | Wallpaper App | Opens Waypaper dynamic wallpaper selector |
+| **`Super + Shift + W`** | Wallpaper Gallery | Opens interactive wallpaper picker |
+| **`Super + E`** | Control Center | Opens Noctalia quick settings panel |
+| **`Super + A`** | Notifications | Opens notification panel |
+| **`Super + Escape`** | Power Menu | Opens session lock/shutdown menu |
 | **`Super + L`** | Lock Session | Locks current session |
-| **`Super + Shift + L`** | Suspend | Locks session and suspends machine |
-| **`Super + K`** | Cheatsheet | Opens full keybindings reference in Neovim |
 
 ### Window Management & Pop-outs
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
 | **`Super + O`** | Window Pop-out | Floats, centers (1100x700), and pins active window |
 | **`Super + Shift + O`** | PiP Pop-out | Floats small Picture-in-Picture window |
-| **`Alt + Enter`** | Quick Look | macOS-style floating file preview over Dolphin |
-| **`Super + T`** | Toggle Float | Toggles active window floating mode |
+| **`Super + T`** | Toggle Float | Toggles floating mode for active window |
 | **`Super + F`** | Fullscreen | Toggles true fullscreen |
-| **`Super + D`** | Maximize | Toggles monocle / maximize layout |
+| **`Super + D`** | Maximize | Toggles maximized / monocle layout |
 | **`Super + Q` / `Super + W`** | Close Window | Closes focused window |
 
-### Navigation, Editing & Screenshots
+### macOS Navigation Layer
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
-| **`Super + Alt + K`** | Toggle Layout | Dynamically toggles Mac (Command) vs PC (Ctrl) modifier keys |
-| **`Super + C / V / X / Z`** | Edit Actions | Copy, Paste, Cut, Undo (Mac-style) |
+| **`Super + Alt + K`** | Toggle Layout | Toggles macOS (Command) vs PC (Ctrl) modifier keys |
+| **`Super + C / V / X / Z`** | Edit Actions | Mac-style Copy, Paste, Cut, and Undo |
 | **`Super + Left / Right`** | Line Jump | Beginning / End of line (`Home` / `End`) |
-| **`Alt + Left / Right`** | Word Jump | Jump word backward / forward |
-| **`Print` / `Super + Shift + S`** | Snip Tool | Interactive region screenshot to Satty |
-| **`Shift + Print`** | Fullscreen Snip | Fullscreen screenshot with output selector |
+| **`Alt + Left / Right`** | Word Jump | Word jump backward / forward |
+| **`Print` / `Super + Shift + S`**| Region Snip | Interactive region screenshot to Satty |
 
+---
 
-Whenever you modify any configuration in `~/.config/` or add a new script to `~/.local/bin/`, the symlinks update your `~/dotfiles/` directory automatically.
+## 🛠️ Validation & Troubleshooting
 
-To push your updates to GitHub:
+After modifying configuration files, always validate your compositor:
 
 ```bash
-cd ~/dotfiles
-git add .
-git commit -m "Update desktop configuration"
-git push origin main
+# Check Hyprland Lua syntax errors (journalctl does NOT log Lua errors)
+hyprctl configerrors
+
+# Reload compositor without restarting session
+hyprctl reload
+
+# Check status of hardware services
+systemctl status surface-dtx-daemon iptsd # On Surface
+systemctl status asusd supergfxd         # On ASUS ROG
 ```
+
+---
+
+## 📄 License & Credits
+
+Crafted for Omarchy Linux with Hyprland. Licensed under the MIT License.

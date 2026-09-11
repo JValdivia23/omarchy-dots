@@ -2,6 +2,11 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.3] - 2026-09-11
+### Changed
+- **Migrated to `omarchy-dev` Channel**: Upgraded Omarchy from `omarchy 4.0.3-1` to `omarchy-dev 4.0.0.r1832.g23dab9e-1` and `omarchy-settings-dev` (tracking the upstream `quattro` development branch tip).
+- **Default Coding Agent Switched to Antigravity (`agy`)**: Executed Omarchy migration `1786719479.sh`, automatically transitioning default coding agent from legacy `gemini` to Google Antigravity (`agy` 1.2.1) in `~/.config/omarchy/defaults/agent`. Linked Omarchy skills to `~/.gemini/config/skills/` (`omarchy`, `diagnose-crash`), and purged dead Gemini CLI wrapper. Verified `omarchy-agent` launches `agy --dangerously-skip-permissions`.
+
 ## [2.2.2] - 2026-09-11
 ### Added
 - **CachyOS-Style Terminal Autosuggestions**: Installed and configured `fish` and `omarchy-fish` (`omarchy/omarchy-fish`). Added Fish shell configuration in `core/.config/fish/config.fish` with `fish_default_key_bindings` (enabling standard emacs line navigation and CachyOS-style autosuggestion completion with `Right Arrow` and `Ctrl+F`), muted gray suggestions (`fish_color_autosuggestion`), Starship prompt, and user `~/.local/bin` PATH integration.

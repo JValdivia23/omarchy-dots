@@ -3,7 +3,7 @@
 Live system snapshot automatically generated on Fri Sep 11 12:08:24 AM MDT 2026.
 
 ## Operating System & Kernel
-- **OS**: Omarchy 4.0.3
+- **OS**: Omarchy 4.0.0-dev (`omarchy-dev 4.0.0.r1832.g23dab9e-1`)
 - **Kernel**: `6.19.8-arch1-3-surface`
 - **Shell**: `/usr/bin/fish` (Interactive) / `/usr/bin/bash` (System)
 - **Compositor**: Hyprland 0.56.2 built from branch v0.56.2 at commit efb50993780079460b0cbed1363e2166a2de1d9f clean ([gha] Nix: update inputs).
@@ -21,7 +21,8 @@ Live system snapshot automatically generated on Fri Sep 11 12:08:24 AM MDT 2026.
 | Package | Version | Purpose |
 |---------|---------|---------|
 | hyprland | 0.56.2-2 | Core Utility |
-| omarchy | 4.0.3-1 | Core Utility |
+| omarchy-dev | 4.0.0.r1832.g23dab9e-1 | Core Desktop (quattro tip) |
+| omarchy-settings-dev | 4.0.0.r1832.g23dab9e-1 | Desktop Settings |
 | foot | 1.28.0-1 | Core Utility |
 | zen-browser-bin | 1.22b-1 | Core Utility |
 | brave-origin-bin | 1:1.94.121-1 | Core Utility |

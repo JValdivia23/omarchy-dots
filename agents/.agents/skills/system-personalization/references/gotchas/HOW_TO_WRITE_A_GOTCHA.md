@@ -37,7 +37,7 @@ Document an issue as a gotcha if it meets any of the following criteria:
 - **Silent / Misleading Failure**: An error occurs but standard diagnostics (e.g. `journalctl`) return no logs (e.g. Hyprland Lua config errors).
 - **Distribution Boundary / Safety**: An action seems reasonable but will cause data loss upon package upgrade (e.g. editing `/usr/share/omarchy/`).
 - **Hardware / Firmware Quirk**: A physical button, sensor, latch, or power state requires a specific user-space daemon or kernel driver (e.g. `surface-dtx-daemon`, `iptsd`).
-- **Headless / Agent Environment Quirk**: An AI agent running without a TTY fails on an interactive command (e.g. sudo password prompts requiring `kitty -e`).
+- **Headless / Agent Environment Quirk**: An AI agent running without a TTY fails on an interactive command (e.g. sudo password prompts requiring `pkexec` or floating presentation).
 - **Input Method / Protocol Incompatibility**: A Wayland compositor quirk requiring specific environment variables or protocols (e.g. Fcitx5 text input).
 
 ### What NOT to Document as a Gotcha

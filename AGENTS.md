@@ -95,13 +95,11 @@ Omarchy Quattro includes an official, system-maintained skill at `~/.agents/skil
    - Editing files in either location updates the underlying Git repository.
    - When creating new configuration files, place them in the appropriate tier (`core/`, `profiles/<name>/`, or `agents/`) and run `./install.sh --only-stow` or `stow` to link them.
 
-3. **Privilege Escalation & Password Prompts (`kitty -e`)**:
-   - Omarchy restricts passwordless sudo for security.
-   - When executing commands requiring user password authentication (e.g. `sudo pacman`), launch an interactive terminal window:
-     ```bash
-     kitty -e bash -c "sudo <command>; echo 'Done! Press Enter to close...'; read"
-     ```
-   - Never run blocking elevated commands directly in headless agent processes without user interaction capability.
+3. **Privilege Escalation & Password Prompts (`pkexec` & Floating Windows)**:
+   - Follow Omarchy's official privilege escalation protocol:
+     - **Non-interactive / Agent background commands**: Use `pkexec <command>`. Omarchy’s Quickshell Polkit agent triggers a centered, graphical floating password dialog on the user's screen.
+     - **Interactive terminal commands**: Use `omarchy-launch-floating-terminal-with-presentation "<command>"`. Hyprland window rules automatically float this centered with the active theme.
+   - Never run blocking `sudo` commands directly in headless agent processes without a TTY or graphical prompt.
 
 ---
 

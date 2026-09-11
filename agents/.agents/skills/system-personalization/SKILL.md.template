@@ -25,11 +25,9 @@ Complete documentation of this machine's configuration and personalization. This
 3. **NEVER edit `/usr/share/omarchy/` (Omarchy package space).** This directory is owned by the `omarchy` package. Any local changes will be overwritten on `omarchy update`. Always edit user configurations in `~/.config/` or repository dotfiles.
 4. **Always edit user configuration in `~/.config/` (or repository dotfiles).** Use targeted edits (`replace_file_content`, patch, append). Never overwrite entire configuration files blindly.
 5. **Validate Hyprland Lua changes with `hyprctl configerrors`.** When modifying Hyprland configuration in `~/.config/hypr/`, `journalctl` does NOT capture config validation errors. ALWAYS run `hyprctl reload` followed by `hyprctl configerrors` to inspect syntax and error messages.
-6. **Elevated Password & Interactive Prompts (`kitty -e`).** When a system command requires user password authentication (such as `sudo pacman` package installations), launch an interactive terminal window using:
-   ```bash
-   kitty -e bash -c "sudo <command>; echo 'Done! Press Enter to close...'; read"
-   ```
-   so the user can securely enter their password directly.
+6. **Privilege Escalation (`pkexec` & Floating Windows).** When an agent or automated process requires elevated permissions, follow Omarchy's native privilege escalation:
+   - **Background tasks**: Use `pkexec <command>`. Omarchy's Quickshell Polkit agent triggers a centered, graphical floating password dialog on screen where the user enters their password.
+   - **Interactive terminal tasks**: Use `omarchy-launch-floating-terminal-with-presentation "<command>"` or `setsid uwsm-app -- xdg-terminal-exec --app-id=org.omarchy.terminal -e bash -c "<command>; read"`, which Hyprland floats automatically.
 7. **Gotchas Rule (Single-File Modular Structure).** When encountering a new bug, hardware quirk, or solution:
    - If hardware-specific (e.g. Surface Book detach): place it in `profiles/<profile>/gotchas/<slug>.md`.
    - If universal: place it in [`references/gotchas/<slug>.md`](references/gotchas/INDEX.md).

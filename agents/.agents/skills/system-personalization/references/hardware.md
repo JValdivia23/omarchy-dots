@@ -48,5 +48,5 @@ Monitor eDP-1 (ID 0):
 - **Touchscreen**: Intel Precise Touch & Stylus Daemon (iptsd) active
 - **Surface DTX Latch**: Supported via surface-dtx-daemon
 ### Batteries
-- **BAT1**: 81% (Discharging)
-- **BAT2**: 82% (Discharging)
+- **BAT1**: 79% (Not charging)
+- **BAT2**: 79% (Discharging)

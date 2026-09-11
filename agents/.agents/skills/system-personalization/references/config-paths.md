@@ -17,7 +17,7 @@ Comprehensive guide to configuration files on Omarchy Quattro, their functional 
    hyprctl configerrors
    ```
 4. **Elevated privileges.**
-   For commands requiring sudo, launch an interactive terminal (`kitty -e bash -c "sudo <cmd>; read"`) so the user can provide credentials securely.
+   For background agent commands requiring sudo, use `pkexec <cmd>` to trigger Omarchy's graphical floating password dialog. For interactive commands, use `omarchy-launch-floating-terminal-with-presentation "<cmd>"`.
 
 ---
 

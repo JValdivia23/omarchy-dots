@@ -16,21 +16,26 @@ Complete documentation of this machine's configuration and personalization. This
 1. **Companion to the built-in `omarchy` skill.** Omarchy ships with its own official skill at `~/.agents/skills/omarchy/`. The division of responsibility is clean:
    - **`omarchy` skill**: The **OS & Tooling Authority** (HOW to do things on Omarchy Linux). Defer to it for CLI commands (`omarchy theme`, `omarchy pkg`, `omarchy hook`, `omarchy webapp`, `omarchy refresh`), Quickshell bar layout, and upstream system conventions.
    - **`system-personalization` skill (this skill)**: The **Machine & Preference Authority** (WHO this machine is and WHAT the user prefers). Use it for live hardware specs, active profile (`surface`, etc.), personal macOS navigation bindings, touchpad sensitivity, device gotchas, and change logs.
-   - **Rule**: When executing OS tasks, use Omarchy's native tools (`omarchy pkg add`, `omarchy theme set`, etc.) as documented in the `omarchy` skill. Never reinvent or bypass what Omarchy already handles.
-2. **NEVER edit `/usr/share/omarchy/` (Omarchy package space).** This directory is owned by the `omarchy` package. Any local changes will be overwritten on `omarchy update`. Always edit user configurations in `~/.config/` or repository dotfiles.
-3. **Always edit user configuration in `~/.config/` (or repository dotfiles).** Use targeted edits (`replace_file_content`, patch, append). Never overwrite entire configuration files blindly.
-4. **Validate Hyprland Lua changes with `hyprctl configerrors`.** When modifying Hyprland configuration in `~/.config/hypr/`, `journalctl` does NOT capture config validation errors. ALWAYS run `hyprctl reload` followed by `hyprctl configerrors` to inspect syntax and error messages.
-5. **Elevated Password & Interactive Prompts (`kitty -e`).** When a system command requires user password authentication (such as `sudo pacman` package installations), launch an interactive terminal window using:
+2. **Repository Architecture & Symlink Awareness (`~/dotfiles`).**
+   - The backing Git repository is located at `~/dotfiles`.
+   - Configuration files in `~/.config/hypr/`, `~/.local/bin/`, and `~/.agents/skills/system-personalization/` are **live symlinks** pointing into `~/dotfiles/`. Editing them in `~/.config/` or `~/dotfiles/` modifies the exact same version-controlled files.
+   - **Git Operations from ANY Working Directory**: You do NOT need to be inside `~/dotfiles` to inspect status, commit, or push. You can run:
+     - `dotfiles status` / `dotfiles commit "<message>"` / `dotfiles push`
+     - or standard Git: `git -C ~/dotfiles status`, `git -C ~/dotfiles commit -am "<msg>"`, `git -C ~/dotfiles push`.
+3. **NEVER edit `/usr/share/omarchy/` (Omarchy package space).** This directory is owned by the `omarchy` package. Any local changes will be overwritten on `omarchy update`. Always edit user configurations in `~/.config/` or repository dotfiles.
+4. **Always edit user configuration in `~/.config/` (or repository dotfiles).** Use targeted edits (`replace_file_content`, patch, append). Never overwrite entire configuration files blindly.
+5. **Validate Hyprland Lua changes with `hyprctl configerrors`.** When modifying Hyprland configuration in `~/.config/hypr/`, `journalctl` does NOT capture config validation errors. ALWAYS run `hyprctl reload` followed by `hyprctl configerrors` to inspect syntax and error messages.
+6. **Elevated Password & Interactive Prompts (`kitty -e`).** When a system command requires user password authentication (such as `sudo pacman` package installations), launch an interactive terminal window using:
    ```bash
    kitty -e bash -c "sudo <command>; echo 'Done! Press Enter to close...'; read"
    ```
    so the user can securely enter their password directly.
-6. **Gotchas Rule (Single-File Modular Structure).** When encountering a new bug, hardware quirk, or solution:
+7. **Gotchas Rule (Single-File Modular Structure).** When encountering a new bug, hardware quirk, or solution:
    - If hardware-specific (e.g. Surface Book detach): place it in `profiles/<profile>/gotchas/<slug>.md`.
    - If universal: place it in [`references/gotchas/<slug>.md`](references/gotchas/INDEX.md).
    - Follow [`references/gotchas/HOW_TO_WRITE_A_GOTCHA.md`](references/gotchas/HOW_TO_WRITE_A_GOTCHA.md) and update [`references/gotchas/INDEX.md`](references/gotchas/INDEX.md).
-7. **Changelog Rule.** After every system configuration change, package installation/removal, or hardware tuning, record the change in [`references/changelog.md`](references/changelog.md) using the format in [`templates/change-entry.md`](templates/change-entry.md).
-8. **Explain -> Ask -> Act.** Always explain the situation and ask if the user agrees with the solution before making changes to the system or installing anything.
+8. **Changelog Rule.** After every system configuration change, package installation/removal, or hardware tuning, record the change in [`references/changelog.md`](references/changelog.md) using the format in [`templates/change-entry.md`](templates/change-entry.md).
+9. **Explain -> Ask -> Act.** Always explain the situation and ask if the user agrees with the solution before making changes to the system or installing anything.
 
 ---
 

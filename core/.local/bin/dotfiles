@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# dotfiles — Convenience CLI to manage ~/dotfiles repository from any directory
+DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+
+if [ ! -d "$DOTFILES_DIR/.git" ]; then
+    echo "Error: Dotfiles repository not found at $DOTFILES_DIR" >&2
+    exit 1
+fi
+
+case "${1:-}" in
+    sync)
+        echo "--> Pulling latest changes..."
+        git -C "$DOTFILES_DIR" pull --rebase
+        echo "--> Pushing local commits..."
+        git -C "$DOTFILES_DIR" push
+        ;;
+    commit)
+        shift
+        if [ $# -eq 0 ]; then
+            echo "Usage: dotfiles commit <message>" >&2
+            exit 1
+        fi
+        git -C "$DOTFILES_DIR" add -A
+        git -C "$DOTFILES_DIR" commit -m "$*"
+        ;;
+    push)
+        git -C "$DOTFILES_DIR" push
+        ;;
+    pull)
+        git -C "$DOTFILES_DIR" pull --rebase
+        ;;
+    status)
+        git -C "$DOTFILES_DIR" status
+        ;;
+    diff)
+        shift
+        git -C "$DOTFILES_DIR" diff "$@"
+        ;;
+    log)
+        shift
+        git -C "$DOTFILES_DIR" log -n 10 --oneline "$@"
+        ;;
+    install)
+        shift
+        bash "$DOTFILES_DIR/install.sh" "$@"
+        ;;
+    help|-h|--help|"")
+        echo "Usage: dotfiles <command> [arguments]"
+        echo ""
+        echo "Commands:"
+        echo "  status            Show git status of ~/dotfiles"
+        echo "  diff              Show uncommitted git diff"
+        echo "  commit <msg>      Stage all changes and commit"
+        echo "  push              Push commits to remote"
+        echo "  pull              Pull latest changes from remote"
+        echo "  sync              Pull --rebase and push"
+        echo "  log               Show recent commit history"
+        echo "  install [opts]    Re-run install.sh (e.g. dotfiles install --dry-run)"
+        echo "  <git-command>     Pass-through any arbitrary git command (e.g. dotfiles branch)"
+        ;;
+    *)
+        git -C "$DOTFILES_DIR" "$@"
+        ;;
+esac

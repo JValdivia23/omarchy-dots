@@ -4,3 +4,5 @@ fd
 wl-clipboard
 fastfetch
 starship
+fish
+omarchy-fish

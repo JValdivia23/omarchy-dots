@@ -2,6 +2,14 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.2] - 2026-09-11
+### Added
+- **CachyOS-Style Terminal Autosuggestions**: Installed and configured `fish` and `omarchy-fish` (`omarchy/omarchy-fish`). Added Fish shell configuration in `core/.config/fish/config.fish` with `fish_default_key_bindings` (enabling standard emacs line navigation and CachyOS-style autosuggestion completion with `Right Arrow` and `Ctrl+F`), muted gray suggestions (`fish_color_autosuggestion`), Starship prompt, and user `~/.local/bin` PATH integration.
+- **Foot Shell Configuration**: Configured `shell=/usr/bin/fish` in `core/.config/foot/foot.ini` so Foot terminal launches Fish directly without intermediate wrapper overhead.
+- **Interactive Bash Auto-Launch Guard**: Configured a non-destructive auto-launch guard in `~/.bashrc` that transitions interactive user shells into Fish while preserving standard Bash for scripts, cron, and `-c` one-liners.
+- **Universal Gotcha 04**: Authored [`04-omarchy-fish-quattro-integration.md`](gotchas/04-omarchy-fish-quattro-integration.md) documenting Omarchy Quattro environment compatibility and avoiding upstream `omarchy-setup-fish` script overwrites.
+- **Core Packages Tracking**: Added `fish` and `omarchy-fish` to `core/packages.txt`.
+
 ## [2.2.1] - 2026-09-11
 ### Added
 - **Cursor Inactivity Timeout**: Configured `cursor:inactive_timeout = 3` in `core/.config/hypr/hyprland.lua`. Automatically hides the mouse cursor after 3 seconds of inactivity while watching videos, browsing, or reading across all machine profiles. Cursor immediately reappears upon mouse or touchpad movement.

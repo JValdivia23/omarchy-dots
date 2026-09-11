@@ -13,6 +13,7 @@ These gotchas represent core operating guardrails across all installations runni
 | [`01-hyprland-lua-validation.md`](01-hyprland-lua-validation.md) | Hyprland Lua Configuration Error Diagnostics | Hyprland | Universal | Critical |
 | [`02-omarchy-read-only-safety.md`](02-omarchy-read-only-safety.md) | Omarchy Package Space Read-Only Safety (`/usr/share/omarchy/`) | System | Universal (Omarchy) | Critical |
 | [`03-elevated-password-prompts.md`](03-elevated-password-prompts.md) | Interactive Password Authentication for Sudo Operations (`kitty -e`) | System / Security | Universal | Critical |
+| [`04-omarchy-fish-quattro-integration.md`](04-omarchy-fish-quattro-integration.md) | Omarchy Quattro Fish Shell Integration & Autosuggestions | System | Universal (Omarchy) | Warning |
 
 ---
 

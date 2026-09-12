@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# omarchy:summary=Shuffle a random pool of 35 wallpapers from collection into aether backgrounds and pre-cache them
+# omarchy:summary=Shuffle a random pool of 24 wallpapers from collection into aether backgrounds and pre-cache them
 
 POOL_DIR="$HOME/.config/omarchy/backgrounds/aether"
 WALLPAPERS_DIR="$HOME/Pictures/Wallpapers"
@@ -8,15 +8,14 @@ WALLPAPERS_DIR="$HOME/Pictures/Wallpapers"
 mkdir -p "$POOL_DIR"
 rm -f "$POOL_DIR"/*
 
-# Find all wallpapers and pick 35 at random
+# Find all wallpapers and pick 24 at random
 mapfile -t selected_images < <(
-  find "$WALLPAPERS_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) | shuf -n 35
+  find "$WALLPAPERS_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) | shuf -n 24
 )
 
 for img in "${selected_images[@]}"; do
   [[ -f "$img" ]] || continue
   name=$(basename "$img")
-  # Handle potential filename collisions across subfolders by prefixing folder name if needed
   if [[ -e "$POOL_DIR/$name" ]]; then
     parent=$(basename "$(dirname "$img")")
     name="${parent}_${name}"
@@ -24,5 +23,6 @@ for img in "${selected_images[@]}"; do
   ln -sf "$img" "$POOL_DIR/$name"
 done
 
-# Pre-cache thumbnails and preload into Quickshell
-omarchy-theme-bg-cache >/dev/null 2>&1 &
+# Synchronously warm the fast-signature and preload into Quickshell
+omarchy-theme-bg-cache >/dev/null 2>&1
+omarchy-menu-images --preload "$HOME/.local/state/omarchy/current/theme/backgrounds" "$POOL_DIR" >/dev/null 2>&1 || true

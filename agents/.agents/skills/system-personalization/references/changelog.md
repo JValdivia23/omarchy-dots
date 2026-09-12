@@ -2,6 +2,11 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.10] - 2026-09-12
+### Fixed
+- **Vibrant Subject Color Extraction Over Dark Background Shadows**: Resolved issue where wallpapers featuring vivid focal subjects against large dark or night backgrounds (such as `a_car_on_fire_at_night.jpg`) extracted cold cyan/blue colors. Matugen's `--source-color-index 0` was hardcoded to pick the largest pixel cluster, which was the dark night sky shadow (`#0a191c`) rather than the blazing fire (`#e52c2a`).
+- **Saturation-Aware Preference**: Updated `omarchy-theme-extract-palette` to use `--prefer saturation`, ensuring Material You selects the rich, eye-catching subject of the image (fire reds/oranges, flower pinks, sunset ambers) rather than background noise.
+
 ## [2.2.9] - 2026-09-12
 ### Fixed
 - **Hourly Carousel Pool Shuffle & Oneshot Systemd Lifecycle**: Resolved bug where wallpapers in the `ALT + SPACE` carousel never refreshed and showed the same figures from the previous day. Because `omarchy-aether-cycler.service` is a `Type=oneshot` systemd service, background jobs spawned with `&` inside the script were immediately killed by systemd cgroup cleanup before completing.

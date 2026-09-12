@@ -22,7 +22,7 @@ def main():
 
     cmd = [
         "matugen", "image", wallpaper,
-        "--source-color-index", "0",
+        "--prefer", "saturation",
         "-t", "scheme-tonal-spot",
         "-m", "dark",
         "-j", "hex"

@@ -2,8 +2,16 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.7] - 2026-09-11
+### Added
+- **All-Native Quickshell Wallpaper Picker**: Eliminated external Waypaper GUI overhead and integrated directly with Omarchy's native Quickshell carousel. Bound `ALT + SPACE` directly to the native background switcher (`omarchy-theme-bg-switcher`).
+- **Shuffled Wallpaper Pool & Instant Pre-Caching**: Implemented `omarchy-theme-shuffle-backgrounds` in `core/.local/bin/` to randomly sample 35 diverse wallpapers from the 1,600+ collection into `~/.config/omarchy/backgrounds/aether/`. Pre-cached thumbnails reduce picker open latency to under 40ms.
+- **Hourly Dynamic Wallpaper & Palette Cycler**: Created systemd user timer and service (`omarchy-aether-cycler.timer` / `.service`) running hourly. When `aether` theme is active, it automatically selects a fresh wallpaper from the 1,600+ collection, smoothly crossfades the desktop, extracts Material You M3 colors via `matugen`, live-recolors terminals and Quickshell, and rotates the carousel pool. Skips completely when any static theme is active.
+- **Background Low-Priority Thumbnail Pre-Cacher**: Deployed `omarchy-theme-precache-all-wallpapers` in the background with `nice -n 19` to progressively generate thumbnails for all 1,647 wallpapers.
+
 ## [2.2.6] - 2026-09-11
 ### Fixed
+
 - **Omarchy Vitals Status Bar Color Alignment (`osesantos.vitals`)**: Fixed color mismatch between Vitals widgets and native Omarchy bar widgets. Replaced static `bar.foreground` with dynamic `bar.barForeground` across `charts/*.qml` (`Text`, `Mini`, `Line`, `Bars`, `Pie`, `Fill`, `Speed`), allowing Vitals to inherit the exact wallpaper-adaptive contrast foreground (`transparentForeground`) and smooth color transition animations used by all other icons on the bar.
 
 ## [2.2.5] - 2026-09-11

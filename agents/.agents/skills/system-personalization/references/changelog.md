@@ -2,8 +2,16 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.5] - 2026-09-11
+### Added
+- **Dynamic Material You Theme (`aether`)**: Created dedicated dynamic theme in `~/.config/omarchy/themes/aether/` powered by `matugen` (Material Design 3 tonal-spot palette extraction).
+- **Theme-Aware Wallpaper Setter (`omarchy-theme-bg-set`)**: Added unified wrapper in `~/.local/bin/omarchy-theme-bg-set` (tracked in `~/dotfiles/core/.local/bin/`). When theme is `aether`, wallpaper changes dynamically extract colors and live-recolor Omarchy Quickshell, Foot terminals (via OSC escape codes), Hyprland window borders, btop, and desktop apps. When any static theme is active (Catppuccin, Tokyo Night, etc.), wallpaper changes keep theme colors 100% stable.
+- **Waypaper GUI & Shortcut (`ALT + Space`)**: Installed `waypaper` from AUR and configured `~/.config/waypaper/config.ini` with `post_command = omarchy-theme-bg-set "$wallpaper"`. Bound `ALT + Space` in `core/.config/hypr/bindings-common.lua` and added centered floating window rule (`65% x 75%`) in `core/.config/hypr/hyprland.lua`.
+- **Complete Wallpaper Collection**: Synced full 3.47 GB `dharmx-walls` library from laptop `cachyos-cu` (`10.0.0.8`) into `~/Pictures/Wallpapers/` alongside local high-res `Aether` (2K–8K dark/light) collection.
+
 ## [2.2.4] - 2026-09-11
 ### Added
+
 - **Omarchy Vitals Status Bar Plugin (`osesantos.vitals`)**: Installed verified community plugin from `https://github.com/osesantos/omarchy-vitals.git` into `~/.config/omarchy/plugins/osesantos.vitals`.
 - **System Telemetry Widgets on Status Bar**: Configured three modular Vitals entries in the `left` section of `~/.config/omarchy/shell.json` after Workspaces:
   - **CPU**: `module: "cpu"`, `widget: "text"` (`󰻠` usage %)

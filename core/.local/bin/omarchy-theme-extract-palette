@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+import json
+import subprocess
+import sys
+import os
+
+def main():
+    if len(sys.argv) < 2:
+        # Default to current wallpaper
+        bg_link = os.path.expanduser("~/.local/state/omarchy/current/background")
+        if os.path.exists(bg_link):
+            wallpaper = os.path.realpath(bg_link)
+        else:
+            print("Error: No wallpaper specified and no current background found", file=sys.stderr)
+            sys.exit(1)
+    else:
+        wallpaper = os.path.realpath(sys.argv[1])
+
+    if not os.path.isfile(wallpaper):
+        print(f"Error: File not found: {wallpaper}", file=sys.stderr)
+        sys.exit(1)
+
+    cmd = [
+        "matugen", "image", wallpaper,
+        "--source-color-index", "0",
+        "-t", "scheme-tonal-spot",
+        "-m", "dark",
+        "-j", "hex"
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        print(f"Error running matugen: {res.stderr}", file=sys.stderr)
+        sys.exit(1)
+
+    data = json.loads(res.stdout)
+    c = data.get("colors", {})
+    mode = data.get("mode", "dark")
+
+    def get_c(name, fallback="#ffffff"):
+        val = c.get(name, {})
+        if isinstance(val, dict):
+            return val.get(mode, {}).get("color", fallback)
+        return fallback
+
+    # Map M3 tokens to Omarchy semantic colors
+    primary = get_c("primary", "#89b4fa")
+    secondary = get_c("secondary", "#94e2d5")
+    tertiary = get_c("tertiary", "#f5c2e7")
+    surface = get_c("surface", "#1e1e2e")
+    surface_low = get_c("surface_container_low", surface)
+    surface_lowest = get_c("surface_container_lowest", "#101019")
+    surface_high = get_c("surface_container_high", "#313244")
+    surface_highest = get_c("surface_container_highest", "#45475a")
+    on_surface = get_c("on_surface", "#cdd6f4")
+    on_surface_var = get_c("on_surface_variant", "#bac2de")
+    outline = get_c("outline", "#6c7086")
+    outline_var = get_c("outline_variant", "#585b70")
+    error = get_c("error", "#f38ba8")
+    tertiary_container = get_c("tertiary_container", "#f6b6ab")
+
+    colors = [
+        f'mode = "{mode}"',
+        "",
+        f'accent = "{primary}"',
+        f'selection = "{surface_highest}"',
+        f'muted = "{outline}"',
+        "",
+        f'background = "{surface}"',
+        f'dark_background = "{surface_low}"',
+        f'darker_background = "{surface_lowest}"',
+        f'lighter_background = "{surface_high}"',
+        "",
+        f'foreground = "{on_surface}"',
+        f'dark_foreground = "{outline}"',
+        f'light_foreground = "{on_surface_var}"',
+        f'bright_foreground = "{on_surface}"',
+        "",
+        f'red = "{error}"',
+        f'green = "{primary}"',
+        f'yellow = "{secondary}"',
+        f'blue = "{primary}"',
+        f'magenta = "{tertiary}"',
+        f'cyan = "{secondary}"',
+        f'orange = "{tertiary_container}"',
+        f'brown = "{outline_var}"',
+        "",
+        f'bright_red = "{error}"',
+        f'bright_green = "{primary}"',
+        f'bright_yellow = "{secondary}"',
+        f'bright_blue = "{primary}"',
+        f'bright_magenta = "{tertiary}"',
+        f'bright_cyan = "{secondary}"',
+        ""
+    ]
+
+    out = "\n".join(colors)
+    print(out)
+
+if __name__ == "__main__":
+    main()

@@ -72,3 +72,7 @@ o.bind("SUPER + SHIFT + Y", "YouTube", {
   focus = "YouTube",
   launch = "brave-origin --new-window --ozone-platform=wayland --app=https://youtube.com --name=YouTube --class=YouTube"
 })
+
+-- Wallpaper & Dynamic Theme Picker (Waypaper GUI)
+o.bind("ALT + Space", "Wallpaper & theme picker", { launch = "waypaper" })
+

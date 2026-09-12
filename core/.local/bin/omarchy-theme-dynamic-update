@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# omarchy:summary=Extract colors from wallpaper and update the aether dynamic theme
+# omarchy:args=[path-to-wallpaper]
+
+WALLPAPER="$1"
+if [[ -z "$WALLPAPER" ]]; then
+  WALLPAPER=$(readlink -f "$HOME/.local/state/omarchy/current/background" 2>/dev/null)
+fi
+
+if [[ -z "$WALLPAPER" || ! -f "$WALLPAPER" ]]; then
+  echo "Error: wallpaper image not found: $WALLPAPER" >&2
+  exit 1
+fi
+
+THEME_DIR="$HOME/.config/omarchy/themes/aether"
+mkdir -p "$THEME_DIR/backgrounds"
+
+# Ensure the wallpaper is linked in the theme backgrounds folder
+WALLPAPER_NAME=$(basename "$WALLPAPER")
+if [[ ! -e "$THEME_DIR/backgrounds/$WALLPAPER_NAME" ]]; then
+  ln -sf "$WALLPAPER" "$THEME_DIR/backgrounds/$WALLPAPER_NAME"
+fi
+
+# Extract and update colors.toml
+/home/jmvp/.local/bin/omarchy-theme-extract-palette "$WALLPAPER" > "$THEME_DIR/colors.toml.tmp" && \
+  mv "$THEME_DIR/colors.toml.tmp" "$THEME_DIR/colors.toml"
+
+CURRENT_THEME=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null)
+if [[ "$CURRENT_THEME" == "aether" ]]; then
+  # Apply the updated theme templates and notify shell/apps without double background transition
+  OMARCHY_THEME_SKIP_BACKGROUND=1 omarchy-theme-set aether >/dev/null 2>&1
+fi

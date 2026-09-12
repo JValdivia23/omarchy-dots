@@ -26,3 +26,9 @@ pcall(require, "hypr.autostart")
 
 -- Toggle config flags dynamically.
 require("default.hypr.toggles")
+
+-- Floating window rule for Waypaper wallpaper picker
+o.window("^(waypaper|Waypaper)$", { float = true })
+o.window("^(waypaper|Waypaper)$", { center = true })
+o.window("^(waypaper|Waypaper)$", { size = { "65%", "75%" } })
+

@@ -2,29 +2,37 @@
 
 # omarchy:summary=Hourly background and dynamic theme cycler (only if aether theme is active)
 
-CURRENT_THEME=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null)
+CURRENT_THEME=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
 
 # Only cycle if the active theme is aether (never alter static themes)
 if [[ "$CURRENT_THEME" != "aether" ]]; then
+  echo "Active theme is '$CURRENT_THEME' (not aether); skipping hourly cycle."
   exit 0
 fi
 
 WALLPAPERS_DIR="$HOME/Pictures/Wallpapers"
 CURRENT_BG=$(readlink -f "$HOME/.local/state/omarchy/current/background" 2>/dev/null)
 
-# Pick a random wallpaper from the collection (excluding the current one)
+# 1. Rotate the background switcher pool with a fresh shuffle of 35 pictures
+echo "Shuffling background carousel pool (35 pictures)..."
+/home/jmvp/.local/bin/omarchy-theme-shuffle-backgrounds
+
+# 2. Pick a random wallpaper from the collection (excluding the current one)
 mapfile -t available_wallpapers < <(
   find "$WALLPAPERS_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) | grep -vF "$CURRENT_BG"
 )
 
 if (( ${#available_wallpapers[@]} == 0 )); then
+  echo "No wallpapers found in $WALLPAPERS_DIR"
   exit 0
 fi
 
 NEW_WALLPAPER=$(shuf -n 1 -e "${available_wallpapers[@]}")
+echo "Selected new wallpaper: $NEW_WALLPAPER"
 
-# Apply the new wallpaper and dynamic theme recolor
+# 3. Apply the new wallpaper
 /home/jmvp/.local/bin/omarchy-theme-bg-set "$NEW_WALLPAPER"
 
-# Rotate the background switcher pool with a fresh shuffle of 35 pictures
-/home/jmvp/.local/bin/omarchy-theme-shuffle-backgrounds >/dev/null 2>&1 &
+# 4. Synchronously run dynamic update so systemd does not kill it prematurely
+/home/jmvp/.local/bin/omarchy-theme-dynamic-update "$NEW_WALLPAPER"
+echo "Hourly cycle completed successfully."

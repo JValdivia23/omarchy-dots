@@ -2,6 +2,13 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.9] - 2026-09-12
+### Fixed
+- **Hourly Carousel Pool Shuffle & Oneshot Systemd Lifecycle**: Resolved bug where wallpapers in the `ALT + SPACE` carousel never refreshed and showed the same figures from the previous day. Because `omarchy-aether-cycler.service` is a `Type=oneshot` systemd service, background jobs spawned with `&` inside the script were immediately killed by systemd cgroup cleanup before completing.
+- **Synchronous Service Execution**: Updated `omarchy-theme-hourly-cycle` to execute `omarchy-theme-shuffle-backgrounds` and `omarchy-theme-dynamic-update` synchronously in foreground so systemd waits for the complete shuffle and recolor (~10s).
+- **Theme Background Accumulation Fix**: Prevented `omarchy-theme-dynamic-update` from endlessly accumulating past wallpapers in `~/.config/omarchy/themes/aether/backgrounds/`. Cleared stale symlinks so `ALT + SPACE` displays only the active wallpaper and the fresh 35 shuffled pool figures.
+- **Increased Carousel Pool**: Bumped random wallpaper pool in `omarchy-theme-shuffle-backgrounds` from 24 to 35 pictures.
+
 ## [2.2.8] - 2026-09-11
 ### Fixed
 - **Dynamic Theme Color Switching Across Desktop Menus & Shortcuts**: Resolved root-cause issue where choosing wallpapers via Omarchy menu (`SUPER + SPACE` -> Background), native Quickshell carousel (`ALT + SPACE`), or desktop double-click executed stock `/usr/bin/omarchy-theme-bg-set` due to Omarchy's system-first PATH precedence in non-interactive subshells.

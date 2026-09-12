@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# omarchy:summary=Shuffle a random pool of 24 wallpapers from collection into aether backgrounds and pre-cache them
+# omarchy:summary=Shuffle a random pool of 35 wallpapers from collection into aether backgrounds and pre-cache them
 
 POOL_DIR="$HOME/.config/omarchy/backgrounds/aether"
 WALLPAPERS_DIR="$HOME/Pictures/Wallpapers"
@@ -8,9 +8,9 @@ WALLPAPERS_DIR="$HOME/Pictures/Wallpapers"
 mkdir -p "$POOL_DIR"
 rm -f "$POOL_DIR"/*
 
-# Find all wallpapers and pick 24 at random
+# Find all wallpapers and pick 35 at random
 mapfile -t selected_images < <(
-  find "$WALLPAPERS_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) | shuf -n 24
+  find "$WALLPAPERS_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) | shuf -n 35
 )
 
 for img in "${selected_images[@]}"; do

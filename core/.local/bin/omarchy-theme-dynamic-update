@@ -16,11 +16,10 @@ fi
 THEME_DIR="$HOME/.config/omarchy/themes/aether"
 mkdir -p "$THEME_DIR/backgrounds"
 
-# Ensure the wallpaper is linked in the theme backgrounds folder
+# Ensure only the active wallpaper is kept in the theme backgrounds folder
+rm -f "$THEME_DIR/backgrounds"/*
 WALLPAPER_NAME=$(basename "$WALLPAPER")
-if [[ ! -e "$THEME_DIR/backgrounds/$WALLPAPER_NAME" ]]; then
-  ln -sf "$WALLPAPER" "$THEME_DIR/backgrounds/$WALLPAPER_NAME"
-fi
+ln -sf "$WALLPAPER" "$THEME_DIR/backgrounds/$WALLPAPER_NAME"
 
 # Extract and update colors.toml safely using a unique temp file
 TMP_TOML=$(mktemp "$THEME_DIR/colors.toml.XXXXXX")

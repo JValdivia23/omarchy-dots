@@ -1,0 +1,7 @@
+#!/bin/bash
+# Omarchy CLI wrapper with dynamic theme support for background changes
+if [[ "$1" == "theme" && "$2" == "bg" && "$3" == "set" ]]; then
+  shift 3
+  exec /home/jmvp/.local/bin/omarchy-theme-bg-set "$@"
+fi
+exec /usr/bin/omarchy "$@"

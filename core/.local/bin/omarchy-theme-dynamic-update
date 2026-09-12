@@ -26,7 +26,7 @@ fi
 /home/jmvp/.local/bin/omarchy-theme-extract-palette "$WALLPAPER" > "$THEME_DIR/colors.toml.tmp" && \
   mv "$THEME_DIR/colors.toml.tmp" "$THEME_DIR/colors.toml"
 
-CURRENT_THEME=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null)
+CURRENT_THEME=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
 if [[ "$CURRENT_THEME" == "aether" ]]; then
   # Apply the updated theme templates and notify shell/apps without double background transition
   OMARCHY_THEME_SKIP_BACKGROUND=1 omarchy-theme-set aether >/dev/null 2>&1

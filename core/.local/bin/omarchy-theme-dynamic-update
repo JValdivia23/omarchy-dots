@@ -22,9 +22,21 @@ if [[ ! -e "$THEME_DIR/backgrounds/$WALLPAPER_NAME" ]]; then
   ln -sf "$WALLPAPER" "$THEME_DIR/backgrounds/$WALLPAPER_NAME"
 fi
 
-# Extract and update colors.toml
-/home/jmvp/.local/bin/omarchy-theme-extract-palette "$WALLPAPER" > "$THEME_DIR/colors.toml.tmp" && \
-  mv "$THEME_DIR/colors.toml.tmp" "$THEME_DIR/colors.toml"
+# Extract and update colors.toml safely using a unique temp file
+TMP_TOML=$(mktemp "$THEME_DIR/colors.toml.XXXXXX")
+if /home/jmvp/.local/bin/omarchy-theme-extract-palette "$WALLPAPER" > "$TMP_TOML"; then
+  # Abort if the user switched to a different wallpaper while extracting this one
+  CURRENT_BG=$(readlink -f "$HOME/.local/state/omarchy/current/background" 2>/dev/null)
+  if [[ "$WALLPAPER" != "$CURRENT_BG" ]]; then
+    rm -f "$TMP_TOML"
+    exit 0
+  fi
+  mv "$TMP_TOML" "$THEME_DIR/colors.toml"
+else
+  rm -f "$TMP_TOML"
+  echo "Error: palette extraction failed for $WALLPAPER" >&2
+  exit 1
+fi
 
 CURRENT_THEME=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
 if [[ "$CURRENT_THEME" == "aether" ]]; then

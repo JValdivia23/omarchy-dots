@@ -26,6 +26,8 @@ omarchy-shell -q background set "$BACKGROUND"
 # If active theme is aether, dynamically update colors to match the wallpaper
 CURRENT_THEME=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
 if [[ "$CURRENT_THEME" == "aether" ]]; then
+  # Cancel any in-flight extraction for a previously clicked wallpaper
+  pkill -f "omarchy-theme-dynamic-update" 2>/dev/null || true
   nohup /home/jmvp/.local/bin/omarchy-theme-dynamic-update "$BACKGROUND" >"$HOME/.local/state/omarchy/dynamic-theme.log" 2>&1 &
 fi
 

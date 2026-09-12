@@ -2,6 +2,17 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.8] - 2026-09-11
+### Fixed
+- **Dynamic Theme Color Switching Across Desktop Menus & Shortcuts**: Resolved root-cause issue where choosing wallpapers via Omarchy menu (`SUPER + SPACE` -> Background), native Quickshell carousel (`ALT + SPACE`), or desktop double-click executed stock `/usr/bin/omarchy-theme-bg-set` due to Omarchy's system-first PATH precedence in non-interactive subshells.
+- **Explicit Executable Dispatch**:
+  - Updated `ALT + SPACE` in `core/.config/hypr/bindings-common.lua` to invoke `/home/jmvp/.local/bin/omarchy-theme-bg-set` directly.
+  - Overrode `style.background` in `~/.config/omarchy/extensions/omarchy-menu.jsonc` (tracked in `core/.config/omarchy/extensions/`) to call `/home/jmvp/.local/bin/omarchy-theme-bg-set`.
+  - Cloned `omarchy.background` to `jmvp.background` via `omarchy plugin clone` and patched `Background.qml` to invoke the custom setter.
+  - Added Omarchy CLI wrapper in `core/.local/bin/omarchy` intercepting `theme bg set` commands.
+- **Process Decoupling & Non-Blocking Response**: Hardened `omarchy-theme-bg-set` with `nohup ... &` and user-state logging (`~/.local/state/omarchy/dynamic-theme.log`), decoupling background palette extraction (~1.9s) and theme staging (~4s) from the caller so wallpaper switching and picker modal close remain instant (< 10ms).
+- **Environment PATH Hardening**: Configured `~/.config/environment.d/10-user-bin.conf` and updated `~/.bashrc` to prepend `~/.local/bin` ahead of system directories.
+
 ## [2.2.7] - 2026-09-11
 ### Added
 - **All-Native Quickshell Wallpaper Picker**: Eliminated external Waypaper GUI overhead and integrated directly with Omarchy's native Quickshell carousel. Bound `ALT + SPACE` directly to the native background switcher (`omarchy-theme-bg-switcher`).

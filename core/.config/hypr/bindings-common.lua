@@ -74,5 +74,6 @@ o.bind("SUPER + SHIFT + Y", "YouTube", {
 })
 
 -- Wallpaper & Dynamic Theme Picker (Waypaper GUI)
-o.bind("ALT + Space", "Wallpaper & theme picker", { launch = "waypaper" })
+o.bind("ALT + SPACE", "Wallpaper & theme picker", { launch = "waypaper" })
+
 

@@ -28,7 +28,6 @@ pcall(require, "hypr.autostart")
 require("default.hypr.toggles")
 
 -- Floating window rule for Waypaper wallpaper picker
-o.window("^(waypaper|Waypaper)$", { float = true })
-o.window("^(waypaper|Waypaper)$", { center = true })
-o.window("^(waypaper|Waypaper)$", { size = { "65%", "75%" } })
+o.window("^(waypaper|Waypaper)$", { float = true, center = true, size = { 975, 750 } })
+
 

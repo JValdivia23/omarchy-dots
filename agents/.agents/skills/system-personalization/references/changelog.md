@@ -2,6 +2,14 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.4] - 2026-09-11
+### Added
+- **Omarchy Vitals Status Bar Plugin (`osesantos.vitals`)**: Installed verified community plugin from `https://github.com/osesantos/omarchy-vitals.git` into `~/.config/omarchy/plugins/osesantos.vitals`.
+- **System Telemetry Widgets on Status Bar**: Configured three modular Vitals entries in the `left` section of `~/.config/omarchy/shell.json` after Workspaces:
+  - **CPU**: `module: "cpu"`, `widget: "text"` (`󰻠` usage %)
+  - **RAM**: `module: "memory"`, `widget: "text"` (`󰍛` usage %)
+  - **Temperature**: `module: "sensors"`, `widget: "text"` (`󰔏` package temp in °C from hwmon coretemp)
+
 ## [2.2.3] - 2026-09-11
 ### Changed
 - **Migrated to `omarchy-dev` Channel**: Upgraded Omarchy from `omarchy 4.0.3-1` to `omarchy-dev 4.0.0.r1832.g23dab9e-1` and `omarchy-settings-dev` (tracking the upstream `quattro` development branch tip).

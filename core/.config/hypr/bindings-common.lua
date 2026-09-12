@@ -73,7 +73,8 @@ o.bind("SUPER + SHIFT + Y", "YouTube", {
   launch = "brave-origin --new-window --ozone-platform=wayland --app=https://youtube.com --name=YouTube --class=YouTube"
 })
 
--- Wallpaper & Dynamic Theme Picker (Waypaper GUI)
-o.bind("ALT + SPACE", "Wallpaper & theme picker", { launch = "waypaper" })
+-- Background Switcher (Native Omarchy Quickshell Carousel)
+o.bind("ALT + SPACE", "Background switcher", "background=$(omarchy-theme-bg-switcher); [[ -n $background ]] && omarchy-theme-bg-set \"$background\"")
+
 
 

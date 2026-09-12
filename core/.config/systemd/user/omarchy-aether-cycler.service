@@ -1,0 +1,8 @@
+[Unit]
+Description=Omarchy Aether Dynamic Wallpaper and Palette Cycler
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/omarchy-theme-hourly-cycle
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin

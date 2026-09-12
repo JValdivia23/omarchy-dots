@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# omarchy:summary=Pre-cache image-selector thumbnails for all wallpapers in the background with low CPU priority
+
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/omarchy/image-selector"
+INDEX_FILE="$CACHE_DIR/index.tsv"
+mkdir -p "$CACHE_DIR"
+
+WALLPAPERS_DIR="$HOME/Pictures/Wallpapers"
+
+find "$WALLPAPERS_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) | while read -r img; do
+  signature=$(stat -Lc '%s:%Y' "$img" 2>/dev/null) || continue
+  hash=$(awk -F '\t' -v path="$img" -v sig="$signature" '$1 == path && $2 == sig { print $3; exit }' "$INDEX_FILE" 2>/dev/null)
+
+  if [[ -z $hash ]]; then
+    hash=$(printf '%s\t%s' "$img" "$signature" | md5sum | cut -d ' ' -f 1)
+    printf '%s\t%s\t%s\n' "$img" "$signature" "$hash" >>"$INDEX_FILE"
+  fi
+
+  thumb="$CACHE_DIR/$hash.jpg"
+  if [[ ! -f "$thumb" ]]; then
+    tmp="$thumb.$$.jpg"
+    if VIPS_CONCURRENCY=1 vipsthumbnail "$img" --size 1536x864 --smartcrop=centre --path "$tmp[Q=82,strip]" >/dev/null 2>&1; then
+      mv -f "$tmp" "$thumb"
+    else
+      rm -f "$tmp"
+    fi
+  fi
+done

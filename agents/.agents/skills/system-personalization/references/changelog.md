@@ -2,6 +2,10 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.6] - 2026-09-11
+### Fixed
+- **Omarchy Vitals Status Bar Color Alignment (`osesantos.vitals`)**: Fixed color mismatch between Vitals widgets and native Omarchy bar widgets. Replaced static `bar.foreground` with dynamic `bar.barForeground` across `charts/*.qml` (`Text`, `Mini`, `Line`, `Bars`, `Pie`, `Fill`, `Speed`), allowing Vitals to inherit the exact wallpaper-adaptive contrast foreground (`transparentForeground`) and smooth color transition animations used by all other icons on the bar.
+
 ## [2.2.5] - 2026-09-11
 ### Added
 - **Dynamic Material You Theme (`aether`)**: Created dedicated dynamic theme in `~/.config/omarchy/themes/aether/` powered by `matugen` (Material Design 3 tonal-spot palette extraction).

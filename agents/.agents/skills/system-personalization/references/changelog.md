@@ -2,6 +2,15 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.11] - 2026-09-12
+### Added
+- **Lichess Client Local Build & Desktop Integration**:
+  - Forked official Flutter client (`lichess-org/mobile`) to GitHub user account (`JValdivia23/mobile`) and cloned into `~/Work/lichess-mobile`.
+  - Installed build toolchain prerequisites: `cmake` and `ninja` via `pacman`, and `flutter` (v3.47.3 matching repo constraints) via `mise`.
+  - Initialized dependencies and executed code generation (`dart run build_runner build`).
+  - Compiled native Linux release bundle (`build/linux/x64/release/bundle/lichess_mobile`).
+  - Created wrapper executable in `~/.local/bin/lichess` and registered FreeDesktop launcher in `~/.local/share/applications/org.lichess.mobile.desktop` with high-resolution Lichess icon.
+
 ## [2.2.10] - 2026-09-12
 ### Fixed
 - **Vibrant Subject Color Extraction Over Dark Background Shadows**: Resolved issue where wallpapers featuring vivid focal subjects against large dark or night backgrounds (such as `a_car_on_fire_at_night.jpg`) extracted cold cyan/blue colors. Matugen's `--source-color-index 0` was hardcoded to pick the largest pixel cluster, which was the dark night sky shadow (`#0a191c`) rather than the blazing fire (`#e52c2a`).

@@ -17,6 +17,7 @@ A dated log of all package changes, configurations, script modifications, and ha
   - Installed build toolchain prerequisites: `cmake` and `ninja` via `pacman`, and `flutter` (v3.47.3 matching repo constraints) via `mise`.
   - Initialized dependencies and executed code generation (`dart run build_runner build`).
   - Compiled native Linux release bundle (`build/linux/x64/release/bundle/lichess_mobile`).
+  - Configured production endpoints: set default hosts to `lichess.org` and `socket.lichess.org` in `lib/src/constants.dart` (resolving offline status caused by upstream dev default `lichess.dev`).
   - Created wrapper executable in `~/.local/bin/lichess` and registered FreeDesktop launcher in `~/.local/share/applications/org.lichess.mobile.desktop` with high-resolution Lichess icon.
 
 ## [2.2.10] - 2026-09-12

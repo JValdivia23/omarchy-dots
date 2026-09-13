@@ -2,6 +2,14 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.12] - 2026-09-12
+### Fixed
+- **Surface Book 3 USB-C Charging Deadlock & Power Delivery Flapping**:
+  - Diagnosed USB-C port failure triggered after disconnecting an alternate-mode display accessory (XREAL Air 2 Pro) that threw continuous xHCI bandwidth allocation errors (`-28`).
+  - Identified base Power Delivery PHY controller deadlock causing 0V detection ($R_d$ pull-down failure on CC lines), resolved via DTX clipboard detachment hardware cold reboot.
+  - Isolated secondary ~350ms power negotiation flapping loop on Apple 61W USB-C adapter (Model A1718): identified missing 15V rail and 3.0A Over-Current Protection (OCP) trip when attempting to fast-charge dual depleted batteries (`BAT1` and `BAT2` < 20%) while system is active (~65W–75W peak load).
+  - Documented root causes, sleep/suspend charge bypass, and hardware requirements in [`profiles/surface/gotchas/08-surface-book-usb-c-charging-quirks.md`](../profiles/surface/gotchas/08-surface-book-usb-c-charging-quirks.md).
+
 ## [2.2.11] - 2026-09-12
 ### Added
 - **Lichess Client Local Build & Desktop Integration**:

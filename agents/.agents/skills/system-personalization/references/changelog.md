@@ -18,6 +18,7 @@ A dated log of all package changes, configurations, script modifications, and ha
   - Initialized dependencies and executed code generation (`dart run build_runner build`).
   - Compiled native Linux release bundle (`build/linux/x64/release/bundle/lichess_mobile`).
   - Configured production endpoints: set default hosts to `lichess.org` and `socket.lichess.org` in `lib/src/constants.dart` (resolving offline status caused by upstream dev default `lichess.dev`).
+  - Added native Linux audio fallback in `lib/src/model/common/service/sound_service.dart` using PipeWire (`pw-play`) and PulseAudio (`paplay`), enabling low-latency sound effects on Linux desktop (upstream `sound_effect` plugin only supports Android and iOS).
   - Created wrapper executable in `~/.local/bin/lichess` and registered FreeDesktop launcher in `~/.local/share/applications/org.lichess.mobile.desktop` with high-resolution Lichess icon.
 
 ## [2.2.10] - 2026-09-12

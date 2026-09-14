@@ -2,6 +2,14 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.13] - 2026-09-13
+### Added
+- **Surface Kernel Limine Boot Priority Drop-In**:
+  - Configured `/etc/limine-entry-tool.d/zz-surface-kernel.conf` to set `BOOT_ORDER="linux-surface*, *, *fallback, Snapshots"`, making `linux-surface` the default boot option upon reboot.
+  - Preserved stock Arch `linux` as a secondary fallback entry beneath `linux-surface`.
+  - Added modular gotcha [`profiles/surface/gotchas/09-surface-kernel-limine-boot-default.md`](../profiles/surface/gotchas/09-surface-kernel-limine-boot-default.md) and linked it in [`references/gotchas/INDEX.md`](gotchas/INDEX.md).
+  - Integrated Limine drop-in creation into `profiles/surface/setup.sh` for reproducible setup across installations.
+
 ## [2.2.12] - 2026-09-12
 ### Fixed
 - **Surface Book 3 USB-C Charging Deadlock & Power Delivery Flapping**:

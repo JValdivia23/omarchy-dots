@@ -27,6 +27,7 @@ Hardware-specific workarounds live inside each profile directory under `profiles
 | [`04-surface-dtx-tablet-detach.md`](04-surface-dtx-tablet-detach.md) | Surface Book Tablet Detachment (`surface-dtx`) | Hardware / System | Microsoft Surface Book | Warning |
 | [`07-fcitx5-wayland-virtual-keyboard.md`](07-fcitx5-wayland-virtual-keyboard.md) | Fcitx5 Wayland Virtual Keyboard Compatibility | Input / Wayland | Microsoft Surface | Info |
 | [`08-surface-book-usb-c-charging-quirks.md`](08-surface-book-usb-c-charging-quirks.md) | Surface Book USB-C Charging Deadlocks & Power Delivery Flapping | Hardware / Power | Microsoft Surface Book | Warning |
+| [`09-surface-kernel-limine-boot-default.md`](09-surface-kernel-limine-boot-default.md) | Surface Kernel Default Boot Order in Limine Bootloader | Hardware / System | Microsoft Surface | Warning |
 
 On fresh or standard desktop systems without a specialized profile, this directory remains clean with only the universal guardrails above.
 

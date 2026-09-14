@@ -22,4 +22,14 @@ if [ -f "$SCRIPT_DIR/services.txt" ]; then
     done < "$SCRIPT_DIR/services.txt"
 fi
 
+# Ensure Surface kernel is the default in Limine bootloader
+if [ -d "/etc/limine-entry-tool.d" ]; then
+    echo "--> Configuring Limine boot order for Surface kernel..."
+    sudo mkdir -p /etc/limine-entry-tool.d
+    sudo tee /etc/limine-entry-tool.d/zz-surface-kernel.conf >/dev/null <<'EOF'
+# Prioritize Surface kernel as default boot entry in Limine bootloader
+BOOT_ORDER="linux-surface*, *, *fallback, Snapshots"
+EOF
+fi
+
 echo "==> Surface profile setup complete."

@@ -2,6 +2,24 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.17] - 2026-09-13
+### Added
+- **macOS-Style Text Selection & Deletion Keybindings (`bindings-common.lua`)**:
+  - Bound `SUPER + SHIFT + LEFT` / `RIGHT` to instant line selection (`SHIFT + Home` / `SHIFT + End`).
+  - Bound `SUPER + SHIFT + UP` / `DOWN` to document selection (`CTRL + SHIFT + Home` / `CTRL + SHIFT + End`).
+  - Bound `ALT + Delete` to forward word deletion (`CTRL + Delete`).
+  - Bound `SUPER + Delete` to forward line deletion (`CTRL + K` in terminal, `SHIFT + End + BackSpace` in GUI).
+- **Surface Book 3 Hardware Utility Scripts (`profiles/surface/.local/bin/`)**:
+  - Created `surface-rotate`: Instant display rotation utility using `jq` to cycle `eDP-1` transform (0° -> 90° -> 270° -> 0°).
+  - Created `surface-detach`: Tablet latch release helper invoking `surface dtx request` with desktop notification feedback.
+
+### Changed
+- **Resolved Window Swap vs macOS Text Selection Conflict**:
+  - Unbound default `SUPER + SHIFT + ARROWS` from window swapping, eliminating accidental window tile reordering when selecting text.
+  - Rebound window swapping to `CTRL + SHIFT + ARROWS` (naturally complementing `CTRL + ARROWS` for window focus navigation).
+- **Cleaned Surface Profile Keybindings (`bindings-profile.lua`)**:
+  - Replaced inline subshell and Python string escaping for `SUPER + D` and `SUPER + R` with direct calls to `surface-detach` and `surface-rotate`.
+
 ## [2.2.16] - 2026-09-13
 ### Fixed
 - **Foot Terminal Missing Theme Resolution (`theme/foot.ini`)**:

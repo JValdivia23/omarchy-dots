@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# surface-detach — Surface Book 3 software latch release helper
+if surface dtx request 2>/dev/null; then
+    omarchy notification send "Surface detach" "Latch opening - pull the tablet."
+else
+    omarchy notification send "Surface detach" "Hold the hardware detach key."
+fi

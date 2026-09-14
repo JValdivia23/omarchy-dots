@@ -15,8 +15,8 @@ The primary modifier key is **`SUPER`** (Windows / Command key).
 
 | Shortcut | Command / Action | Description |
 |----------|------------------|-------------|
-| `SUPER` + `D` | `surface dtx request` | Request hardware latch release to detach tablet |
-| `SUPER` + `R` | `hyprctl keyword monitor ...` | Manually rotate display transform (0° → 90° → 270° → 0°) |
+| `SUPER` + `D` | `surface-detach` | Request hardware latch release to detach tablet |
+| `SUPER` + `R` | `surface-rotate` | Fast display transform rotation (0° → 90° → 270° → 0°) |
 | `SUPER` + `SHIFT` + `U` | `fcitx5-remote -t` | Toggle on-screen virtual keyboard panel (Fcitx5) |
 | `SUPER` + `ALT` + `K` | `~/.local/bin/hypr-toggle-altwin` | Toggle Alt / Super key swap (Mac vs PC layout) |
 | `SUPER` + `ALT` + `BACKSPACE` | `omarchy-hyprland-window-transparency-toggle` | Toggle window transparency / opacity |
@@ -32,18 +32,25 @@ Configured in `~/.config/hypr/bindings.lua` to provide smooth, familiar text edi
 | Shortcut | Action | Scope / Behavior |
 |----------|--------|------------------|
 | `CTRL` + `Left` / `Right` / `Up` / `Down` | Focus Window | Move window focus in directional grid |
+| `CTRL` + `SHIFT` + `Left` / `Right` / `Up` / `Down` | Swap Window | Swap active window in directional grid |
 | `SUPER` + `Left` | Line Start (Home) | Jump to beginning of line (repeating) |
 | `SUPER` + `Right` | Line End (End) | Jump to end of line (repeating) |
 | `SUPER` + `Up` | Document Start | Jump to top of document (`CTRL + Home`) |
 | `SUPER` + `Down` | Document End | Jump to end of document (`CTRL + End`) |
+| `SUPER` + `SHIFT` + `Left` | Select to Line Start | Select to beginning of line (`SHIFT + Home`) |
+| `SUPER` + `SHIFT` + `Right` | Select to Line End | Select to end of line (`SHIFT + End`) |
+| `SUPER` + `SHIFT` + `Up` | Select to Doc Start | Select to top of document (`CTRL + SHIFT + Home`) |
+| `SUPER` + `SHIFT` + `Down` | Select to Doc End | Select to bottom of document (`CTRL + SHIFT + End`) |
 | `ALT` + `Left` / `Right` | Word Navigation | Jump one word left / right (`CTRL + Left/Right`) |
 | `ALT` + `SHIFT` + `Left` / `Right` | Word Selection | Select one word left / right (`CTRL + SHIFT + Left/Right`) |
 | `ALT` + `BackSpace` | Delete Word | Delete word backward (`CTRL + BackSpace`) |
+| `ALT` + `Delete` | Delete Word Forward | Delete word forward (`CTRL + Delete`) |
 | `SUPER` + `BackSpace` | Delete Line | Delete line backward (`CTRL + U` in terminal, `SHIFT + Home + BackSpace` in GUI) |
+| `SUPER` + `Delete` | Delete Line Forward | Delete line forward (`CTRL + K` in terminal, `SHIFT + End + BackSpace` in GUI) |
 | `SUPER` + `Z` | Undo | Undo last action (`CTRL + Z`) |
 | `SUPER` + `SHIFT` + `Z` | Redo | Redo last action (`CTRL + SHIFT + Z`) |
-| `SUPER` + `C` | Copy | Universal copy (`CTRL + C` in GUI, `CTRL + SHIFT + C` in terminal) |
-| `SUPER` + `V` | Paste | Universal paste (`CTRL + V` in GUI, `CTRL + SHIFT + V` in terminal) |
+| `SUPER` + `C` | Copy | Universal copy (`CTRL + C` in GUI, `CTRL + Insert` in terminal) |
+| `SUPER` + `V` | Paste | Universal paste (`CTRL + V` in GUI, `SHIFT + Insert` in terminal) |
 | `SUPER` + `X` | Cut | Universal cut (`CTRL + X`) |
 
 ---
@@ -52,6 +59,8 @@ Configured in `~/.config/hypr/bindings.lua` to provide smooth, familiar text edi
 
 | Shortcut | Action | Description |
 |----------|--------|-------------|
+| `CTRL` + `Left` / `Right` / `Up` / `Down` | Focus Window | Move focus in directional grid |
+| `CTRL` + `SHIFT` + `Left` / `Right` / `Up` / `Down` | Swap Window | Swap window position in directional grid |
 | `SUPER` + `W` | Close Window | Close the focused window |
 | `SUPER` + `F` | Fullscreen | Toggle fullscreen mode |
 | `SUPER` + `ALT` + `F` | Full Width | Maximize window width |

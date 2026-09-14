@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+import json
+import os
+import subprocess
+import time
+
+PROFILE = os.path.expanduser("~/.config/brave-webapps/containers/diagnostics")
+URLS = [
+    ("PH", "https://www.pornhub.com/"),
+    ("XVideos", "https://www.xvideos.com/"),
+    ("XNXX", "https://www.xnxx.com/search/xnxxx-com/"),
+]
+
+def get_clients():
+    try:
+        out = subprocess.check_output(["hyprctl", "clients", "-j"], stderr=subprocess.DEVNULL)
+        return json.loads(out)
+    except Exception:
+        return []
+
+def dispatch(cmd):
+    return subprocess.run(["hyprctl", "dispatch", cmd], capture_output=True, text=True)
+
+# 1. Check if any XH window is already open
+clients = get_clients()
+existing = [c for c in clients if any(k in c.get("class", "").lower() for k in ["pornhub", "xvideos", "xnxx"])]
+if existing:
+    # Already running, just focus the window/group
+    addr = existing[0]["address"]
+    dispatch(f"hl.dsp.focus({{ window = \"address:{addr}\" }})")
+    exit(0)
+
+# 2. Launch helper
+def launch_app(url):
+    subprocess.Popen([
+        "brave-origin",
+        f"--user-data-dir={PROFILE}",
+        "--new-window",
+        "--ozone-platform=wayland",
+        f"--app={url}"
+    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+
+def wait_for_new_window(known_addrs, timeout=7.0):
+    start = time.time()
+    while time.time() - start < timeout:
+        time.sleep(0.15)
+        for c in get_clients():
+            if c["address"] not in known_addrs and any(k in c.get("class", "").lower() for k in ["pornhub", "xvideos", "xnxx"]):
+                return c
+    return None
+
+known = set(c["address"] for c in clients)
+
+# Launch primary window (Pornhub)
+launch_app(URLS[0][1])
+win1 = wait_for_new_window(known)
+if not win1:
+    exit(1)
+known.add(win1["address"])
+
+# Make win1 a group if not already
+if not win1.get("grouped"):
+    dispatch(f"hl.dsp.focus({{ window = \"address:{win1['address']}\" }})")
+    dispatch("hl.dsp.group.toggle()")
+
+group_addr = win1["address"]
+
+# Launch and merge remaining windows
+for name, url in URLS[1:]:
+    dispatch(f"hl.dsp.focus({{ window = \"address:{group_addr}\" }})")
+    launch_app(url)
+    new_win = wait_for_new_window(known)
+    if new_win:
+        known.add(new_win["address"])
+        curr_clients = {c["address"]: c for c in get_clients()}
+        grp = curr_clients.get(group_addr, win1)
+        
+        gx, gy = grp["at"]
+        nx, ny = new_win["at"]
+        
+        dx = gx - nx
+        dy = gy - ny
+        
+        if abs(dx) >= abs(dy):
+            direction = "r" if dx > 0 else "l"
+        else:
+            direction = "d" if dy > 0 else "u"
+            
+        dispatch(f"hl.dsp.focus({{ window = \"address:{new_win['address']}\" }})")
+        dispatch(f"hl.dsp.window.move({{ into_group = \"{direction}\" }})")
+        time.sleep(0.1)
+
+# Focus primary window in group
+dispatch(f"hl.dsp.focus({{ window = \"address:{group_addr}\" }})")

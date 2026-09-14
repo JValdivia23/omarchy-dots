@@ -110,7 +110,7 @@ Item {
 
   Process {
     id: bgSwitchProc
-    command: ["bash", "-c", "background=$(omarchy-theme-bg-switcher); [[ -n $background ]] && /home/jmvp/.local/bin/omarchy-theme-bg-set \"$background\""]
+    command: ["bash", "-c", "background=$(omarchy-theme-bg-switcher); [[ -n $background ]] && \"$HOME/.local/bin/omarchy-theme-bg-set\" \"$background\""]
     onExited: root.refreshBackground()
   }
 

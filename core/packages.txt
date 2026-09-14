@@ -6,3 +6,8 @@ fastfetch
 starship
 fish
 omarchy-fish
+jq
+matugen
+waypaper
+mise-bin
+brave-origin-bin

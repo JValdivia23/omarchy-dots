@@ -1,0 +1,14 @@
+#!/bin/bash
+# Lichess Flutter Linux client wrapper
+TARGET="$HOME/Work/lichess-mobile/build/linux/x64/release/bundle/lichess_mobile"
+
+if [ -x "$TARGET" ]; then
+    exec "$TARGET" "$@"
+else
+    echo "Error: Lichess executable not found at $TARGET" >&2
+    echo "To build: cd ~/Work/lichess-mobile && flutter build linux --release" >&2
+    if command -v notify-send &>/dev/null; then
+        notify-send "Lichess" "Lichess executable not found at $TARGET.\nBuild it via: cd ~/Work/lichess-mobile && flutter build linux --release" --urgency=critical
+    fi
+    exit 1
+fi

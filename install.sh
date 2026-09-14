@@ -179,10 +179,16 @@ check_and_backup_path() {
     # If the target doesn't exist and isn't a broken symlink, nothing to do
     [ ! -e "$target" ] && [ ! -L "$target" ] && return 0
 
-    # Safety: NEVER back up or move files resolving inside our dotfiles repository
+    # If target is already a symlink resolving inside our dotfiles repository,
+    # remove it so GNU Stow can recreate and own its managed relative link cleanly.
     local target_real
     target_real=$(realpath -q "$target" 2>/dev/null || true)
     if [ -n "$target_real" ] && [[ "$target_real" == "$DOTFILES_DIR"* ]]; then
+        if [ -L "$target" ]; then
+            if [ "$DRY_RUN" = false ]; then
+                rm -f "$target"
+            fi
+        fi
         return 0
     fi
 
@@ -310,6 +316,21 @@ install_packages_list() {
 # --- 3. Packages Installation Step ---
 if [ "$DO_PACKAGES" = true ]; then
     echo "==> [2/4] Synchronizing System & Profile Packages..."
+
+    # 0. Profile pre-install hooks (e.g. repository setup such as linux-surface)
+    for p in "${STOWABLE_PROFILES[@]}"; do
+        PRE_INSTALL="$DOTFILES_DIR/profiles/$p/pre-install.sh"
+        if [ -f "$PRE_INSTALL" ]; then
+            echo "--> Running pre-install hook for profile '$p'..."
+            if [ "$DRY_RUN" = true ]; then
+                echo "    [dry-run] Would execute: bash $PRE_INSTALL"
+            else
+                chmod +x "$PRE_INSTALL"
+                bash "$PRE_INSTALL"
+            fi
+        fi
+    done
+
     # 1. Core universal packages
     install_packages_list "$DOTFILES_DIR/core/packages.txt"
 
@@ -340,6 +361,8 @@ if [ "$DO_STOW" = true ]; then
     if [ "$DRY_RUN" = false ]; then
         mkdir -p "$HOME/.config" \
                  "$HOME/.config/hypr" \
+                 "$HOME/.config/omarchy" \
+                 "$HOME/.config/omarchy/plugins" \
                  "$HOME/.local/bin" \
                  "$HOME/.local/share/applications" \
                  "$HOME/.local/share/icons" \
@@ -502,6 +525,41 @@ if [ "$DO_SETUP" = true ]; then
         else
             chmod +x "$INIT_SKILL_SCRIPT"
             bash "$INIT_SKILL_SCRIPT" --profiles "$ACTIVE_PROFILES"
+        fi
+    fi
+
+    # 4. Enable user systemd services and timers (e.g. Aether dynamic cycler)
+    if command -v systemctl &>/dev/null; then
+        echo "--> Reloading systemd user daemon and activating user timers..."
+        if [ "$DRY_RUN" = true ]; then
+            echo "    [dry-run] systemctl --user daemon-reload"
+            echo "    [dry-run] systemctl --user enable --now omarchy-aether-cycler.timer"
+        else
+            systemctl --user daemon-reload || true
+            if systemctl --user list-unit-files omarchy-aether-cycler.timer &>/dev/null; then
+                systemctl --user enable --now omarchy-aether-cycler.timer || true
+                echo "    Enabled omarchy-aether-cycler.timer"
+            fi
+        fi
+    fi
+
+    # 5. Ensure interactive Fish auto-launch guard exists in ~/.bashrc
+    if [ -f "$HOME/.bashrc" ] && ! grep -q "Auto-launch fish shell for interactive sessions" "$HOME/.bashrc"; then
+        echo "--> Adding Fish interactive auto-launch guard to ~/.bashrc..."
+        if [ "$DRY_RUN" = true ]; then
+            echo "    [dry-run] Would append Fish auto-launch guard to ~/.bashrc"
+        else
+            cat >> "$HOME/.bashrc" << 'EOF'
+
+# Auto-launch fish shell for interactive sessions (CachyOS terminal experience)
+if command -v fish &>/dev/null; then
+  if [[ $(ps --no-header --pid=$PPID --format=comm) != "fish" && -z ${BASH_EXECUTION_STRING} ]]; then
+    shopt -q login_shell && LOGIN_OPTION='--login' || LOGIN_OPTION=''
+    exec fish $LOGIN_OPTION
+  fi
+fi
+EOF
+            echo "    Added Fish auto-launch guard to ~/.bashrc"
         fi
     fi
     echo ""

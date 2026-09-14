@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=XH
+Comment=Multi-Page Media Hub
+Exec=xh-launch
+Terminal=false
+Type=Application
+Icon=XH
+StartupNotify=true
+Categories=Network;WebBrowser;

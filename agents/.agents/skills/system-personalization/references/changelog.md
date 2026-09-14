@@ -2,6 +2,35 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.14] - 2026-09-13
+### Added
+- **Surface Profile Pre-Install Hook (`profiles/surface/pre-install.sh`)**:
+  - Automatically imports and locally signs the Linux-Surface GPG repository key (`56C464BAAC421453`).
+  - Idempotently adds `[linux-surface]` repository block to `/etc/pacman.conf` and refreshes databases (`pacman -Sy`), ensuring Surface kernel and drivers resolve seamlessly during fresh installs.
+- **Surface Profile Packages Expansion**:
+  - Added `linux-surface`, `linux-surface-headers`, `surface-control-bin`, and `fcitx5` Wayland virtual keyboard suite (`fcitx5`, `fcitx5-gtk`, `fcitx5-qt`) to `profiles/surface/packages.txt`.
+- **Core Packages & Tooling Expansion**:
+  - Added `matugen` (M3 palette extraction), `waypaper`, `jq`, `mise-bin`, and `brave-origin-bin` to `core/packages.txt`.
+- **Omarchy Shell & Plugins Version Tracking**:
+  - Tracked Omarchy status bar layout [`core/.config/omarchy/shell.json`](core/.config/omarchy/shell.json) including telemetry widgets, custom clock, and panel configuration.
+  - Tracked custom plugins [`jmvp.power`](core/.config/omarchy/plugins/jmvp.power/) and [`osesantos.vitals`](core/.config/omarchy/plugins/osesantos.vitals/) with wallpaper-adaptive foreground charts.
+  - Tracked default coding agent [`core/.config/omarchy/defaults/agent`](core/.config/omarchy/defaults/agent) (`agy`).
+  - Tracked initial dynamic theme definition [`core/.config/omarchy/themes/aether/colors.toml`](core/.config/omarchy/themes/aether/colors.toml) and hook [`core/.config/omarchy/hooks/theme-set.d/aether-dynamic.sh`](core/.config/omarchy/hooks/theme-set.d/aether-dynamic.sh).
+  - Tracked tool version definitions in [`core/.config/mise/config.toml`](core/.config/mise/config.toml).
+- **WebApps, Desktop Launchers & Icons Tracking**:
+  - Tracked FreeDesktop application entries in `core/.local/share/applications/` (`YouTube.desktop`, `AllAnime.desktop`, `Hanime.desktop`, `PH.desktop`, `XH.desktop`, `org.lichess.mobile.desktop`) with spec-compliant quoting.
+  - Tracked application icons in `core/.local/share/applications/icons/` and `core/.local/share/icons/hicolor/256x256/apps/lichess.png`.
+  - Added portable wrappers in `core/.local/bin/` (`lichess`, `xh-launch`, `omarchy-precache-fast`).
+- **Automated User Timers & Fish Shell Guard**:
+  - Added post-install step to `install.sh` reloading user systemd daemon and enabling `omarchy-aether-cycler.timer`.
+  - Added post-install step to `install.sh` ensuring interactive Fish auto-launch guard is appended to `~/.bashrc`.
+
+### Fixed
+- **Path Portability Hardening**:
+  - Replaced all hardcoded `/home/jmvp/` paths across `bindings-common.lua`, `omarchy-menu.jsonc`, `Background.qml`, `omarchy-theme-bg-set`, `omarchy-theme-dynamic-update`, `omarchy-theme-hourly-cycle`, `omarchy`, and `waypaper/config.ini` with dynamic `$HOME` resolution.
+- **GNU Stow Conflict Resolution**:
+  - Updated `check_and_backup_path` in `install.sh` to automatically clean up pre-existing manual absolute symlinks pointing into `$DOTFILES_DIR` before running Stow, eliminating "existing target is not owned by stow" conflicts.
+
 ## [2.2.13] - 2026-09-13
 ### Added
 - **Surface Kernel Limine Boot Priority Drop-In**:

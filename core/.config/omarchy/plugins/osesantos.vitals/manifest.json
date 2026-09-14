@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "osesantos.vitals",
+  "name": "Omarchy Vitals",
+  "version": "1.0.0",
+  "author": "osesantos",
+  "license": "MIT",
+  "description": "Modular system monitor for the Omarchy bar: one independent entry per metric (CPU, memory, disk, network, sensors), each with its own widget style — text, sparkline, line, bars, pie, fill, or up/down speed — and a click-open detail panel with per-core graphs and top processes.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Widget.qml"
+  },
+  "barWidget": {
+    "displayName": "Vitals",
+    "description": "One bar entry per metric. Pick a module (cpu, memory, disk, network, sensors) and a widget style.",
+    "category": "System",
+    "aliases": [
+      "cpu",
+      "memory",
+      "ram",
+      "disk",
+      "network",
+      "net",
+      "sensors",
+      "temp",
+      "monitor",
+      "stats",
+      "vitals"
+    ],
+    "allowMultiple": true,
+    "defaultSection": "right",
+    "defaults": {
+      "module": "cpu",
+      "widget": "text"
+    },
+    "schema": [
+      { "key": "module", "type": "enum", "label": "Module", "options": ["cpu", "memory", "disk", "network", "sensors"], "defaultValue": "cpu", "description": "Which system metric this bar entry monitors." },
+      { "key": "widget", "type": "enum", "label": "Widget style", "options": ["text", "mini", "line", "bars", "pie", "fill", "speed"], "defaultValue": "text", "description": "How the metric is drawn in the bar. Not every style suits every module." },
+      { "key": "intervalMs", "type": "integer", "label": "Poll interval (ms)", "min": 500, "max": 30000, "step": 500, "defaultValue": 2000, "description": "How often this module is sampled." }
+    ]
+  }
+}

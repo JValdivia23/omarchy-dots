@@ -23,7 +23,7 @@ ln -sf "$WALLPAPER" "$THEME_DIR/backgrounds/$WALLPAPER_NAME"
 
 # Extract and update colors.toml safely using a unique temp file
 TMP_TOML=$(mktemp "$THEME_DIR/colors.toml.XXXXXX")
-if /home/jmvp/.local/bin/omarchy-theme-extract-palette "$WALLPAPER" > "$TMP_TOML"; then
+if "$HOME/.local/bin/omarchy-theme-extract-palette" "$WALLPAPER" > "$TMP_TOML"; then
   # Abort if the user switched to a different wallpaper while extracting this one
   CURRENT_BG=$(readlink -f "$HOME/.local/state/omarchy/current/background" 2>/dev/null)
   if [[ "$WALLPAPER" != "$CURRENT_BG" ]]; then

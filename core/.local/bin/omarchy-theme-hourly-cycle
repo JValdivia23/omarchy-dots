@@ -15,7 +15,7 @@ CURRENT_BG=$(readlink -f "$HOME/.local/state/omarchy/current/background" 2>/dev/
 
 # 1. Rotate the background switcher pool with a fresh shuffle of 35 pictures
 echo "Shuffling background carousel pool (35 pictures)..."
-/home/jmvp/.local/bin/omarchy-theme-shuffle-backgrounds
+"$HOME/.local/bin/omarchy-theme-shuffle-backgrounds"
 
 # 2. Pick a random wallpaper from the collection (excluding the current one)
 mapfile -t available_wallpapers < <(
@@ -31,8 +31,8 @@ NEW_WALLPAPER=$(shuf -n 1 -e "${available_wallpapers[@]}")
 echo "Selected new wallpaper: $NEW_WALLPAPER"
 
 # 3. Apply the new wallpaper
-/home/jmvp/.local/bin/omarchy-theme-bg-set "$NEW_WALLPAPER"
+"$HOME/.local/bin/omarchy-theme-bg-set" "$NEW_WALLPAPER"
 
 # 4. Synchronously run dynamic update so systemd does not kill it prematurely
-/home/jmvp/.local/bin/omarchy-theme-dynamic-update "$NEW_WALLPAPER"
+"$HOME/.local/bin/omarchy-theme-dynamic-update" "$NEW_WALLPAPER"
 echo "Hourly cycle completed successfully."

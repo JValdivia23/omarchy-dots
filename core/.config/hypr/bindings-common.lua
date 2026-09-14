@@ -74,7 +74,8 @@ o.bind("SUPER + SHIFT + Y", "YouTube", {
 })
 
 -- Background Switcher (Native Omarchy Quickshell Carousel)
-o.bind("ALT + SPACE", "Background switcher", "background=$(omarchy-theme-bg-switcher); [[ -n $background ]] && /home/jmvp/.local/bin/omarchy-theme-bg-set \"$background\"")
+local bg_setter = (os.getenv("HOME") or "") .. "/.local/bin/omarchy-theme-bg-set"
+o.bind("ALT + SPACE", "Background switcher", string.format('background=$(omarchy-theme-bg-switcher); [[ -n $background ]] && "%s" "$background"', bg_setter))
 
 
 

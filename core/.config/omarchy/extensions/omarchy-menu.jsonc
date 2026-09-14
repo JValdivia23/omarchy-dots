@@ -31,6 +31,6 @@
     "icon": "",
     "label": "Background",
     "aliases": ["background", "wallpaper"],
-    "action": "background=$(omarchy-theme-bg-switcher); [[ -n $background ]] && /home/jmvp/.local/bin/omarchy-theme-bg-set \"$background\""
+    "action": "background=$(omarchy-theme-bg-switcher); [[ -n $background ]] && \"$HOME/.local/bin/omarchy-theme-bg-set\" \"$background\""
   }
 }

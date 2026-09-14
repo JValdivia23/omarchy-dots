@@ -1,6 +1,7 @@
 ^packages\.txt$
 ^services\.txt$
 ^setup\.sh$
+^pre-install\.sh$
 ^gotchas
 ^\.stow-local-ignore$
 ^__pycache__

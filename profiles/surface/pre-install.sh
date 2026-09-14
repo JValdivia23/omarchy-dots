@@ -14,11 +14,11 @@ if ! grep -q "^\[linux-surface\]" /etc/pacman.conf 2>/dev/null; then
     # Import and sign the linux-surface repository key
     echo "    Importing linux-surface repository GPG key (56C464BAAC421453)..."
     if (( EUID == 0 )); then
-        curl -s https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc | pacman-key --add -
+        curl -sSfL --connect-timeout 10 --retry 3 https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc | pacman-key --add -
         pacman-key --finger 56C464BAAC421453
         pacman-key --lsign-key 56C464BAAC421453
     else
-        curl -s https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc | sudo pacman-key --add -
+        curl -sSfL --connect-timeout 10 --retry 3 https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc | sudo pacman-key --add -
         sudo pacman-key --finger 56C464BAAC421453
         sudo pacman-key --lsign-key 56C464BAAC421453
     fi

@@ -222,7 +222,7 @@ sanitize_directory_symlinks() {
 
     while IFS= read -r -d '' src_d; do
         local rel_d="${src_d#$pkg_dir/}"
-        if [[ "$rel_d" =~ ^(webapps|\.stow)($|/) ]] || [[ "$rel_d" =~ ^(packages\.txt|services\.txt|setup\.sh|gotchas)($|/) ]] || [[ "$rel_d" =~ __pycache__ ]]; then
+        if [[ "$rel_d" =~ ^(webapps|\.stow)($|/) ]] || [[ "$rel_d" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|gotchas)($|/) ]] || [[ "$rel_d" =~ __pycache__ ]]; then
             continue
         fi
 
@@ -252,7 +252,7 @@ scan_and_backup_package_conflicts() {
     while IFS= read -r -d '' src_item; do
         local rel_item="${src_item#$pkg_dir/}"
         # Exclude ignored metadata files, pycache, and non-dotfile trees
-        if [[ "$rel_item" =~ ^(packages\.txt|services\.txt|setup\.sh|webapps|gotchas)($|/) ]] || [[ "$rel_item" =~ ^\.stow ]] || [[ "$rel_item" =~ __pycache__|\.pyc$ ]]; then
+        if [[ "$rel_item" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|webapps|gotchas)($|/) ]] || [[ "$rel_item" =~ ^\.stow ]] || [[ "$rel_item" =~ __pycache__|\.pyc$ ]]; then
             continue
         fi
 
@@ -265,7 +265,7 @@ scan_and_backup_package_conflicts() {
     done < <(find "$pkg_dir" -mindepth 1 \( -type f -o -type l \) -print0)
 }
 
-# Helper to install package lists with omarchy or pacman
+# Helper to install package lists with omarchy or pacman/yay
 install_packages_list() {
     local pkg_file="$1"
     [ ! -f "$pkg_file" ] && return 0
@@ -280,36 +280,65 @@ install_packages_list() {
     [ ${#pkgs[@]} -eq 0 ] && return 0
 
     local rel_path="${pkg_file#$DOTFILES_DIR/}"
-    echo "--> Installing packages from $rel_path (${#pkgs[@]} items)..."
+    echo "--> Checking packages from $rel_path (${#pkgs[@]} items)..."
 
-    if [ "$DRY_RUN" = true ]; then
-        echo "    [dry-run] Packages to install: ${pkgs[*]}"
+    local missing_repo_pkgs=()
+    local missing_aur_pkgs=()
+
+    for pkg in "${pkgs[@]}"; do
+        if pacman -Q "$pkg" &>/dev/null; then
+            continue
+        fi
+        if pacman -Si "$pkg" &>/dev/null; then
+            missing_repo_pkgs+=("$pkg")
+        else
+            missing_aur_pkgs+=("$pkg")
+        fi
+    done
+
+    if [ ${#missing_repo_pkgs[@]} -eq 0 ] && [ ${#missing_aur_pkgs[@]} -eq 0 ]; then
+        echo "    All packages from $rel_path are already installed."
         return 0
     fi
 
-    if command -v omarchy &>/dev/null; then
-        echo "    Using 'omarchy pkg add'..."
-        omarchy pkg add "${pkgs[@]}" || {
-            echo "    Notice: omarchy pkg add finished with warnings; verifying with pacman..."
-            for pkg in "${pkgs[@]}"; do
-                if ! pacman -Q "$pkg" &>/dev/null; then
-                    if (( EUID == 0 )); then
-                        pacman -S --needed --noconfirm "$pkg" || true
-                    else
-                        sudo pacman -S --needed --noconfirm "$pkg" || true
-                    fi
-                fi
-            done
-        }
-    elif command -v pacman &>/dev/null; then
-        echo "    Using 'pacman -S --needed --noconfirm'..."
-        if (( EUID == 0 )); then
-            pacman -S --needed --noconfirm "${pkgs[@]}"
+    # 1. Install missing official repository packages
+    if [ ${#missing_repo_pkgs[@]} -gt 0 ]; then
+        echo "    Installing repository packages: ${missing_repo_pkgs[*]}..."
+        if [ "$DRY_RUN" = true ]; then
+            echo "    [dry-run] Would install via pacman/omarchy: ${missing_repo_pkgs[*]}"
         else
-            sudo pacman -S --needed --noconfirm "${pkgs[@]}"
+            if command -v omarchy &>/dev/null; then
+                omarchy pkg add "${missing_repo_pkgs[@]}" || {
+                    if (( EUID == 0 )); then
+                        pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
+                    else
+                        sudo pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
+                    fi
+                }
+            elif command -v pacman &>/dev/null; then
+                if (( EUID == 0 )); then
+                    pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}"
+                else
+                    sudo pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}"
+                fi
+            fi
         fi
-    else
-        echo "Warning: No supported package manager found (omarchy/pacman). Skipping package installation." >&2
+    fi
+
+    # 2. Install missing AUR packages
+    if [ ${#missing_aur_pkgs[@]} -gt 0 ]; then
+        echo "    Installing AUR packages: ${missing_aur_pkgs[*]}..."
+        if [ "$DRY_RUN" = true ]; then
+            echo "    [dry-run] Would install via AUR (omarchy pkg aur add / yay): ${missing_aur_pkgs[*]}"
+        else
+            if command -v omarchy &>/dev/null; then
+                omarchy pkg aur add "${missing_aur_pkgs[@]}" || true
+            elif command -v yay &>/dev/null; then
+                yay -S --needed --noconfirm "${missing_aur_pkgs[@]}" || true
+            else
+                echo "    Warning: Neither omarchy nor yay found to install AUR packages: ${missing_aur_pkgs[*]}" >&2
+            fi
+        fi
     fi
 }
 
@@ -408,6 +437,7 @@ if [ "$DO_STOW" = true ]; then
         "--ignore=^packages\.txt$"
         "--ignore=^services\.txt$"
         "--ignore=^setup\.sh$"
+        "--ignore=^pre-install\.sh$"
         "--ignore=^webapps"
         "--ignore=^gotchas"
         "--ignore=^\.stow-local-ignore$"
@@ -449,7 +479,7 @@ if [ "$DO_STOW" = true ]; then
             local root_dir="$2"
             while IFS= read -r -d '' src_f; do
                 local rel="${src_f#$root_dir/}"
-                if [[ "$rel" =~ ^(packages\.txt|services\.txt|setup\.sh|webapps|gotchas)($|/) ]] || [[ "$rel" =~ ^\.stow ]] || [[ "$rel" =~ __pycache__|\.pyc$ ]]; then
+                if [[ "$rel" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|webapps|gotchas)($|/) ]] || [[ "$rel" =~ ^\.stow ]] || [[ "$rel" =~ __pycache__|\.pyc$ ]]; then
                     continue
                 fi
                 local dest="$HOME/$rel"
@@ -544,7 +574,8 @@ if [ "$DO_SETUP" = true ]; then
     fi
 
     # 5. Ensure interactive Fish auto-launch guard exists in ~/.bashrc
-    if [ -f "$HOME/.bashrc" ] && ! grep -q "Auto-launch fish shell for interactive sessions" "$HOME/.bashrc"; then
+    [ -f "$HOME/.bashrc" ] || touch "$HOME/.bashrc"
+    if ! grep -q "Auto-launch fish shell for interactive sessions" "$HOME/.bashrc"; then
         echo "--> Adding Fish interactive auto-launch guard to ~/.bashrc..."
         if [ "$DRY_RUN" = true ]; then
             echo "    [dry-run] Would append Fish auto-launch guard to ~/.bashrc"
@@ -561,6 +592,11 @@ fi
 EOF
             echo "    Added Fish auto-launch guard to ~/.bashrc"
         fi
+    fi
+    # 6. Check wallpaper library
+    if [ ! -d "$HOME/Pictures/Wallpapers/dharmx-walls" ]; then
+        echo "--> Wallpaper collection not detected in ~/Pictures/Wallpapers/dharmx-walls."
+        echo "    Run 'omarchy-sync-wallpapers' anytime to fetch 1500+ wallpapers from GitHub."
     fi
     echo ""
 else
@@ -593,6 +629,8 @@ if [[ "$ACTIVE_PROFILES" =~ surface ]]; then
     echo "  2. Test active Surface hardware daemons:"
     echo "     systemctl status surface-dtx-daemon iptsd 2>/dev/null || true"
 fi
-echo "  3. Log out and log back in (or restart your session) to"
+echo "  3. Download or sync wallpaper collection from GitHub:"
+echo "     omarchy-sync-wallpapers"
+echo "  4. Log out and log back in (or restart your session) to"
 echo "     load all environment variables."
 echo "======================================================="

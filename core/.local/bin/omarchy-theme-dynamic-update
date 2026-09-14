@@ -30,7 +30,8 @@ if "$HOME/.local/bin/omarchy-theme-extract-palette" "$WALLPAPER" > "$TMP_TOML"; 
     rm -f "$TMP_TOML"
     exit 0
   fi
-  mv "$TMP_TOML" "$THEME_DIR/colors.toml"
+  cat "$TMP_TOML" > "$THEME_DIR/colors.toml"
+  rm -f "$TMP_TOML"
 else
   rm -f "$TMP_TOML"
   echo "Error: palette extraction failed for $WALLPAPER" >&2

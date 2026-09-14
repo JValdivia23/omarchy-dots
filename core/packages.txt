@@ -7,6 +7,7 @@ starship
 fish
 omarchy-fish
 jq
+python
 matugen
 waypaper
 mise-bin

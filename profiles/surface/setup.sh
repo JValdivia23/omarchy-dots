@@ -30,6 +30,10 @@ if [ -d "/etc/limine-entry-tool.d" ]; then
 # Prioritize Surface kernel as default boot entry in Limine bootloader
 BOOT_ORDER="linux-surface*, *, *fallback, Snapshots"
 EOF
+    if command -v limine-update &>/dev/null; then
+        echo "    Regenerating Limine boot entries with Surface kernel default..."
+        sudo limine-update || true
+    fi
 fi
 
 echo "==> Surface profile setup complete."

@@ -2,6 +2,24 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.15] - 2026-09-13
+### Added
+- **GitHub Wallpaper Library & Fast Sync Tooling**:
+  - Forked full 3.3 GB wallpaper library (`1,500+` curated images across abstract, anime, calm, gruvbox, nature, stalenhag, etc.) to GitHub profile at [`JValdivia23/walls`](https://github.com/JValdivia23/walls).
+  - Tracked default personalized wallpapers ([`Andahuaylas_16x9.jpg`](core/Pictures/Wallpapers/Andahuaylas_16x9.jpg), [`Andahuaylas.jpg`](core/Pictures/Wallpapers/Andahuaylas.jpg)) directly inside `core/Pictures/Wallpapers/` so that fresh installations immediately boot with the active default wallpaper without waiting for large downloads.
+  - Added [`core/.local/bin/omarchy-sync-wallpapers`](core/.local/bin/omarchy-sync-wallpapers) utility: performs high-speed shallow clone (`--depth 1`) from `JValdivia23/walls` (with automatic fallback to upstream `dharmx/walls`), with idempotency, update support, and non-destructive conflict detection.
+  - Integrated wallpaper status check into `install.sh` post-install and completion summaries.
+
+### Fixed
+- **Fresh Installation & Package Resolution Hardening**:
+  - Rewrote `install_packages_list` in [`install.sh`](install.sh) to query `pacman -Si` for each package: official Arch/Omarchy repository packages install via `omarchy pkg add` / `pacman -S`, while AUR packages (`waypaper`, `brave-origin-bin`, `surface-dtx-daemon-bin`, `surface-control-bin`) route cleanly through `omarchy pkg aur add` or `yay -S`, preventing package manager abortions on fresh systems.
+  - Added `python` to [`core/packages.txt`](core/packages.txt) to guarantee `init-skill.sh` and Hyprland display rotation utilities run out-of-the-box on minimal Arch base installs.
+  - Hardened GPG key retrieval in [`profiles/surface/pre-install.sh`](profiles/surface/pre-install.sh) with `--connect-timeout 10 --retry 3`.
+  - Added `sudo limine-update || true` in [`profiles/surface/setup.sh`](profiles/surface/setup.sh) so that `/etc/limine-entry-tool.d/zz-surface-kernel.conf` takes effect immediately on new installations before the initial reboot.
+  - Added `pre-install.sh` to Stow ignore flags, directory sanitizers, and conflict checkers across `install.sh`.
+  - Fixed `omarchy-theme-dynamic-update` to update `colors.toml` in-place (`cat > ... && rm`) rather than replacing the inode with `mv`, preserving the GNU Stow symlink back to the dotfiles repository.
+  - Guaranteed `~/.bashrc` exists before checking or appending the interactive Fish auto-launch guard.
+
 ## [2.2.14] - 2026-09-13
 ### Added
 - **Surface Profile Pre-Install Hook (`profiles/surface/pre-install.sh`)**:

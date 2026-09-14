@@ -1,0 +1,42 @@
+#!/bin/bash
+set -eo pipefail
+
+# omarchy:summary=Download or synchronize full wallpaper collection from GitHub
+# omarchy:args=[--force]
+
+WALLPAPERS_DIR="$HOME/Pictures/Wallpapers"
+mkdir -p "$WALLPAPERS_DIR"
+
+WALLS_REPO="${WALLS_REPO:-https://github.com/JValdivia23/walls.git}"
+FALLBACK_REPO="https://github.com/dharmx/walls.git"
+TARGET_DIR="$WALLPAPERS_DIR/dharmx-walls"
+
+echo "======================================================="
+echo "       🖼️  Omarchy Wallpaper Collection Sync          "
+echo "======================================================="
+echo "Target directory: $TARGET_DIR"
+
+if [ -d "$TARGET_DIR/.git" ]; then
+    echo "--> Existing git repository detected. Fetching latest updates..."
+    git -C "$TARGET_DIR" pull --depth 1 || true
+elif [ -d "$TARGET_DIR" ] && [ "$1" != "--force" ]; then
+    echo "--> Wallpaper directory already exists ($TARGET_DIR)."
+    echo "    To re-clone from GitHub, pass --force."
+else
+    if [ "$1" == "--force" ] && [ -d "$TARGET_DIR" ]; then
+        echo "--> Removing existing directory due to --force..."
+        rm -rf "$TARGET_DIR"
+    fi
+
+    echo "--> Cloning wallpaper collection from $WALLS_REPO (shallow depth 1)..."
+    if ! git clone --depth 1 "$WALLS_REPO" "$TARGET_DIR" 2>/dev/null; then
+        echo "    Notice: $WALLS_REPO was unreachable. Falling back to upstream $FALLBACK_REPO..."
+        git clone --depth 1 "$FALLBACK_REPO" "$TARGET_DIR"
+    fi
+fi
+
+COUNT=$(find "$WALLPAPERS_DIR" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) 2>/dev/null | wc -l)
+echo "-------------------------------------------------------"
+echo "✅ Synchronization complete! Total wallpapers available: $COUNT"
+echo "   Select any wallpaper via 'waypaper' or the Omarchy bar menu."
+echo "======================================================="

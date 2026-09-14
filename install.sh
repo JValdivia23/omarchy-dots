@@ -227,7 +227,7 @@ sanitize_directory_symlinks() {
 
     while IFS= read -r -d '' src_d; do
         local rel_d="${src_d#$pkg_dir/}"
-        if [[ "$rel_d" =~ ^(webapps|\.stow)($|/) ]] || [[ "$rel_d" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|gotchas)($|/) ]] || [[ "$rel_d" =~ __pycache__ ]]; then
+        if [[ "$rel_d" =~ ^(webapps|\.stow)($|/) ]] || [[ "$rel_d" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|gotchas)($|/) ]] || [[ "$rel_d" =~ __pycache__|\.seed$ ]]; then
             continue
         fi
 
@@ -257,7 +257,7 @@ scan_and_backup_package_conflicts() {
     while IFS= read -r -d '' src_item; do
         local rel_item="${src_item#$pkg_dir/}"
         # Exclude ignored metadata files, pycache, and non-dotfile trees
-        if [[ "$rel_item" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|webapps|gotchas)($|/) ]] || [[ "$rel_item" =~ ^\.stow ]] || [[ "$rel_item" =~ __pycache__|\.pyc$ ]]; then
+        if [[ "$rel_item" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|webapps|gotchas)($|/) ]] || [[ "$rel_item" =~ ^\.stow ]] || [[ "$rel_item" =~ __pycache__|\.pyc$|\.seed$ ]]; then
             continue
         fi
 
@@ -448,6 +448,7 @@ if [ "$DO_STOW" = true ]; then
         "--ignore=^\.stow-local-ignore$"
         "--ignore=__pycache__"
         "--ignore=\.pyc$"
+        "--ignore=\.seed$"
     )
 
     if [ "$HAS_STOW" = true ]; then
@@ -484,7 +485,7 @@ if [ "$DO_STOW" = true ]; then
             local root_dir="$2"
             while IFS= read -r -d '' src_f; do
                 local rel="${src_f#$root_dir/}"
-                if [[ "$rel" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|webapps|gotchas)($|/) ]] || [[ "$rel" =~ ^\.stow ]] || [[ "$rel" =~ __pycache__|\.pyc$ ]]; then
+                if [[ "$rel" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|webapps|gotchas)($|/) ]] || [[ "$rel" =~ ^\.stow ]] || [[ "$rel" =~ __pycache__|\.pyc$|\.seed$ ]]; then
                     continue
                 fi
                 local dest="$HOME/$rel"
@@ -611,6 +612,30 @@ EOF
             hyprctl reload &>/dev/null || true
         else
             echo "    [dry-run] hyprctl reload"
+        fi
+    fi
+
+    # 8. Ensure Aether dynamic theme is seeded and compiled
+    aether_user_dir="$HOME/.config/omarchy/themes/aether"
+    aether_seed="$DOTFILES_DIR/core/.config/omarchy/themes/aether/colors.toml.seed"
+    mkdir -p "$aether_user_dir"
+    if [ -L "$aether_user_dir/colors.toml" ]; then
+        rm -f "$aether_user_dir/colors.toml"
+    fi
+    if [ ! -f "$aether_user_dir/colors.toml" ] && [ -f "$aether_seed" ]; then
+        echo "--> Seeding dynamic aether colors.toml..."
+        if [ "$DRY_RUN" = false ]; then
+            cp "$aether_seed" "$aether_user_dir/colors.toml"
+        else
+            echo "    [dry-run] cp $aether_seed $aether_user_dir/colors.toml"
+        fi
+    fi
+    if [ ! -f "$HOME/.local/state/omarchy/current/theme/foot.ini" ] && command -v omarchy-theme-set &>/dev/null; then
+        echo "--> Generating dynamic theme templates (foot.ini, etc.)..."
+        if [ "$DRY_RUN" = false ]; then
+            OMARCHY_THEME_SKIP_BACKGROUND=1 omarchy-theme-set aether >/dev/null 2>&1 || true
+        else
+            echo "    [dry-run] omarchy-theme-set aether"
         fi
     fi
     echo ""

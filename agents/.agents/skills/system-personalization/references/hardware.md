@@ -49,4 +49,4 @@ Monitor eDP-1 (ID 0):
 - **Surface DTX Latch**: Supported via surface-dtx-daemon
 ### Batteries
 - **BAT1**: 79% (Not charging)
-- **BAT2**: 68% (Discharging)
+- **BAT2**: 60% (Discharging)

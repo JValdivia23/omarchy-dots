@@ -2,6 +2,16 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.16] - 2026-09-13
+### Fixed
+- **Foot Terminal Missing Theme Resolution (`theme/foot.ini`)**:
+  - Isolated root cause of `error: foot: foot.ini:3: [main].include: ~/.local/state/omarchy/current/theme/foot.ini: failed to open: No such file or directory`.
+  - Upstream `omarchy-theme-set` copies user themes with `cp -r` without dereferencing (`-L`). When `~/.config/omarchy/themes/aether/colors.toml` was managed as a GNU Stow relative symlink (`../../../../dotfiles/...`), `cp -r` copied it into `~/.local/state/omarchy/current/next-theme/` (5 directory levels deep instead of 4), pointing to non-existent `~/.local/dotfiles/...`.
+  - Because `colors.toml` was a broken link in `next-theme`, `omarchy-theme-set-templates` skipped compiling dynamic templates, leaving `foot.ini`, `alacritty.toml`, and other terminal configs missing.
+  - Renamed `core/.config/omarchy/themes/aether/colors.toml` to `colors.toml.seed` in dotfiles, untracked runtime `colors.toml` from GNU Stow, and restored atomic `mv "$TMP_TOML" "$THEME_DIR/colors.toml"` in `omarchy-theme-dynamic-update` to guarantee `colors.toml` is always a regular file.
+  - Added post-install step in `install.sh` to seed `colors.toml` as a regular file and ensure `foot.ini` is compiled.
+  - Re-compiled active theme templates, verifying `foot --check-config` exits cleanly with zero errors.
+
 ## [2.2.15] - 2026-09-13
 ### Added
 - **GitHub Wallpaper Library & Fast Sync Tooling**:

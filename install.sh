@@ -179,14 +179,19 @@ check_and_backup_path() {
     # If the target doesn't exist and isn't a broken symlink, nothing to do
     [ ! -e "$target" ] && [ ! -L "$target" ] && return 0
 
-    # If target is already a symlink resolving inside our dotfiles repository,
-    # remove it so GNU Stow can recreate and own its managed relative link cleanly.
+    # If target is already a symlink resolving inside our dotfiles repository:
+    # If it is an absolute symlink, remove it so GNU Stow can recreate its managed relative link cleanly.
+    # If it is already a relative symlink, leave it intact to prevent transient inotify file deletion errors.
     local target_real
     target_real=$(realpath -q "$target" 2>/dev/null || true)
     if [ -n "$target_real" ] && [[ "$target_real" == "$DOTFILES_DIR"* ]]; then
         if [ -L "$target" ]; then
-            if [ "$DRY_RUN" = false ]; then
-                rm -f "$target"
+            local link_dest
+            link_dest=$(readlink "$target" 2>/dev/null || true)
+            if [[ "$link_dest" == /* ]]; then
+                if [ "$DRY_RUN" = false ]; then
+                    rm -f "$target"
+                fi
             fi
         fi
         return 0
@@ -597,6 +602,16 @@ EOF
     if [ ! -d "$HOME/Pictures/Wallpapers/dharmx-walls" ]; then
         echo "--> Wallpaper collection not detected in ~/Pictures/Wallpapers/dharmx-walls."
         echo "    Run 'omarchy-sync-wallpapers' anytime to fetch 1500+ wallpapers from GitHub."
+    fi
+
+    # 7. Reload Hyprland if active
+    if command -v hyprctl &>/dev/null && [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
+        echo "--> Reloading Hyprland configuration..."
+        if [ "$DRY_RUN" = false ]; then
+            hyprctl reload &>/dev/null || true
+        else
+            echo "    [dry-run] hyprctl reload"
+        fi
     fi
     echo ""
 else

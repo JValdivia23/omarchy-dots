@@ -19,6 +19,9 @@ A dated log of all package changes, configurations, script modifications, and ha
   - Added `pre-install.sh` to Stow ignore flags, directory sanitizers, and conflict checkers across `install.sh`.
   - Fixed `omarchy-theme-dynamic-update` to update `colors.toml` in-place (`cat > ... && rm`) rather than replacing the inode with `mv`, preserving the GNU Stow symlink back to the dotfiles repository.
   - Guaranteed `~/.bashrc` exists before checking or appending the interactive Fish auto-launch guard.
+  - **Hyprland Inotify & Symlink Preservation**: Fixed `check_and_backup_path` in `install.sh` to preserve existing relative Stow symlinks. Previously, removing valid symlinks during conflict scanning caused Hyprland's inotify watcher to attempt parsing during the millisecond `hyprland.lua` was unlinked, triggering a transient `cannot open /home/jmvp/.config/hypr/hyprland.lua: No such file or directory` error.
+  - **Automated Hyprland Post-Install Reload**: Added automatic `hyprctl reload` during post-install step when Hyprland is active.
+  - **Limine Bootloader Idempotency**: Configured `profiles/surface/setup.sh` to verify existing `zz-surface-kernel.conf` before invoking `sudo`, preventing unnecessary password prompt stalls during non-interactive runs.
 
 ## [2.2.14] - 2026-09-13
 ### Added

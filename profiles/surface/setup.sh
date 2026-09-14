@@ -24,15 +24,23 @@ fi
 
 # Ensure Surface kernel is the default in Limine bootloader
 if [ -d "/etc/limine-entry-tool.d" ]; then
-    echo "--> Configuring Limine boot order for Surface kernel..."
-    sudo mkdir -p /etc/limine-entry-tool.d
-    sudo tee /etc/limine-entry-tool.d/zz-surface-kernel.conf >/dev/null <<'EOF'
+    if grep -q "linux-surface" /etc/limine-entry-tool.d/zz-surface-kernel.conf 2>/dev/null; then
+        echo "--> Limine boot order already prioritizes Surface kernel."
+    else
+        echo "--> Configuring Limine boot order for Surface kernel..."
+        if (( EUID == 0 )); then
+            cat > /etc/limine-entry-tool.d/zz-surface-kernel.conf << 'EOF'
 # Prioritize Surface kernel as default boot entry in Limine bootloader
 BOOT_ORDER="linux-surface*, *, *fallback, Snapshots"
 EOF
-    if command -v limine-update &>/dev/null; then
-        echo "    Regenerating Limine boot entries with Surface kernel default..."
-        sudo limine-update || true
+            command -v limine-update &>/dev/null && limine-update || true
+        else
+            sudo tee /etc/limine-entry-tool.d/zz-surface-kernel.conf >/dev/null << 'EOF'
+# Prioritize Surface kernel as default boot entry in Limine bootloader
+BOOT_ORDER="linux-surface*, *, *fallback, Snapshots"
+EOF
+            command -v limine-update &>/dev/null && sudo limine-update || true
+        fi
     fi
 fi
 

@@ -28,8 +28,8 @@ Live physical system specifications and active peripherals probed automatically.
 ## Storage & Filesystems
 ```
 Filesystem        Size  Used Avail Use% Mounted on
-/dev/mapper/root  237G   19G  217G   8% /
-/dev/mapper/root  237G   19G  217G   8% /home
+/dev/mapper/root  237G   29G  208G  13% /
+/dev/mapper/root  237G   29G  208G  13% /home
 ```
 
 ## Displays & Monitors
@@ -49,4 +49,4 @@ Monitor eDP-1 (ID 0):
 - **Surface DTX Latch**: Supported via surface-dtx-daemon
 ### Batteries
 - **BAT1**: 79% (Not charging)
-- **BAT2**: 79% (Discharging)
+- **BAT2**: 68% (Discharging)

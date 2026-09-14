@@ -69,7 +69,7 @@ Complete documentation of this machine's configuration and personalization. This
 |----------|--------|
 | **Hostname** | `omarchy` |
 | **Hardware / Model** | `Surface Book 3` |
-| **OS** | `Omarchy 4.0.3` |
+| **OS** | `Omarchy 4.0.0.r1832.g23dab9e` |
 | **Kernel** | `6.19.8-arch1-3-surface` |
 | **CPU** | `Intel(R) Core(TM) i5-1035G7 CPU @ 1.20GHz` |
 | **GPU** | `Intel Corporation Iris Plus Graphics G7` |

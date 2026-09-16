@@ -9,6 +9,5 @@ omarchy-fish
 jq
 python
 matugen
-waypaper
 mise-bin
 brave-origin-bin

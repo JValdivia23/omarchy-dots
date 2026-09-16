@@ -2,6 +2,19 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.2.18] - 2026-09-15
+### Removed
+- **Waypaper & Unused Dependencies Purged**:
+  - Uninstalled `waypaper` from AUR and removed 17 unused/orphaned Python runtime and build packages (`python-screeninfo`, `python-imageio`, `python-imageio-ffmpeg`, `python-numpy`, `python-pillow`, `python-setuptools`, `python-platformdirs`, `python-wheel`, `python-build`, `python-installer`, `python-pyproject-hooks`, `python-jaraco.*`, `python-autocommand`, `python-more-itertools`), freeing ~60 MB.
+  - Purged obsolete `core/.config/waypaper/` directory and unlinked `~/.config/waypaper`.
+  - Deleted legacy dummy stub script `core/.local/bin/hyprpaper` and unlinked `~/.local/bin/hyprpaper`.
+  - Removed `waypaper` entry from `core/packages.txt`.
+
+### Changed
+- **Synchronized Documentation & Tooling Prompts**:
+  - Updated `core/.local/bin/omarchy-sync-wallpapers` completion hint to reference `ALT + SPACE` instead of `waypaper`.
+  - Updated `references/keybindings.md` documentation for `ALT + Space` to describe the native Omarchy Quickshell carousel and dynamic palette setter.
+
 ## [2.2.17] - 2026-09-13
 ### Added
 - **macOS-Style Text Selection & Deletion Keybindings (`bindings-common.lua`)**:

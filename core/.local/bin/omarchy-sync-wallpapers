@@ -38,5 +38,5 @@ fi
 COUNT=$(find "$WALLPAPERS_DIR" -type f \( -name '*.jpg' -o -name '*.png' -o -name '*.webp' \) 2>/dev/null | wc -l)
 echo "-------------------------------------------------------"
 echo "✅ Synchronization complete! Total wallpapers available: $COUNT"
-echo "   Select any wallpaper via 'waypaper' or the Omarchy bar menu."
+echo "   Select any wallpaper via ALT + SPACE or the Omarchy bar menu."
 echo "======================================================="

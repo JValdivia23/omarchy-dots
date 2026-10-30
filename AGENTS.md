@@ -27,13 +27,23 @@ This repository organizes configuration into three decoupled, modular tiers to e
 │   └── .stow-local-ignore      # Prevents metadata (packages.txt) from stowing to $HOME
 │
 ├── profiles/                   # ─── TIER 2: MODULAR HARDWARE PROFILES ────────────────────
+│   ├── xps/                    # Dell XPS laptops (XPS 13 DX13260)
+│   │   ├── .config/hypr/
+│   │   │   ├── monitors.lua    # 2560x1600 @ 120Hz with 2.0 integer scaling
+│   │   │   └── input.lua       # Touchpad natural scroll, tap-to-click, 3/4-finger gestures
+│   │   ├── gotchas/            # XPS-specific hardware gotchas & progress tracking
+│   │   ├── packages.txt        # XPS hardware utilities
+│   │   ├── setup.sh            # XPS profile initialization
+│   │   └── .stow-local-ignore
+│   │
 │   ├── surface/                # Microsoft Surface devices (Surface Book 3 / Surface Pro)
 │   │   ├── .config/hypr/
 │   │   │   ├── monitors.lua    # 3000x2000 @ 60Hz with 2.0 integer scaling
 │   │   │   ├── input.lua       # Touchscreen calibration, touchpad, stylus rules
 │   │   │   └── bindings-profile.lua # Tablet mode shortcuts, virtual keyboard toggle
+│   │   ├── .config/omarchy/    # Surface plugins (jmvp.power, jmvp.background) & Aether theme
 │   │   ├── gotchas/            # Surface-specific hardware gotchas (scaling, detach, OSK)
-│   │   ├── packages.txt        # surface-dtx-daemon, iptsd
+│   │   ├── packages.txt        # surface-dtx-daemon, iptsd, matugen
 │   │   ├── services.txt        # surface-dtx-daemon.service, iptsd.service
 │   │   ├── setup.sh            # Enables hardware daemons via systemctl
 │   │   └── .stow-local-ignore

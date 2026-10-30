@@ -2,6 +2,31 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.3.0] - 2026-10-29
+### Added
+- **Dell XPS 13 (`xps`) Hardware Profile (`profiles/xps/`)**:
+  - Created `profiles/xps/.config/hypr/monitors.lua` (`2560x1600@120Hz` at `scale = 2` with `GDK_SCALE = 2`, plus `"auto"` fallback for external monitors).
+  - Created `profiles/xps/.config/hypr/input.lua` (`natural_scroll = true`, `tap_to_click = true`, `clickfinger_behavior = true`, `scroll_factor = 0.4`, `drag_3fg = 0`, and 3/4-finger workspace/fullscreen/close gestures).
+  - Created `profiles/xps/gotchas/01-xps-13-display-and-input.md` and `profiles/xps/gotchas/README.md` to store XPS-specific hardware progress and gotchas inside `profiles/xps/gotchas/`.
+  - Updated `install.sh` and `init-skill.sh` to auto-detect Dell XPS hardware (`xps` profile).
+- **Interactive Window Resize Mode (`SUPER + R`)**:
+  - Ported the `resize` submap from `hyprland-dots` into `core/.config/hypr/bindings-common.lua` (supports Arrow keys, HJKL, `=` 50/50 split reset, and mouse/touch drag for tiled and floating windows).
+- **Custom Webapp Icon & Desktop Database Sync**:
+  - Ported XDG icon linking (`hicolor`, `pixmaps`, `gtk-update-icon-cache`) and `update-desktop-database` from `hyprland-dots` into `install.sh`.
+
+### Changed
+- **Isolated Surface & Aether Dynamic Theme Components into `profiles/surface/`**:
+  - Moved Aether dynamic theme files (`themes/aether`, `hooks/theme-set.d/aether-dynamic.sh`, `extensions/omarchy-menu.jsonc`, `omarchy-aether-cycler.{service,timer}`, `.local/bin/omarchy` wrapper, `omarchy-precache-fast`, and `omarchy-theme-*` scripts) plus `jmvp.power`, `jmvp.background`, `foot/foot.ini`, `defaults/agent`, `lichess`, `mac-key-helper`, and `Andahuaylas*.jpg` from `core/` into `profiles/surface/`.
+  - Moved `matugen` from `core/packages.txt` to `profiles/surface/packages.txt`.
+- **Updated `core/.config/omarchy/shell.json` to Omarchy 4.5 Schema**:
+  - Preserved `osesantos.vitals` (`cpu`, `memory`, `sensors`) in the top-left bar while adopting Omarchy 4.5's bottom `dock`, `centerBegin`/`centerEnd` (`omarchy.elsewhen`), and stock `omarchy.power` / `omarchy.background`.
+
+### Fixed
+- **Preserved `omarchy:shift_caps_compose` in `hypr-toggle-altwin`**:
+  - Updated `core/.local/bin/hypr-toggle-altwin` so toggling `altwin:swap_lalt_lwin` retains Omarchy's `omarchy:shift_caps_compose` XKB option.
+- **Polkit (`pkexec`) Fallback in `install.sh`**:
+  - Added automatic `pkexec` fallback in `install_packages_list` when `install.sh` runs without an interactive TTY.
+
 ## [2.2.18] - 2026-09-15
 ### Removed
 - **Waypaper & Unused Dependencies Purged**:

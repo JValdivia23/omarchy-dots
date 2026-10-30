@@ -121,6 +121,10 @@ if [ -n "$ACTIVE_PROFILES_ARG" ]; then
     SYS_ACTIVE_PROFILES="$ACTIVE_PROFILES_ARG"
 else
     DETECTED=()
+    # Check for Dell XPS
+    if [[ "${SYS_PRODUCT_NAME,,}" =~ xps ]]; then
+        DETECTED+=("xps")
+    fi
     # Check for Surface
     if [[ "${SYS_PRODUCT_NAME,,}" =~ surface ]] || [[ "${SYS_KERNEL,,}" =~ surface ]]; then
         DETECTED+=("surface")

@@ -29,11 +29,12 @@ Complete documentation of this machine's configuration and personalization. This
    - **Background tasks**: Use `pkexec <command>`. Omarchy's Quickshell Polkit agent triggers a centered, graphical floating password dialog on screen where the user enters their password.
    - **Interactive terminal tasks**: Use `omarchy-launch-floating-terminal-with-presentation "<command>"` or `setsid uwsm-app -- xdg-terminal-exec --app-id=org.omarchy.terminal -e bash -c "<command>; read"`, which Hyprland floats automatically.
 7. **Gotchas Rule (Single-File Modular Structure).** When encountering a new bug, hardware quirk, or solution:
-   - If hardware-specific (e.g. Surface Book detach): place it in `profiles/<profile>/gotchas/<slug>.md`.
+   - If hardware-specific (e.g. Dell XPS display/input/power or Surface Book detach): place it in `profiles/<profile>/gotchas/<slug>.md` (e.g. `profiles/xps/gotchas/` or `profiles/surface/gotchas/`).
    - If universal: place it in [`references/gotchas/<slug>.md`](references/gotchas/INDEX.md).
    - Follow [`references/gotchas/HOW_TO_WRITE_A_GOTCHA.md`](references/gotchas/HOW_TO_WRITE_A_GOTCHA.md) and update [`references/gotchas/INDEX.md`](references/gotchas/INDEX.md).
 8. **Changelog Rule.** After every system configuration change, package installation/removal, or hardware tuning, record the change in [`references/changelog.md`](references/changelog.md) using the format in [`templates/change-entry.md`](templates/change-entry.md).
 9. **Explain -> Ask -> Act.** Always explain the situation and ask if the user agrees with the solution before making changes to the system or installing anything.
+10. **Device-Specific vs. Universal Scope Identification.** Whenever installing a new feature, package, script, keybinding, or configuration setting, explicitly identify whether it is a **device-specific setting** (hardware-dependent: display scaling, touchscreen/stylus, GPU/battery hooks, machine-specific gotchas) or a **general user setting** (universal desktop apps, shell aliases, core keybindings). Place device-specific items and gotchas into `profiles/<profile>/` (e.g. `profiles/xps/` or `profiles/surface/`) and general user items into `core/`. If it is unclear whether a feature is hardware-dependent or universal, explicitly ask the user for clarification before applying.
 
 ---
 

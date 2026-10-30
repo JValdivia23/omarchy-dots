@@ -8,6 +8,5 @@ fish
 omarchy-fish
 jq
 python
-matugen
 mise-bin
 brave-origin-bin

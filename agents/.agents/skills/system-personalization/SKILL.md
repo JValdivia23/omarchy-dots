@@ -1,11 +1,11 @@
 ---
 name: system-personalization
-description: "Comprehensive system personalization tracker for omarchy (Surface Book 3) — OS, hardware, configs, keybindings, modular gotchas, and changelog. Self-improving: update after every change."
+description: "Comprehensive system personalization tracker for xps (XPS 13 DX13260) — OS, hardware, configs, keybindings, modular gotchas, and changelog. Self-improving: update after every change."
 version: 2.0.0
 tags: [system, personalization, dotfiles, desktop, hyprland, lua, omarchy, gotchas, changelog]
 ---
 
-# System Personalization (`omarchy` - Surface Book 3)
+# System Personalization (`xps` - XPS 13 DX13260)
 
 Complete documentation of this machine's configuration and personalization. This is a **self-improving skill** — after any system configuration change, software install, or gotcha discovery, update this skill's references ([`references/changelog.md`](references/changelog.md) and individual gotchas in [`references/gotchas/`](references/gotchas/INDEX.md)).
 
@@ -29,11 +29,12 @@ Complete documentation of this machine's configuration and personalization. This
    - **Background tasks**: Use `pkexec <command>`. Omarchy's Quickshell Polkit agent triggers a centered, graphical floating password dialog on screen where the user enters their password.
    - **Interactive terminal tasks**: Use `omarchy-launch-floating-terminal-with-presentation "<command>"` or `setsid uwsm-app -- xdg-terminal-exec --app-id=org.omarchy.terminal -e bash -c "<command>; read"`, which Hyprland floats automatically.
 7. **Gotchas Rule (Single-File Modular Structure).** When encountering a new bug, hardware quirk, or solution:
-   - If hardware-specific (e.g. Surface Book detach): place it in `profiles/<profile>/gotchas/<slug>.md`.
+   - If hardware-specific (e.g. Dell XPS display/input/power or Surface Book detach): place it in `profiles/<profile>/gotchas/<slug>.md` (e.g. `profiles/xps/gotchas/` or `profiles/surface/gotchas/`).
    - If universal: place it in [`references/gotchas/<slug>.md`](references/gotchas/INDEX.md).
    - Follow [`references/gotchas/HOW_TO_WRITE_A_GOTCHA.md`](references/gotchas/HOW_TO_WRITE_A_GOTCHA.md) and update [`references/gotchas/INDEX.md`](references/gotchas/INDEX.md).
 8. **Changelog Rule.** After every system configuration change, package installation/removal, or hardware tuning, record the change in [`references/changelog.md`](references/changelog.md) using the format in [`templates/change-entry.md`](templates/change-entry.md).
 9. **Explain -> Ask -> Act.** Always explain the situation and ask if the user agrees with the solution before making changes to the system or installing anything.
+10. **Device-Specific vs. Universal Scope Identification.** Whenever installing a new feature, package, script, keybinding, or configuration setting, explicitly identify whether it is a **device-specific setting** (hardware-dependent: display scaling, touchscreen/stylus, GPU/battery hooks, machine-specific gotchas) or a **general user setting** (universal desktop apps, shell aliases, core keybindings). Place device-specific items and gotchas into `profiles/<profile>/` (e.g. `profiles/xps/` or `profiles/surface/`) and general user items into `core/`. If it is unclear whether a feature is hardware-dependent or universal, explicitly ask the user for clarification before applying.
 
 ---
 
@@ -67,14 +68,14 @@ Complete documentation of this machine's configuration and personalization. This
 
 | Category | Detail |
 |----------|--------|
-| **Hostname** | `omarchy` |
-| **Hardware / Model** | `Surface Book 3` |
-| **OS** | `Omarchy 4.0.0.r1832.g23dab9e` |
-| **Kernel** | `6.19.8-arch1-3-surface` |
-| **CPU** | `Intel(R) Core(TM) i5-1035G7 CPU @ 1.20GHz` |
-| **GPU** | `Intel Corporation Iris Plus Graphics G7` |
-| **Primary Display** | `eDP-1 (3000x2000@60Hz, scale 2)` |
-| **Active Profiles** | `surface,laptop` |
+| **Hostname** | `xps` |
+| **Hardware / Model** | `XPS 13 DX13260` |
+| **OS** | `Omarchy 4.5.0rc2` |
+| **Kernel** | `7.2.8-9-omarchy` |
+| **CPU** | `Intel(R) Core(TM) 5 320` |
+| **GPU** | `Intel Corporation Wildcat Lake [Intel Graphics]` |
+| **Primary Display** | `eDP-1 (2560x1600@120Hz, scale 2)` |
+| **Active Profiles** | `xps,laptop` |
 
 ---
 

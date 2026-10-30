@@ -1,0 +1,2 @@
+# Dell XPS 13 (DX13260) Profile Packages
+brightnessctl

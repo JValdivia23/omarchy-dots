@@ -9,3 +9,8 @@ o.bind("SUPER + R", "Rotate display", "surface-rotate")
 -- Note: SUPER+SHIFT+O was already Obsidian, so U is used instead.
 o.bind("SUPER + SHIFT + U", "On-screen keyboard", "fcitx5-remote -t")
 
+-- Background Switcher with Aether Dynamic Theme Setter (Surface profile)
+local bg_setter = (os.getenv("HOME") or "") .. "/.local/bin/omarchy-theme-bg-set"
+o.bind("ALT + SPACE", "Background switcher", string.format('background=$(omarchy-theme-bg-switcher); [[ -n $background ]] && "%s" "$background"', bg_setter))
+
+

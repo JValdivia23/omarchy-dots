@@ -129,6 +129,11 @@ if [ -n "$MANUAL_PROFILES" ]; then
     echo "    Selection: Manually specified by user -> '$ACTIVE_PROFILES'"
 else
     DETECTED=()
+    # Check for Dell XPS
+    if [[ "${SYS_PRODUCT_NAME,,}" =~ xps ]]; then
+        DETECTED+=("xps")
+    fi
+
     # Check for Surface
     if [[ "${SYS_PRODUCT_NAME,,}" =~ surface ]] || [[ "${SYS_VENDOR,,}" =~ microsoft && "${SYS_PRODUCT_NAME,,}" =~ surface ]] || [[ "${KERNEL_RELEASE,,}" =~ surface ]]; then
         DETECTED+=("surface")
@@ -144,8 +149,8 @@ else
         echo "    No specialty or laptop profile matched. Suggesting 'desktop' profile."
         DETECTED+=("desktop")
     elif [ ${#DETECTED[@]} -eq 1 ] && [ "${DETECTED[0]}" = "laptop" ]; then
-        echo "    Generic laptop detected without specialty profile. Suggesting 'desktop' profile."
-        DETECTED=("desktop" "laptop")
+        echo "    Generic laptop detected without specialty profile. Suggesting 'xps' laptop profile."
+        DETECTED=("xps" "laptop")
     fi
 
     ACTIVE_PROFILES=$(IFS=', '; echo "${DETECTED[*]}")
@@ -312,20 +317,16 @@ install_packages_list() {
         if [ "$DRY_RUN" = true ]; then
             echo "    [dry-run] Would install via pacman/omarchy: ${missing_repo_pkgs[*]}"
         else
-            if command -v omarchy &>/dev/null; then
-                omarchy pkg add "${missing_repo_pkgs[@]}" || {
-                    if (( EUID == 0 )); then
-                        pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
-                    else
-                        sudo pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
-                    fi
-                }
-            elif command -v pacman &>/dev/null; then
-                if (( EUID == 0 )); then
-                    pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}"
+            if (( EUID == 0 )); then
+                pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
+            elif [ -t 0 ] || sudo -n true 2>/dev/null; then
+                if command -v omarchy &>/dev/null; then
+                    omarchy pkg add "${missing_repo_pkgs[@]}" || sudo pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
                 else
-                    sudo pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}"
+                    sudo pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
                 fi
+            elif command -v pkexec &>/dev/null; then
+                pkexec pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
             fi
         fi
     fi
@@ -336,10 +337,14 @@ install_packages_list() {
         if [ "$DRY_RUN" = true ]; then
             echo "    [dry-run] Would install via AUR (omarchy pkg aur add / yay): ${missing_aur_pkgs[*]}"
         else
-            if command -v omarchy &>/dev/null; then
-                omarchy pkg aur add "${missing_aur_pkgs[@]}" || true
-            elif command -v yay &>/dev/null; then
-                yay -S --needed --noconfirm "${missing_aur_pkgs[@]}" || true
+            if [ -t 0 ] || sudo -n true 2>/dev/null; then
+                if command -v omarchy &>/dev/null; then
+                    omarchy pkg aur add "${missing_aur_pkgs[@]}" || true
+                elif command -v yay &>/dev/null; then
+                    yay -S --needed --noconfirm "${missing_aur_pkgs[@]}" || true
+                fi
+            elif command -v yay &>/dev/null && command -v pkexec &>/dev/null; then
+                yay --sudo pkexec -S --needed --noconfirm "${missing_aur_pkgs[@]}" || true
             else
                 echo "    Warning: Neither omarchy nor yay found to install AUR packages: ${missing_aur_pkgs[*]}" >&2
             fi
@@ -507,6 +512,50 @@ if [ "$DO_STOW" = true ]; then
         done
         link_dir_files "$DOTFILES_DIR/agents" "$DOTFILES_DIR/agents"
     fi
+
+    # Link custom webapp icons to standard XDG directories
+    if [ -d "$DOTFILES_DIR/core/.local/share/applications/icons" ] && [ "$DRY_RUN" = false ]; then
+        mkdir -p "$HOME/.local/share/icons" \
+                 "$HOME/.local/share/pixmaps" \
+                 "$HOME/.local/share/icons/hicolor/256x256/apps" \
+                 "$HOME/.local/share/icons/hicolor/512x512/apps" \
+                 "$HOME/.local/share/icons/hicolor/scalable/apps"
+
+        for icon in "$DOTFILES_DIR"/core/.local/share/applications/icons/*; do
+            if [ -f "$icon" ]; then
+                filename="$(basename "$icon")"
+                name="${filename%.*}"
+                ext="${filename##*.}"
+                lower="$(echo "$name" | tr '[:upper:]' '[:lower:]').$ext"
+
+                ln -sf "$icon" "$HOME/.local/share/icons/$filename" 2>/dev/null || true
+                ln -sf "$icon" "$HOME/.local/share/icons/$lower" 2>/dev/null || true
+                ln -sf "$icon" "$HOME/.local/share/pixmaps/$filename" 2>/dev/null || true
+                ln -sf "$icon" "$HOME/.local/share/pixmaps/$lower" 2>/dev/null || true
+
+                if [ "$ext" = "png" ]; then
+                    ln -sf "$icon" "$HOME/.local/share/icons/hicolor/256x256/apps/$filename" 2>/dev/null || true
+                    ln -sf "$icon" "$HOME/.local/share/icons/hicolor/256x256/apps/$lower" 2>/dev/null || true
+                    ln -sf "$icon" "$HOME/.local/share/icons/hicolor/512x512/apps/$filename" 2>/dev/null || true
+                    ln -sf "$icon" "$HOME/.local/share/icons/hicolor/512x512/apps/$lower" 2>/dev/null || true
+                elif [ "$ext" = "svg" ]; then
+                    ln -sf "$icon" "$HOME/.local/share/icons/hicolor/scalable/apps/$filename" 2>/dev/null || true
+                    ln -sf "$icon" "$HOME/.local/share/icons/hicolor/scalable/apps/$lower" 2>/dev/null || true
+                fi
+            fi
+        done
+
+        if command -v gtk-update-icon-cache &>/dev/null; then
+            gtk-update-icon-cache -f -t "$HOME/.local/share/icons" 2>/dev/null || true
+            gtk-update-icon-cache -f -t "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
+        fi
+    fi
+
+    # Update desktop application database
+    if command -v update-desktop-database &>/dev/null && [ "$DRY_RUN" = false ]; then
+        update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+    fi
+
     echo ""
 else
     echo "==> [3/4] Skipping dotfile stowing (--only-packages specified)."
@@ -533,6 +582,15 @@ if [ "$DO_SETUP" = true ]; then
 
     # 2. Link profile-specific gotchas into system-personalization skill
     DEST_GOTCHAS_DIR="$HOME/.agents/skills/system-personalization/references/gotchas"
+    if [ -d "$DEST_GOTCHAS_DIR" ] && [ "$DRY_RUN" = false ]; then
+        # Clean up any symlinks pointing into profiles/*/gotchas before linking active profile
+        find "$DEST_GOTCHAS_DIR" -maxdepth 1 -type l | while read -r existing_link; do
+            link_target="$(readlink "$existing_link" 2>/dev/null || true)"
+            if [[ "$link_target" == *"/profiles/"*"/gotchas/"* ]]; then
+                rm -f "$existing_link"
+            fi
+        done
+    fi
     for p in "${STOWABLE_PROFILES[@]}"; do
         PROFILE_GOTCHAS_DIR="$DOTFILES_DIR/profiles/$p/gotchas"
         if [ -d "$PROFILE_GOTCHAS_DIR" ]; then
@@ -540,6 +598,7 @@ if [ "$DO_SETUP" = true ]; then
             for gotcha_file in "$PROFILE_GOTCHAS_DIR"/*; do
                 [ -f "$gotcha_file" ] || continue
                 gname="$(basename "$gotcha_file")"
+                [ "$gname" = "README.md" ] && continue
                 dest="$DEST_GOTCHAS_DIR/$gname"
                 if [ "$DRY_RUN" = true ]; then
                     echo "    [dry-run] ln -sf \"$gotcha_file\" \"$dest\""
@@ -561,21 +620,22 @@ if [ "$DO_SETUP" = true ]; then
         else
             chmod +x "$INIT_SKILL_SCRIPT"
             bash "$INIT_SKILL_SCRIPT" --profiles "$ACTIVE_PROFILES"
+            if [ -d "$HOME/.gemini/config/skills" ]; then
+                ln -sfn "$HOME/.agents/skills/system-personalization" "$HOME/.gemini/config/skills/system-personalization"
+            fi
         fi
     fi
 
-    # 4. Enable user systemd services and timers (e.g. Aether dynamic cycler)
-    if command -v systemctl &>/dev/null; then
+    # 4. Enable user systemd services and timers (only if present in active profile, e.g. Surface Aether cycler)
+    if command -v systemctl &>/dev/null && [ -f "$HOME/.config/systemd/user/omarchy-aether-cycler.timer" ]; then
         echo "--> Reloading systemd user daemon and activating user timers..."
         if [ "$DRY_RUN" = true ]; then
             echo "    [dry-run] systemctl --user daemon-reload"
             echo "    [dry-run] systemctl --user enable --now omarchy-aether-cycler.timer"
         else
             systemctl --user daemon-reload || true
-            if systemctl --user list-unit-files omarchy-aether-cycler.timer &>/dev/null; then
-                systemctl --user enable --now omarchy-aether-cycler.timer || true
-                echo "    Enabled omarchy-aether-cycler.timer"
-            fi
+            systemctl --user enable --now omarchy-aether-cycler.timer || true
+            echo "    Enabled omarchy-aether-cycler.timer"
         fi
     fi
 
@@ -606,7 +666,7 @@ EOF
     fi
 
     # 7. Reload Hyprland if active
-    if command -v hyprctl &>/dev/null && [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
+    if command -v hyprctl &>/dev/null && [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
         echo "--> Reloading Hyprland configuration..."
         if [ "$DRY_RUN" = false ]; then
             hyprctl reload &>/dev/null || true
@@ -615,29 +675,25 @@ EOF
         fi
     fi
 
-    # 8. Ensure Aether dynamic theme is seeded and compiled
-    aether_user_dir="$HOME/.config/omarchy/themes/aether"
-    aether_seed="$DOTFILES_DIR/core/.config/omarchy/themes/aether/colors.toml.seed"
-    mkdir -p "$aether_user_dir"
-    if [ -L "$aether_user_dir/colors.toml" ]; then
-        rm -f "$aether_user_dir/colors.toml"
-    fi
-    if [ ! -f "$aether_user_dir/colors.toml" ] && [ -f "$aether_seed" ]; then
-        echo "--> Seeding dynamic aether colors.toml..."
-        if [ "$DRY_RUN" = false ]; then
-            cp "$aether_seed" "$aether_user_dir/colors.toml"
-        else
-            echo "    [dry-run] cp $aether_seed $aether_user_dir/colors.toml"
+    # 8. Ensure Aether dynamic theme is seeded if active profile includes it
+    for p in "${STOWABLE_PROFILES[@]}"; do
+        aether_seed="$DOTFILES_DIR/profiles/$p/.config/omarchy/themes/aether/colors.toml.seed"
+        if [ -f "$aether_seed" ]; then
+            aether_user_dir="$HOME/.config/omarchy/themes/aether"
+            mkdir -p "$aether_user_dir"
+            if [ -L "$aether_user_dir/colors.toml" ]; then
+                rm -f "$aether_user_dir/colors.toml"
+            fi
+            if [ ! -f "$aether_user_dir/colors.toml" ]; then
+                echo "--> Seeding dynamic aether colors.toml..."
+                if [ "$DRY_RUN" = false ]; then
+                    cp "$aether_seed" "$aether_user_dir/colors.toml"
+                else
+                    echo "    [dry-run] cp $aether_seed $aether_user_dir/colors.toml"
+                fi
+            fi
         fi
-    fi
-    if [ ! -f "$HOME/.local/state/omarchy/current/theme/foot.ini" ] && command -v omarchy-theme-set &>/dev/null; then
-        echo "--> Generating dynamic theme templates (foot.ini, etc.)..."
-        if [ "$DRY_RUN" = false ]; then
-            OMARCHY_THEME_SKIP_BACKGROUND=1 omarchy-theme-set aether >/dev/null 2>&1 || true
-        else
-            echo "    [dry-run] omarchy-theme-set aether"
-        fi
-    fi
+    done
     echo ""
 else
     echo "==> [4/4] Skipping post-install setup."

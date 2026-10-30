@@ -23,6 +23,7 @@ Hardware-specific workarounds live inside each profile directory under `profiles
 
 | ID / File | Title | Category | Target Hardware | Severity |
 |-----------|-------|----------|-----------------|----------|
+| [`01-xps-13-display-and-input.md`](01-xps-13-display-and-input.md) | Dell XPS 13 (DX13260) Display Scaling & Touchpad Configuration | Display / Input | Dell XPS 13 (`xps`) | Info |
 | [`03-surface-scaling-and-touch.md`](03-surface-scaling-and-touch.md) | Surface Book Display Scaling & Touchscreen Alignment | Display / Input | Microsoft Surface | Warning |
 | [`04-surface-dtx-tablet-detach.md`](04-surface-dtx-tablet-detach.md) | Surface Book Tablet Detachment (`surface-dtx`) | Hardware / System | Microsoft Surface Book | Warning |
 | [`07-fcitx5-wayland-virtual-keyboard.md`](07-fcitx5-wayland-virtual-keyboard.md) | Fcitx5 Wayland Virtual Keyboard Compatibility | Input / Wayland | Microsoft Surface | Info |

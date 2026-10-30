@@ -3,9 +3,9 @@
 current=$(hyprctl getoption input:kb_options | grep 'str:' | awk '{print $2}')
 
 if [[ "$current" == *"altwin:swap_lalt_lwin"* ]]; then
-    hyprctl eval 'hl.config({ input = { kb_options = "" } })'
+    hyprctl eval 'hl.config({ input = { kb_options = "omarchy:shift_caps_compose" } })'
     notify-send "Keyboard Layout" "Super / Alt positions: NORMAL (PC layout)" --icon "input-keyboard" 2>/dev/null
 else
-    hyprctl eval 'hl.config({ input = { kb_options = "altwin:swap_lalt_lwin" } })'
+    hyprctl eval 'hl.config({ input = { kb_options = "omarchy:shift_caps_compose,altwin:swap_lalt_lwin" } })'
     notify-send "Keyboard Layout" "Super / Alt positions: SWAPPED (Mac layout)" --icon "input-keyboard" 2>/dev/null
 fi

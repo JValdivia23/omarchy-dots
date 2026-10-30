@@ -101,9 +101,63 @@ o.bind("SUPER + SHIFT + Y", "YouTube", {
   launch = "brave-origin --new-window --ozone-platform=wayland --app=https://youtube.com --name=YouTube --class=YouTube"
 })
 
--- Background Switcher (Native Omarchy Quickshell Carousel)
-local bg_setter = (os.getenv("HOME") or "") .. "/.local/bin/omarchy-theme-bg-set"
-o.bind("ALT + SPACE", "Background switcher", string.format('background=$(omarchy-theme-bg-switcher); [[ -n $background ]] && "%s" "$background"', bg_setter))
+-- Interactive Window Resize Mode (Keyboard & Touchscreen / Mouse)
+-- Enter with SUPER + R. Use Arrow keys / HJKL or mouse drag. Exit with Escape, Return, or SUPER + R.
+local function resize_dir(dx, dy, ratio)
+  local win = hl.get_active_window()
+  if win and win.floating then
+    hl.dispatch(hl.dsp.exec_raw("resizeactive", dx .. " " .. dy))
+  else
+    hl.dispatch(hl.dsp.layout("splitratio " .. ratio))
+  end
+end
+
+local function exit_resize()
+  hl.dispatch(hl.dsp.submap("reset"))
+end
+
+hl.define_submap("resize", function()
+  o.bind("mouse:272", "Resize window with mouse drag", hl.dsp.window.resize(), { mouse = true })
+  o.bind("mouse:273", "Resize window with right-click drag", hl.dsp.window.resize(), { mouse = true })
+  o.bind("SUPER + mouse:272", "Resize window with mouse drag", hl.dsp.window.resize(), { mouse = true })
+  o.bind("SUPER + mouse:273", "Resize window with right-click drag", hl.dsp.window.resize(), { mouse = true })
+
+  local function do_right() resize_dir(40, 0, "+0.05") end
+  local function do_left()  resize_dir(-40, 0, "-0.05") end
+  local function do_up()    resize_dir(0, -40, "-0.05") end
+  local function do_down()  resize_dir(0, 40, "+0.05") end
+
+  o.bind("RIGHT", "Expand width right", do_right, { repeating = true })
+  o.bind("LEFT",  "Shrink width left",  do_left,  { repeating = true })
+  o.bind("UP",    "Shrink height up",   do_up,    { repeating = true })
+  o.bind("DOWN",  "Expand height down", do_down,  { repeating = true })
+
+  o.bind("SUPER + RIGHT", "Expand width right", do_right, { repeating = true })
+  o.bind("SUPER + LEFT",  "Shrink width left",  do_left,  { repeating = true })
+  o.bind("SUPER + UP",    "Shrink height up",   do_up,    { repeating = true })
+  o.bind("SUPER + DOWN",  "Expand height down", do_down,  { repeating = true })
+
+  o.bind("l", "Expand width right", do_right, { repeating = true })
+  o.bind("h", "Shrink width left",  do_left,  { repeating = true })
+  o.bind("k", "Shrink height up",   do_up,    { repeating = true })
+  o.bind("j", "Expand height down", do_down,  { repeating = true })
+
+  o.bind("equal", "Reset split to 50/50", function()
+    hl.dispatch(hl.dsp.layout("splitratio 1.0 exact"))
+  end)
+
+  o.bind("ESCAPE", "Exit resize mode", exit_resize)
+  o.bind("RETURN", "Exit resize mode", exit_resize)
+  o.bind("r",      "Exit resize mode", exit_resize)
+  o.bind("SUPER + R", "Exit resize mode", exit_resize)
+  o.bind("SUPER + ESCAPE", "Exit resize mode", exit_resize)
+end)
+
+o.bind("SUPER + R", "Enter window resize mode", function()
+  hl.dispatch(hl.dsp.submap("resize"))
+  hl.dispatch(hl.dsp.exec_cmd("notify-send -t 2500 -a 'Hyprland' 'Resize Mode' 'Active: Use Arrows/HJKL or drag (Esc or Super+R to exit)'"))
+end)
+
 
 
 

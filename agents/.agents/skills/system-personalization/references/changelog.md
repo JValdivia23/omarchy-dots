@@ -4,6 +4,7 @@ A dated log of all package changes, configurations, script modifications, and ha
 
 ## [2.3.0] - 2026-10-29
 ### Added
+- **Zen Browser (`zen-browser-bin`)**: Installed official Omarchy package `zen-browser-bin` and added to `core/packages.txt`.
 - **Dell XPS 13 (`xps`) Hardware Profile (`profiles/xps/`)**:
   - Created `profiles/xps/.config/hypr/monitors.lua` (`2560x1600@120Hz` at `scale = 2` with `GDK_SCALE = 2`, plus `"auto"` fallback for external monitors).
   - Created `profiles/xps/.config/hypr/input.lua` (`natural_scroll = true`, `tap_to_click = true`, `clickfinger_behavior = true`, `scroll_factor = 0.4`, `drag_3fg = 0`, and 3/4-finger workspace/fullscreen/close gestures).
@@ -15,6 +16,7 @@ A dated log of all package changes, configurations, script modifications, and ha
   - Ported XDG icon linking (`hicolor`, `pixmaps`, `gtk-update-icon-cache`) and `update-desktop-database` from `hyprland-dots` into `install.sh`.
 
 ### Changed
+- **Default Web Browser Set to Zen (`zen.desktop`)**: Switched default web browser and XDG MIME handlers (`text/html`, `http`, `https`, `about`, `unknown`) from Chromium to Zen Browser using `omarchy default browser zen`. Configured Firefox Wayland support in `~/.config/environment.d/omarchy-firefox-wayland.conf`.
 - **Isolated Surface & Aether Dynamic Theme Components into `profiles/surface/`**:
   - Moved Aether dynamic theme files (`themes/aether`, `hooks/theme-set.d/aether-dynamic.sh`, `extensions/omarchy-menu.jsonc`, `omarchy-aether-cycler.{service,timer}`, `.local/bin/omarchy` wrapper, `omarchy-precache-fast`, and `omarchy-theme-*` scripts) plus `jmvp.power`, `jmvp.background`, `foot/foot.ini`, `defaults/agent`, `lichess`, `mac-key-helper`, and `Andahuaylas*.jpg` from `core/` into `profiles/surface/`.
   - Moved `matugen` from `core/packages.txt` to `profiles/surface/packages.txt`.

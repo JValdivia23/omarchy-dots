@@ -24,6 +24,7 @@ Live system snapshot automatically generated on Thu Oct 29 06:54:52 PM MDT 2026.
 | omarchy | 4.5.0rc2-1 | Core Utility |
 | foot | 1.28.0-2 | Core Utility |
 | brave-origin-bin | 1:1.98.62-1 | Core Utility |
+| zen-browser-bin | 1.24b-1 | Default Web Browser |
 | grim | 1.5.0-2 | Core Utility |
 | slurp | 1.5.0-2 | Core Utility |
 | jq | 1.8.2-1 | Core Utility |

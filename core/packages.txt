@@ -10,3 +10,4 @@ jq
 python
 mise-bin
 brave-origin-bin
+zen-browser-bin

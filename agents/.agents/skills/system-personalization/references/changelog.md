@@ -7,6 +7,13 @@ A dated log of all package changes, configurations, script modifications, and ha
 - **Unused `codex` Tool from `mise` (`core/.config/mise/config.toml`)**: Removed uninstalled `codex = "latest"` entry to eliminate 3-second GitHub version check timeouts and warnings during shell/agent initialization.
 
 ### Added
+- **Ultra-Dark Everforest Theme Overlay for Dell XPS 13 (`profiles/xps/.config/omarchy/themes/everforest/colors.toml`)**: Added an Everforest palette overlay with high-contrast ultra-dark background (`#141719` vs stock `#2d353b`) calibrated specifically for the XPS 13 display, deepening terminal, bar, and application background surfaces while preserving original Everforest accents.
+- **SideQuest Cross-Device Adaptation (`~/Projects/sidequest` & `profiles/xps/`)**:
+  - Cloned `JValdivia23/sidequest` into `~/Projects/sidequest`.
+  - Updated `is_touchscreen()` / `open_touchscreen()` in `lib/touch_mouse.py` to detect direct I2C HID touchscreens via kernel `INPUT_PROP_DIRECT` (`properties & 0x2`) in addition to `"touchscreen"` device name matching, enabling support for the XPS 13 (`LXST2024:00 1FD2:5010`) alongside Surface (`iptsd`).
+  - Updated `recipes/dark-wanderer.sh` to dynamically apply `${DETECTED_RES_X}` and `${DETECTED_RES_Y}` (`2560x1600` on XPS, `3000x2000` on Surface) in `d2gl.ini`.
+  - Configured `/etc/udev/rules.d/70-touchscreen-uaccess.rules` (`ENV{ID_INPUT_TOUCHSCREEN}=="1", TAG+="uaccess"`) and added idempotent setup to `profiles/xps/setup.sh` so the active seat user can open and grab `/dev/input/event5` without adding the user to the global `input` group.
+  - Installed SideQuest build and runtime prerequisites (`flatpak`, `clang`, `lld`, `cmake`, `ninja`, `python-pillow`).
 - **Zen Profile Sync (`zen-sync`)**: Cloned `JValdivia23/zen-sync` to `~/zen-sync`, symlinked `~/.local/bin/zen-sync`, and restored encrypted Zen profile (workspaces, tabs, logins, extensions, and bookmarks) into `~/.config/zen`.
 - **Zen Browser (`zen-browser-bin`)**: Installed official Omarchy package `zen-browser-bin` and added to `core/packages.txt`.
 - **Dell XPS 13 (`xps`) Hardware Profile (`profiles/xps/`)**:

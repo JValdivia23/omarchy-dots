@@ -2,6 +2,10 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.3.1] - 2026-10-29
+### Added
+- **Fullscreen Idle Inhibit Window Rule (`core/.config/hypr/hyprland.lua`)**: Added universal `o.window(".*", { idle_inhibit = "fullscreen" })` to inhibit idle, screensaver (150s), and DPMS screen sleep (300s) during fullscreen video playback (YouTube, media players, streaming services, games). Resolves an Omarchy upstream gap where `xdg-desktop-portal-gtk` fails to forward portal inhibit requests due to a missing `org.freedesktop.ScreenSaver` D-Bus provider. Documented in gotcha `05-omarchy-idle-inhibition-fullscreen.md`.
+
 ## [2.3.0] - 2026-10-29
 ### Removed
 - **Unused `codex` Tool from `mise` (`core/.config/mise/config.toml`)**: Removed uninstalled `codex = "latest"` entry to eliminate 3-second GitHub version check timeouts and warnings during shell/agent initialization.
@@ -13,7 +17,8 @@ A dated log of all package changes, configurations, script modifications, and ha
   - Updated `is_touchscreen()` / `open_touchscreen()` in `lib/touch_mouse.py` to detect direct I2C HID touchscreens via kernel `INPUT_PROP_DIRECT` (`properties & 0x2`) in addition to `"touchscreen"` device name matching, enabling support for the XPS 13 (`LXST2024:00 1FD2:5010`) alongside Surface (`iptsd`).
   - Updated `recipes/dark-wanderer.sh` to dynamically apply `${DETECTED_RES_X}` and `${DETECTED_RES_Y}` (`2560x1600` on XPS, `3000x2000` on Surface) in `d2gl.ini`.
   - Configured `/etc/udev/rules.d/70-touchscreen-uaccess.rules` (`ENV{ID_INPUT_TOUCHSCREEN}=="1", TAG+="uaccess"`) and added idempotent setup to `profiles/xps/setup.sh` so the active seat user can open and grab `/dev/input/event5` without adding the user to the global `input` group.
-  - Installed SideQuest build and runtime prerequisites (`flatpak`, `clang`, `lld`, `cmake`, `ninja`, `python-pillow`).
+  - Added automatic `.nomedia` creation in `$GAMES_ROOT/.nomedia` (`~/Games/.nomedia`) and `~/.minetest/.nomedia` in `install.sh` and `recipes/voxel-world.sh` so `localsearch-extractor-3` skips indexing internal game assets (preventing `libextract-mediainfo.so` crashes on `.mo3` tracker module audio files).
+  - Installed SideQuest build and runtime prerequisites (`flatpak`, `clang`, `lld`, `cmake`, `ninja`, `python-pillow`, `luanti`) and provisioned all 6 catalog games.
 - **Zen Profile Sync (`zen-sync`)**: Cloned `JValdivia23/zen-sync` to `~/zen-sync`, symlinked `~/.local/bin/zen-sync`, and restored encrypted Zen profile (workspaces, tabs, logins, extensions, and bookmarks) into `~/.config/zen`.
 - **Zen Browser (`zen-browser-bin`)**: Installed official Omarchy package `zen-browser-bin` and added to `core/packages.txt`.
 - **Dell XPS 13 (`xps`) Hardware Profile (`profiles/xps/`)**:

@@ -14,6 +14,9 @@ hl.config({
   },
 })
 
+-- Inhibit idle (screensaver & sleep) when any window is fullscreen (e.g. YouTube, Netflix, media players, games)
+o.window(".*", { idle_inhibit = "fullscreen" })
+
 -- Load core personal keybinding overrides.
 require("hypr.bindings-common")
 

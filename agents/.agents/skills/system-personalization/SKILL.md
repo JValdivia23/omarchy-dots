@@ -74,7 +74,7 @@ Complete documentation of this machine's configuration and personalization. This
 | **Kernel** | `7.2.8-9-omarchy` |
 | **CPU** | `Intel(R) Core(TM) 5 320` |
 | **GPU** | `Intel Corporation Wildcat Lake [Intel Graphics]` |
-| **Primary Display** | `eDP-1 (2560x1600@120Hz, scale 2)` |
+| **Primary Display** | `eDP-1 (2560x1600@120Hz, scale 1.6)` |
 | **Active Profiles** | `xps,laptop` |
 
 ---

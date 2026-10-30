@@ -33,7 +33,7 @@ Filesystem        Size  Used Avail Use% Mounted on
 ```
 
 ## Displays & Monitors
-- **Primary Display**: eDP-1 (2560x1600@120Hz, scale 2)
+- **Primary Display**: eDP-1 (2560x1600@120Hz, scale 1.6)
 ```
 Monitor eDP-1 (ID 0):
 	2560x1600@120.00200 at 0x0

@@ -12,7 +12,7 @@ The Dell XPS 13 (`DX13260`) ships with a 13.4" `2560x1600@120Hz` internal panel 
 
 ## Solution
 1. Dedicated `profiles/xps/` profile auto-detected when `SYS_PRODUCT_NAME` matches `XPS`.
-2. `profiles/xps/.config/hypr/monitors.lua` explicitly sets `eDP-1` to `2560x1600@120` at `scale = 2` with `GDK_SCALE = 2`, while leaving external monitors on `preferred` / `auto`.
+2. `profiles/xps/.config/hypr/monitors.lua` explicitly sets `eDP-1` to `2560x1600@120` at `scale = 1.6` (giving a comfortable 1600x1000 viewport for browsers and apps), while leaving external monitors on `preferred` / `auto`.
 3. `profiles/xps/.config/hypr/input.lua` enables `natural_scroll = true`, `tap_to_click = true`, `clickfinger_behavior = true`, `scroll_factor = 0.4`, and 3/4-finger workspace/fullscreen/close gestures.
 
 ## Verification

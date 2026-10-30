@@ -20,6 +20,7 @@ A dated log of all package changes, configurations, script modifications, and ha
   - Ported XDG icon linking (`hicolor`, `pixmaps`, `gtk-update-icon-cache`) and `update-desktop-database` from `hyprland-dots` into `install.sh`.
 
 ### Changed
+- **Dell XPS 13 Display Scaling Tuned to 1.6 (`profiles/xps/.config/hypr/monitors.lua`)**: Updated Hyprland monitor scale for `eDP-1` from `2.0` integer scaling to `1.6` fractional scaling (expanding viewport from `1280x800` to `1600x1000`) and removed redundant `GDK_SCALE=2` override to eliminate oversized UI and web page fonts in Zen Browser and desktop applications while preserving crisp rendering.
 - **Default Web Browser Set to Zen (`zen.desktop`)**: Switched default web browser and XDG MIME handlers (`text/html`, `http`, `https`, `about`, `unknown`) from Chromium to Zen Browser using `omarchy default browser zen`. Configured Firefox Wayland support in `~/.config/environment.d/omarchy-firefox-wayland.conf`.
 - **Isolated Surface & Aether Dynamic Theme Components into `profiles/surface/`**:
   - Moved Aether dynamic theme files (`themes/aether`, `hooks/theme-set.d/aether-dynamic.sh`, `extensions/omarchy-menu.jsonc`, `omarchy-aether-cycler.{service,timer}`, `.local/bin/omarchy` wrapper, `omarchy-precache-fast`, and `omarchy-theme-*` scripts) plus `jmvp.power`, `jmvp.background`, `foot/foot.ini`, `defaults/agent`, `lichess`, `mac-key-helper`, and `Andahuaylas*.jpg` from `core/` into `profiles/surface/`.

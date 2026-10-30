@@ -7,6 +7,7 @@ A dated log of all package changes, configurations, script modifications, and ha
 - **Unused `codex` Tool from `mise` (`core/.config/mise/config.toml`)**: Removed uninstalled `codex = "latest"` entry to eliminate 3-second GitHub version check timeouts and warnings during shell/agent initialization.
 
 ### Added
+- **Zen Profile Sync (`zen-sync`)**: Cloned `JValdivia23/zen-sync` to `~/zen-sync`, symlinked `~/.local/bin/zen-sync`, and restored encrypted Zen profile (workspaces, tabs, logins, extensions, and bookmarks) into `~/.config/zen`.
 - **Zen Browser (`zen-browser-bin`)**: Installed official Omarchy package `zen-browser-bin` and added to `core/packages.txt`.
 - **Dell XPS 13 (`xps`) Hardware Profile (`profiles/xps/`)**:
   - Created `profiles/xps/.config/hypr/monitors.lua` (`2560x1600@120Hz` at `scale = 2` with `GDK_SCALE = 2`, plus `"auto"` fallback for external monitors).

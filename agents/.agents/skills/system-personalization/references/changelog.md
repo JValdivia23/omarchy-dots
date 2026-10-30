@@ -10,8 +10,8 @@ A dated log of all package changes, configurations, script modifications, and ha
 - **Zen Profile Sync (`zen-sync`)**: Cloned `JValdivia23/zen-sync` to `~/zen-sync`, symlinked `~/.local/bin/zen-sync`, and restored encrypted Zen profile (workspaces, tabs, logins, extensions, and bookmarks) into `~/.config/zen`.
 - **Zen Browser (`zen-browser-bin`)**: Installed official Omarchy package `zen-browser-bin` and added to `core/packages.txt`.
 - **Dell XPS 13 (`xps`) Hardware Profile (`profiles/xps/`)**:
-  - Created `profiles/xps/.config/hypr/monitors.lua` (`2560x1600@120Hz` at `scale = 1.6`, expanding viewport to `1600x1000`, plus `"auto"` fallback for external monitors).
-  - Created `profiles/xps/.config/foot/foot.ini` (`font = JetBrainsMono Nerd Font:size=10`) to match 1.6x display scaling and maintain consistent physical text sizing across apps.
+  - Created `profiles/xps/.config/hypr/monitors.lua` (`2560x1600@120Hz` at `scale = 1.25`, expanding viewport to `2048x1280`, plus `"auto"` fallback for external monitors).
+  - Created `profiles/xps/.config/foot/foot.ini` (`font = JetBrainsMono Nerd Font:size=12`) to match 1.25x display scaling and maintain consistent physical text sizing across apps.
   - Created `profiles/xps/.config/hypr/input.lua` (`natural_scroll = true`, `tap_to_click = true`, `clickfinger_behavior = true`, `scroll_factor = 0.4`, `drag_3fg = 0`, and 3/4-finger workspace/fullscreen/close gestures).
   - Created `profiles/xps/gotchas/01-xps-13-display-and-input.md` and `profiles/xps/gotchas/README.md` to store XPS-specific hardware progress and gotchas inside `profiles/xps/gotchas/`.
   - Updated `install.sh` and `init-skill.sh` to auto-detect Dell XPS hardware (`xps` profile).
@@ -21,7 +21,7 @@ A dated log of all package changes, configurations, script modifications, and ha
   - Ported XDG icon linking (`hicolor`, `pixmaps`, `gtk-update-icon-cache`) and `update-desktop-database` from `hyprland-dots` into `install.sh`.
 
 ### Changed
-- **Dell XPS 13 Display Scaling Tuned to 1.6 (`profiles/xps/.config/hypr/monitors.lua`)**: Updated Hyprland monitor scale for `eDP-1` from `2.0` integer scaling to `1.6` fractional scaling (expanding viewport from `1280x800` to `1600x1000`) and removed redundant `GDK_SCALE=2` override to eliminate oversized UI and web page fonts in Zen Browser and desktop applications while preserving crisp rendering.
+- **Dell XPS 13 Display & Font Scaling Calibrated to 1.25 (`profiles/xps/`)**: Updated `profiles/xps/.config/hypr/monitors.lua` to `scale = 1.25`, expanding logical resolution to an exact integer-grid `2048x1280`. Updated `profiles/xps/.config/foot/foot.ini` font size to `12`, configured `gsettings set org.gnome.desktop.interface text-scaling-factor 1.1` in `setup.sh`, harmonizing text readability across terminal, desktop UI chrome, and web browser viewports.
 - **Default Web Browser Set to Zen (`zen.desktop`)**: Switched default web browser and XDG MIME handlers (`text/html`, `http`, `https`, `about`, `unknown`) from Chromium to Zen Browser using `omarchy default browser zen`. Configured Firefox Wayland support in `~/.config/environment.d/omarchy-firefox-wayland.conf`.
 - **Isolated Surface & Aether Dynamic Theme Components into `profiles/surface/`**:
   - Moved Aether dynamic theme files (`themes/aether`, `hooks/theme-set.d/aether-dynamic.sh`, `extensions/omarchy-menu.jsonc`, `omarchy-aether-cycler.{service,timer}`, `.local/bin/omarchy` wrapper, `omarchy-precache-fast`, and `omarchy-theme-*` scripts) plus `jmvp.power`, `jmvp.background`, `foot/foot.ini`, `defaults/agent`, `lichess`, `mac-key-helper`, and `Andahuaylas*.jpg` from `core/` into `profiles/surface/`.

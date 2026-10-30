@@ -12,7 +12,7 @@ A dated log of all package changes, configurations, script modifications, and ha
 - **Dell XPS 13 (`xps`) Hardware Profile (`profiles/xps/`)**:
   - Created `profiles/xps/.config/hypr/monitors.lua` (`2560x1600@120Hz` at `scale = 1.25`, expanding viewport to `2048x1280`, plus `"auto"` fallback for external monitors).
   - Created `profiles/xps/.config/foot/foot.ini` (`font = JetBrainsMono Nerd Font:size=13`) to achieve the exact physical readability of the initial 2.0x setup.
-  - Created `profiles/xps/.config/omarchy/shell.toml` (`[font] base-size = 14`) to scale Quickshell top bar and widgets.
+  - Created `profiles/xps/.config/omarchy/shell.toml` (`[font] base-size = 13`) to scale Quickshell top bar and widgets strictly for XPS hardware.
   - Created `profiles/xps/.config/hypr/input.lua` (`natural_scroll = true`, `tap_to_click = true`, `clickfinger_behavior = true`, `scroll_factor = 0.4`, `drag_3fg = 0`, and 3/4-finger workspace/fullscreen/close gestures).
   - Created `profiles/xps/gotchas/01-xps-13-display-and-input.md` and `profiles/xps/gotchas/README.md` to store XPS-specific hardware progress and gotchas inside `profiles/xps/gotchas/`.
   - Updated `install.sh` and `init-skill.sh` to auto-detect Dell XPS hardware (`xps` profile).
@@ -22,7 +22,7 @@ A dated log of all package changes, configurations, script modifications, and ha
   - Ported XDG icon linking (`hicolor`, `pixmaps`, `gtk-update-icon-cache`) and `update-desktop-database` from `hyprland-dots` into `install.sh`.
 
 ### Changed
-- **Dell XPS 13 Display & Font Scaling Calibrated to 1.25 (`profiles/xps/`)**: Updated `profiles/xps/.config/hypr/monitors.lua` to `scale = 1.25`, expanding logical resolution to an exact integer-grid `2048x1280`. Configured system interface font to `14` (`Adwaita Sans 14` in GTK and `base-size = 14` in `shell.toml`) and calibrated foot terminal font to `JetBrainsMono Nerd Font:size=13` (precisely restoring the initial 16px physical font height from the 2.0x setup).
+- **Dell XPS 13 Display & Font Scaling Calibrated to 1.25 (`profiles/xps/`)**: Updated `profiles/xps/.config/hypr/monitors.lua` to `scale = 1.25`, expanding logical resolution to an exact integer-grid `2048x1280`. Configured system interface font to `13` (`Adwaita Sans 13` in GTK and `base-size = 13` in `profiles/xps/.config/omarchy/shell.toml`) and calibrated foot terminal font to `JetBrainsMono Nerd Font:size=13` strictly in `profiles/xps/` without altering core dotfiles.
 - **Default Web Browser Set to Zen (`zen.desktop`)**: Switched default web browser and XDG MIME handlers (`text/html`, `http`, `https`, `about`, `unknown`) from Chromium to Zen Browser using `omarchy default browser zen`. Configured Firefox Wayland support in `~/.config/environment.d/omarchy-firefox-wayland.conf`.
 - **Isolated Surface & Aether Dynamic Theme Components into `profiles/surface/`**:
   - Moved Aether dynamic theme files (`themes/aether`, `hooks/theme-set.d/aether-dynamic.sh`, `extensions/omarchy-menu.jsonc`, `omarchy-aether-cycler.{service,timer}`, `.local/bin/omarchy` wrapper, `omarchy-precache-fast`, and `omarchy-theme-*` scripts) plus `jmvp.power`, `jmvp.background`, `foot/foot.ini`, `defaults/agent`, `lichess`, `mac-key-helper`, and `Andahuaylas*.jpg` from `core/` into `profiles/surface/`.

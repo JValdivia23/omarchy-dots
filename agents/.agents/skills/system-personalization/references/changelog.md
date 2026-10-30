@@ -3,6 +3,9 @@
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
 ## [2.3.0] - 2026-10-29
+### Removed
+- **Unused `codex` Tool from `mise` (`core/.config/mise/config.toml`)**: Removed uninstalled `codex = "latest"` entry to eliminate 3-second GitHub version check timeouts and warnings during shell/agent initialization.
+
 ### Added
 - **Zen Browser (`zen-browser-bin`)**: Installed official Omarchy package `zen-browser-bin` and added to `core/packages.txt`.
 - **Dell XPS 13 (`xps`) Hardware Profile (`profiles/xps/`)**:

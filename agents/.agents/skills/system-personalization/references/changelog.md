@@ -10,7 +10,8 @@ A dated log of all package changes, configurations, script modifications, and ha
 - **Zen Profile Sync (`zen-sync`)**: Cloned `JValdivia23/zen-sync` to `~/zen-sync`, symlinked `~/.local/bin/zen-sync`, and restored encrypted Zen profile (workspaces, tabs, logins, extensions, and bookmarks) into `~/.config/zen`.
 - **Zen Browser (`zen-browser-bin`)**: Installed official Omarchy package `zen-browser-bin` and added to `core/packages.txt`.
 - **Dell XPS 13 (`xps`) Hardware Profile (`profiles/xps/`)**:
-  - Created `profiles/xps/.config/hypr/monitors.lua` (`2560x1600@120Hz` at `scale = 2` with `GDK_SCALE = 2`, plus `"auto"` fallback for external monitors).
+  - Created `profiles/xps/.config/hypr/monitors.lua` (`2560x1600@120Hz` at `scale = 1.6`, expanding viewport to `1600x1000`, plus `"auto"` fallback for external monitors).
+  - Created `profiles/xps/.config/foot/foot.ini` (`font = JetBrainsMono Nerd Font:size=10`) to match 1.6x display scaling and maintain consistent physical text sizing across apps.
   - Created `profiles/xps/.config/hypr/input.lua` (`natural_scroll = true`, `tap_to_click = true`, `clickfinger_behavior = true`, `scroll_factor = 0.4`, `drag_3fg = 0`, and 3/4-finger workspace/fullscreen/close gestures).
   - Created `profiles/xps/gotchas/01-xps-13-display-and-input.md` and `profiles/xps/gotchas/README.md` to store XPS-specific hardware progress and gotchas inside `profiles/xps/gotchas/`.
   - Updated `install.sh` and `init-skill.sh` to auto-detect Dell XPS hardware (`xps` profile).

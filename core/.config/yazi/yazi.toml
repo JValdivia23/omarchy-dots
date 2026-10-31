@@ -3,7 +3,7 @@
 # ==============================================================================
 
 [mgr]
-ratio = [1, 4, 3]
+ratio = [1, 3, 5]
 sort_by = "alphabetical"
 sort_sensitive = false
 sort_reverse = false
@@ -31,12 +31,17 @@ open = [
 ]
 
 [open]
-rules = [
+prepend_rules = [
     { mime = "text/*", use = [ "edit", "open" ] },
     { mime = "application/json", use = [ "edit", "open" ] },
     { mime = "application/*xml", use = [ "edit", "open" ] },
     { mime = "application/javascript", use = [ "edit", "open" ] },
     { mime = "application/x-sh", use = [ "edit", "open" ] },
     { mime = "application/x-shellscript", use = [ "edit", "open" ] },
-    { name = "*", use = [ "open" ] }
+    { url = "*.conf", use = [ "edit", "open" ] },
+    { url = "*.ini", use = [ "edit", "open" ] },
+    { url = "*.toml", use = [ "edit", "open" ] },
+    { url = "*.yaml", use = [ "edit", "open" ] },
+    { url = "*.yml", use = [ "edit", "open" ] },
+    { url = "*.lua", use = [ "edit", "open" ] },
 ]

@@ -5,9 +5,12 @@ A dated log of all package changes, configurations, script modifications, and ha
 ## [2.4.0] - 2026-10-31
 ### Added
 - **Yazi Terminal File Manager in Core Dotfiles (`core/packages.txt`)**: Added `yazi` and `7zip` (for archive extraction and previews) to universal baseline packages in `core/packages.txt`. Installed on system via `pkexec pacman -S --needed yazi 7zip`.
-- **Yazi Configuration (`core/.config/yazi/yazi.toml`)**: Created core Yazi configuration with 1:4:3 pane ratio, size linemode, directory-first sorting, preview settings, and editor integration using `omarchy-launch-editor --inline` and `xdg-open`. Symlinked to `~/.config/yazi/yazi.toml`.
+- **Yazi Configuration (`core/.config/yazi/yazi.toml`)**: Created core Yazi configuration with directory-first sorting, preview settings, and editor integration using `omarchy-launch-editor --inline` and `xdg-open`. Symlinked to `~/.config/yazi/yazi.toml`.
 - **Yazi Fish Shell Integration (`core/.config/fish/config.fish`)**: Added standard `y` shell wrapper function that launches `yazi` with `--cwd-file` and changes the active directory (`cd`) upon exit.
 - **Yazi Desktop Launcher (`core/.local/share/applications/yazi.desktop`)**: Created desktop entry executing `omarchy-launch-tui yazi %u` with `inode/directory` MIME handling so Yazi appears in the Omarchy menu and application launcher. Symlinked to `~/.local/share/applications/yazi.desktop`.
+
+### Fixed
+- **Yazi 26+ Rule Syntax (`core/.config/yazi/yazi.toml`)**: Updated opener rules to use `[open.prepend_rules]` with valid `mime` and `url` matchers, replacing legacy `name = "*"` which caused strict schema validation parse errors on newer Yazi versions.
 
 ## [2.3.1] - 2026-10-29
 ### Added

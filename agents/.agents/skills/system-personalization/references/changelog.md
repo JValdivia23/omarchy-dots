@@ -2,6 +2,10 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.4.1] - 2026-10-31
+### Fixed
+- **Restored Omarchy Status Bar Clock (`~/.config/omarchy/shell.json` & `core/.config/omarchy/shell.json`)**: Re-enabled `omarchy.clock` in the center section of the Quickshell status bar (`format = "dddd HH:mm"`, `formatAlt = "d MMMM 'W'ww yyyy"`, `verticalFormat = "HH\n—\nmm"`) after it was accidentally torn off the bar via drag-and-drop gesture. Synced active settings to core dotfiles.
+
 ## [2.4.0] - 2026-10-31
 ### Added
 - **Yazi Terminal File Manager in Core Dotfiles (`core/packages.txt`)**: Added `yazi` and `7zip` (for archive extraction and previews) to universal baseline packages in `core/packages.txt`. Installed on system via `pkexec pacman -S --needed yazi 7zip`.

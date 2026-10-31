@@ -2,6 +2,10 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.4.2] - 2026-10-31
+### Added
+- **Omastorm Live Radar Shell Plugin for XPS Profile (`profiles/xps/setup.sh`)**: Added automated installation and enablement of `omastorm` (`com.omastorm.radar` from `https://github.com/wesleygrimes/omastorm.git`) in `profiles/xps/setup.sh`, providing real-time weather radar widgets and popovers in the status bar for the XPS profile.
+
 ## [2.4.1] - 2026-10-31
 ### Fixed
 - **Restored Omarchy Status Bar Clock (`~/.config/omarchy/shell.json` & `core/.config/omarchy/shell.json`)**: Re-enabled `omarchy.clock` in the center section of the Quickshell status bar (`format = "dddd HH:mm"`, `formatAlt = "d MMMM 'W'ww yyyy"`, `verticalFormat = "HH\n—\nmm"`) after it was accidentally torn off the bar via drag-and-drop gesture. Synced active settings to core dotfiles.

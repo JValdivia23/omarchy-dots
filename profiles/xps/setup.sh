@@ -29,4 +29,10 @@ SUBSYSTEM=="input", KERNEL=="event*", ENV{ID_INPUT_TOUCHSCREEN}=="1", TAG+="uacc
     fi
 fi
 
+# Ensure Omastorm weather radar plugin is installed and enabled for XPS profile
+if [ ! -d "$HOME/.config/omarchy/plugins/com.omastorm.radar" ]; then
+    echo "--> Installing Omastorm radar plugin for XPS profile..."
+    omarchy plugin add https://github.com/wesleygrimes/omastorm.git --enable --yes || true
+fi
+
 echo "==> XPS profile setup complete."

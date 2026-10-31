@@ -5,6 +5,10 @@ A dated log of all package changes, configurations, script modifications, and ha
 ## [2.4.1] - 2026-10-31
 ### Fixed
 - **Restored Omarchy Status Bar Clock (`~/.config/omarchy/shell.json` & `core/.config/omarchy/shell.json`)**: Re-enabled `omarchy.clock` in the center section of the Quickshell status bar (`format = "dddd HH:mm"`, `formatAlt = "d MMMM 'W'ww yyyy"`, `verticalFormat = "HH\n—\nmm"`) after it was accidentally torn off the bar via drag-and-drop gesture. Synced active settings to core dotfiles.
+- **Omarchy Vitals Sensors Panel & Suspend/Resume Crash Fix (`core/.config/omarchy/plugins/osesantos.vitals/`)**:
+  - Replaced dynamic sensor model binding with static layout in `SensorsSource.qml` to prevent `quickshell` SIGSEGV in `QQmlInfo::~QQmlInfo` during suspend/resume cycles.
+  - Redesigned `SensorsPanel.qml` into a scrolling list grouped by hardware chip with compact rows and thin temperature meters.
+  - Updated `enumerate-sensors` script to sort naturally (e.g. `temp2` before `temp10`) and provide distinct labels for unlabelled sensors.
 
 ## [2.4.0] - 2026-10-31
 ### Added

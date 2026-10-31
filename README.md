@@ -47,7 +47,7 @@ This repository is built around a **3-Tier Architecture** that cleanly isolates 
 Integrated as a core utility across laptops, turning the physical boundaries of the touchpad into discrete sliders and action triggers:
 - **Right Edge**: Master Volume slider (+/-2% per step via `omarchy-audio-output-volume` with native OSD; single tap toggles audio mute).
 - **Left Edge**: Screen Brightness slider (+/-5% per step via `omarchy-brightness-display` with native OSD).
-- **Top Edge**: Media playback navigation (swipe left for previous, swipe right for next track via Quickshell IPC).
+- **Top & Bottom Edges**: Kept as passthrough to avoid accidental triggers while resting fingers or thumb-clicking.
 - **Ultra-lightweight**: Operates as a background systemd user service consuming only ~800 KB of RAM and 0% idle CPU with zero wakeup overhead.
 
 ### 5. Self-Improving System Personalization Skill

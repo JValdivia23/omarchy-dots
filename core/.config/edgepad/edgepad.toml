@@ -1,5 +1,5 @@
 # EdgePad configuration for Omarchy Quattro
-# Touchpad edge gestures: volume (right edge), brightness (left edge), media (top edge)
+# Touchpad edge gestures: volume (right edge), brightness (left edge)
 
 device = "auto"
 palm_rejection = true
@@ -30,13 +30,3 @@ step = 0.04
 up = ["omarchy-brightness-display", "+5%"]
 down = ["omarchy-brightness-display", "5%-"]
 
-# Top edge gestures: Media Controls (Previous, Next via Quickshell IPC)
-[[gestures]]
-zone = "top"
-direction = "left"
-action = ["omarchy-shell", "media", "previous"]
-
-[[gestures]]
-zone = "top"
-direction = "right"
-action = ["omarchy-shell", "media", "next"]

@@ -11,3 +11,5 @@ python
 mise-bin
 brave-origin-bin
 zen-browser-bin
+yazi
+7zip

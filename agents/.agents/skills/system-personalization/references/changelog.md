@@ -2,6 +2,13 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.4.0] - 2026-10-31
+### Added
+- **Yazi Terminal File Manager in Core Dotfiles (`core/packages.txt`)**: Added `yazi` and `7zip` (for archive extraction and previews) to universal baseline packages in `core/packages.txt`. Installed on system via `pkexec pacman -S --needed yazi 7zip`.
+- **Yazi Configuration (`core/.config/yazi/yazi.toml`)**: Created core Yazi configuration with 1:4:3 pane ratio, size linemode, directory-first sorting, preview settings, and editor integration using `omarchy-launch-editor --inline` and `xdg-open`. Symlinked to `~/.config/yazi/yazi.toml`.
+- **Yazi Fish Shell Integration (`core/.config/fish/config.fish`)**: Added standard `y` shell wrapper function that launches `yazi` with `--cwd-file` and changes the active directory (`cd`) upon exit.
+- **Yazi Desktop Launcher (`core/.local/share/applications/yazi.desktop`)**: Created desktop entry executing `omarchy-launch-tui yazi %u` with `inode/directory` MIME handling so Yazi appears in the Omarchy menu and application launcher. Symlinked to `~/.local/share/applications/yazi.desktop`.
+
 ## [2.3.1] - 2026-10-29
 ### Added
 - **Fullscreen Idle Inhibit Window Rule (`core/.config/hypr/hyprland.lua`)**: Added universal `o.window(".*", { idle_inhibit = "fullscreen" })` to inhibit idle, screensaver (150s), and DPMS screen sleep (300s) during fullscreen video playback (YouTube, media players, streaming services, games). Resolves an Omarchy upstream gap where `xdg-desktop-portal-gtk` fails to forward portal inhibit requests due to a missing `org.freedesktop.ScreenSaver` D-Bus provider. Documented in gotcha `05-omarchy-idle-inhibition-fullscreen.md`.

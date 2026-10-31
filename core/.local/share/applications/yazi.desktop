@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Yazi
+GenericName=File Manager
+Comment=Blazing fast terminal file manager
+Exec=omarchy-launch-tui yazi %u
+Terminal=false
+Categories=System;FileTools;FileManager;ConsoleOnly;
+Keywords=File;Manager;Explorer;Terminal;
+Icon=utilities-terminal
+MimeType=inode/directory;

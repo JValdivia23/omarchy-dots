@@ -1,0 +1,47 @@
+# EdgePad configuration for Omarchy Quattro
+# Touchpad edge gestures: volume (right edge), brightness (left edge), media (top edge)
+
+device = "auto"
+palm_rejection = true
+edge_width = 0.10
+tap_min_duration_ms = 40
+tap_max_duration_ms = 180
+double_tap_timeout_ms = 300
+double_tap_max_distance = 0.04
+swipe_min_distance = 0.02
+
+# Right edge slider: Master Volume (+/- 2% with native Omarchy OSD)
+[[sliders]]
+zone = "right"
+step = 0.04
+up = ["omarchy-audio-output-volume", "+2"]
+down = ["omarchy-audio-output-volume", "-2"]
+
+# Right edge tap: Toggle Mute
+[[gestures]]
+zone = "right"
+direction = "tap"
+action = ["omarchy-audio-output-volume", "mute-toggle"]
+
+# Left edge slider: Display Brightness (+/- 5% with native Omarchy OSD)
+[[sliders]]
+zone = "left"
+step = 0.04
+up = ["omarchy-brightness-display", "+5%"]
+down = ["omarchy-brightness-display", "5%-"]
+
+# Top edge gestures: Media Controls (Previous, Next, Play/Pause via Quickshell IPC)
+[[gestures]]
+zone = "top"
+direction = "left"
+action = ["omarchy-shell", "media", "previous"]
+
+[[gestures]]
+zone = "top"
+direction = "right"
+action = ["omarchy-shell", "media", "next"]
+
+[[gestures]]
+zone = "top"
+direction = "tap"
+action = ["omarchy-shell", "media", "playPause"]

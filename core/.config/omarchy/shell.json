@@ -1,12 +1,12 @@
 {
   "bar": {
-    "background": "glassy",
+    "background": "none",
     "layout": {
       "center": [
         {
-          "id": "omarchy.clock",
           "format": "dddd HH:mm",
           "formatAlt": "d MMMM 'W'ww yyyy",
+          "id": "omarchy.clock",
           "verticalFormat": "HH\\n—\\nmm"
         }
       ],
@@ -40,6 +40,9 @@
           "id": "omarchy.weather"
         },
         {
+          "id": "omarchy.media"
+        },
+        {
           "id": "omarchy.system-update"
         }
       ],
@@ -69,6 +72,9 @@
       "right": [
         {
           "id": "omarchy.tray"
+        },
+        {
+          "id": "com.omastorm.radar"
         },
         {
           "id": "omarchy.keyboard-layout"

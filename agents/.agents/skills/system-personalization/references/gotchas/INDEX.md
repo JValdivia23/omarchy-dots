@@ -15,6 +15,7 @@ These gotchas represent core operating guardrails across all installations runni
 | [`03-elevated-password-prompts.md`](03-elevated-password-prompts.md) | Interactive Password Authentication for Sudo Operations (`kitty -e`) | System / Security | Universal | Critical |
 | [`04-omarchy-fish-quattro-integration.md`](04-omarchy-fish-quattro-integration.md) | Omarchy Quattro Fish Shell Integration & Autosuggestions | System | Universal (Omarchy) | Warning |
 | [`05-omarchy-idle-inhibition-fullscreen.md`](05-omarchy-idle-inhibition-fullscreen.md) | Fullscreen Media Playback Idle Sleep & Screensaver Interruptions | Wayland / Hyprland | Universal (Omarchy) | Warning |
+| [`06-edgepad-uaccess-uinput.md`](06-edgepad-uaccess-uinput.md) | EdgePad Touchpad Edge Gestures Uaccess & Uinput Permissions | Input / System | Universal (Laptops) | Warning |
 
 ---
 

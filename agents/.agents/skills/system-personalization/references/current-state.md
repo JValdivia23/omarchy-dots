@@ -1,6 +1,6 @@
 # Current System State
 
-Live system snapshot automatically generated on Thu Oct 29 06:54:52 PM MDT 2026.
+Live system snapshot automatically generated on Sat Oct 31 02:40:07 PM MDT 2026.
 
 ## Operating System & Kernel
 - **OS**: Omarchy 4.5.0rc2
@@ -14,7 +14,7 @@ Live system snapshot automatically generated on Thu Oct 29 06:54:52 PM MDT 2026.
 - **CPU**: Intel(R) Core(TM) 5 320
 - **GPU**: Intel Corporation Wildcat Lake [Intel Graphics]
 - **RAM**: 15Gi
-- **Primary Display**: eDP-1 (2560x1600@120Hz, scale 2)
+- **Primary Display**: eDP-1 (2560x1600@120Hz, scale 1.25)
 
 ## Key Installed Packages & Utilities
 
@@ -23,8 +23,8 @@ Live system snapshot automatically generated on Thu Oct 29 06:54:52 PM MDT 2026.
 | hyprland | 0.56.2-4 | Core Utility |
 | omarchy | 4.5.0rc2-1 | Core Utility |
 | foot | 1.28.0-2 | Core Utility |
+| zen-browser-bin | 1.24b-1 | Core Utility |
 | brave-origin-bin | 1:1.98.62-1 | Core Utility |
-| zen-browser-bin | 1.24b-1 | Default Web Browser |
 | grim | 1.5.0-2 | Core Utility |
 | slurp | 1.5.0-2 | Core Utility |
 | jq | 1.8.2-1 | Core Utility |

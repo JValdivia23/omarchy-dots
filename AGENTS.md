@@ -18,11 +18,15 @@ This repository organizes configuration into three decoupled, modular tiers to e
 │
 ├── core/                       # ─── TIER 1: UNIVERSAL CONFIGURATIONS ──────────────────────
 │   ├── .config/
+│   │   ├── edgepad/
+│   │   │   └── edgepad.toml    # Touchpad edge gestures (Right: Volume, Left: Brightness, Top: Media)
+│   │   ├── systemd/user/
+│   │   │   └── edgepad.service # Background daemon service for EdgePad
 │   │   ├── hypr/
 │   │   │   ├── hyprland.lua    # Master Hyprland Lua entrypoint (loads common + pcalls profiles)
 │   │   │   └── bindings-common.lua # Personal shortcuts (macOS nav, undo/redo, delete, altwin)
 │   │   └── git/                # Global Git configuration
-│   ├── .local/bin/             # Universal CLI utilities (hypr-toggle-altwin, mac-key-helper, etc.)
+│   ├── .local/bin/             # Universal CLI utilities (edgepad, hypr-toggle-altwin, dotfiles, etc.)
 │   ├── packages.txt            # Baseline packages not bundled by Omarchy (stow, ripgrep, fd, etc.)
 │   └── .stow-local-ignore      # Prevents metadata (packages.txt) from stowing to $HOME
 │

@@ -2,6 +2,22 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.5.0] - 2026-10-31
+### Added
+- **EdgePad Core Touchpad Edge Gesture Daemon (`core/.config/edgepad/edgepad.toml`)**: Integrated `assembledev/edgepad` into core dotfiles, enabling continuous edge sliders and tap actions across laptops:
+  - **Right Edge Slider**: Master Volume control (+/- 2% steps via `omarchy-audio-output-volume +2`/`-2` with native Omarchy OSD overlay).
+  - **Right Edge Tap**: Toggle Audio Mute (`omarchy-audio-output-volume mute-toggle`).
+  - **Left Edge Slider**: Display Brightness (+/- 5% steps via `omarchy-brightness-display +5%`/`5%-` with native Omarchy OSD overlay).
+  - **Top Edge Gestures**: Media playback navigation (Swipe left: previous, swipe right: next, tap: play/pause via `omarchy-shell media <cmd>`).
+- **EdgePad Systemd User Service (`core/.config/systemd/user/edgepad.service`)**: Created background user service that starts `edgepad daemon` on session login with minimal resource usage (~788 KB RAM, 0% idle CPU).
+- **EdgePad Binary & Installer Automation (`install.sh`)**: Added automatic GitHub release binary downloader to `core/.local/bin/edgepad` and automated systemd user service enablement.
+- **Touchpad Uaccess & Uinput Kernel Module Setup (`/etc/udev/rules.d/70-edgepad.rules` & `/etc/modules-load.d/uinput.conf`)**: Configured systemd-logind `uaccess` ACLs for `ID_INPUT_TOUCHPAD` devices and `/dev/uinput`, and configured `uinput` kernel module autoloading on boot.
+- **Gotcha Guide (`references/gotchas/06-edgepad-uaccess-uinput.md`)**: Documented evdev uaccess ACL permissions, uinput module loading requirements, and `edgepad doctor` troubleshooting.
+
+## [2.4.3] - 2026-10-31
+### Added
+- **`clinfo` diagnostic tool**: Installed via `pkexec pacman -S --needed clinfo` (`omarchy pkg add` needs an interactive sudo prompt, which doesn't work from a background shell). Used to query GPU compute units. It currently reports 0 OpenCL platforms because no ICD runtime (`intel-compute-runtime`) is installed. Not yet added to `core/packages.txt`.
+
 ## [2.4.2] - 2026-10-31
 ### Added
 - **Omastorm Live Radar Shell Plugin for XPS Profile (`profiles/xps/setup.sh`)**: Added automated installation and enablement of `omastorm` (`com.omastorm.radar` from `https://github.com/wesleygrimes/omastorm.git`) in `profiles/xps/setup.sh`, providing real-time weather radar widgets and popovers in the status bar for the XPS profile.

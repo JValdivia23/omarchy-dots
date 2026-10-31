@@ -408,6 +408,18 @@ if [ "$DO_STOW" = true ]; then
                  "$HOME/.agents/skills/system-personalization"
     fi
 
+    # Ensure edgepad binary is present for core touchpad gestures
+    if [ ! -f "$DOTFILES_DIR/core/.local/bin/edgepad" ]; then
+        echo "--> Downloading edgepad binary from GitHub Releases..."
+        if [ "$DRY_RUN" = false ]; then
+            mkdir -p "$DOTFILES_DIR/core/.local/bin"
+            curl -fsSL https://github.com/assembledev/edgepad/releases/latest/download/edgepad-x86_64-unknown-linux-musl -o "$DOTFILES_DIR/core/.local/bin/edgepad"
+            chmod +x "$DOTFILES_DIR/core/.local/bin/edgepad"
+        else
+            echo "    [dry-run] Would download edgepad binary to core/.local/bin/edgepad"
+        fi
+    fi
+
     # Check and backup conflicts across all deployment packages
     echo "--> Checking for conflicting configurations in ~/.config/, ~/.local/bin/, and ~/.agents/..."
     scan_and_backup_package_conflicts "$DOTFILES_DIR/core"
@@ -626,20 +638,50 @@ if [ "$DO_SETUP" = true ]; then
         fi
     fi
 
-    # 4. Enable user systemd services and timers (only if present in active profile, e.g. Surface Aether cycler)
-    if command -v systemctl &>/dev/null && [ -f "$HOME/.config/systemd/user/omarchy-aether-cycler.timer" ]; then
-        echo "--> Reloading systemd user daemon and activating user timers..."
+    # 4. Configure udev rules & kernel modules for edgepad (touchpad edge gestures)
+    EDGEPAD_UDEV_RULE="/etc/udev/rules.d/70-edgepad.rules"
+    if [ ! -f "$EDGEPAD_UDEV_RULE" ]; then
+        echo "--> Configuring udev uaccess rule & uinput for edgepad..."
+        EDGEPAD_RULE_CONTENT='# Grant the active local seat user access through systemd-logind uaccess ACLs.
+SUBSYSTEM=="input", KERNEL=="event*", ENV{ID_INPUT_TOUCHPAD}=="1", TAG+="uaccess"
+SUBSYSTEM=="misc", KERNEL=="uinput", TAG+="uaccess", OPTIONS+="static_node=uinput"'
+        EDGEPAD_CMD="printf '%s\n' '$EDGEPAD_RULE_CONTENT' > '$EDGEPAD_UDEV_RULE' && modprobe uinput && echo 'uinput' > /etc/modules-load.d/uinput.conf && udevadm control --reload && udevadm trigger --subsystem-match=input --action=change && udevadm trigger --subsystem-match=misc --action=change"
         if [ "$DRY_RUN" = true ]; then
-            echo "    [dry-run] systemctl --user daemon-reload"
-            echo "    [dry-run] systemctl --user enable --now omarchy-aether-cycler.timer"
-        else
-            systemctl --user daemon-reload || true
-            systemctl --user enable --now omarchy-aether-cycler.timer || true
-            echo "    Enabled omarchy-aether-cycler.timer"
+            echo "    [dry-run] Would install $EDGEPAD_UDEV_RULE, load uinput, and reload udev"
+        elif (( EUID == 0 )); then
+            bash -c "$EDGEPAD_CMD" || true
+        elif [ -t 0 ] || sudo -n true 2>/dev/null; then
+            sudo bash -c "$EDGEPAD_CMD" || true
+        elif command -v pkexec &>/dev/null; then
+            pkexec bash -c "$EDGEPAD_CMD" || true
         fi
     fi
 
-    # 5. Ensure interactive Fish auto-launch guard exists in ~/.bashrc
+    # 5. Enable user systemd services and daemons (edgepad, Surface Aether cycler)
+    if command -v systemctl &>/dev/null; then
+        if [ -f "$HOME/.config/systemd/user/edgepad.service" ]; then
+            echo "--> Reloading systemd user daemon and activating edgepad daemon..."
+            if [ "$DRY_RUN" = true ]; then
+                echo "    [dry-run] systemctl --user daemon-reload"
+                echo "    [dry-run] systemctl --user enable --now edgepad.service"
+            else
+                systemctl --user daemon-reload || true
+                systemctl --user enable --now edgepad.service || true
+                echo "    Enabled edgepad.service"
+            fi
+        fi
+        if [ -f "$HOME/.config/systemd/user/omarchy-aether-cycler.timer" ]; then
+            echo "--> Activating omarchy-aether-cycler.timer..."
+            if [ "$DRY_RUN" = true ]; then
+                echo "    [dry-run] systemctl --user enable --now omarchy-aether-cycler.timer"
+            else
+                systemctl --user enable --now omarchy-aether-cycler.timer || true
+                echo "    Enabled omarchy-aether-cycler.timer"
+            fi
+        fi
+    fi
+
+    # 6. Ensure interactive Fish auto-launch guard exists in ~/.bashrc
     [ -f "$HOME/.bashrc" ] || touch "$HOME/.bashrc"
     if ! grep -q "Auto-launch fish shell for interactive sessions" "$HOME/.bashrc"; then
         echo "--> Adding Fish interactive auto-launch guard to ~/.bashrc..."
@@ -659,13 +701,13 @@ EOF
             echo "    Added Fish auto-launch guard to ~/.bashrc"
         fi
     fi
-    # 6. Check wallpaper library
+    # 7. Check wallpaper library
     if [ ! -d "$HOME/Pictures/Wallpapers/dharmx-walls" ]; then
         echo "--> Wallpaper collection not detected in ~/Pictures/Wallpapers/dharmx-walls."
         echo "    Run 'omarchy-sync-wallpapers' anytime to fetch 1500+ wallpapers from GitHub."
     fi
 
-    # 7. Reload Hyprland if active
+    # 8. Reload Hyprland if active
     if command -v hyprctl &>/dev/null && [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
         echo "--> Reloading Hyprland configuration..."
         if [ "$DRY_RUN" = false ]; then
@@ -675,7 +717,7 @@ EOF
         fi
     fi
 
-    # 8. Ensure Aether dynamic theme is seeded if active profile includes it
+    # 9. Ensure Aether dynamic theme is seeded if active profile includes it
     for p in "${STOWABLE_PROFILES[@]}"; do
         aether_seed="$DOTFILES_DIR/profiles/$p/.config/omarchy/themes/aether/colors.toml.seed"
         if [ -f "$aether_seed" ]; then

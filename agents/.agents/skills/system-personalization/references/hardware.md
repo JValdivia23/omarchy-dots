@@ -28,8 +28,8 @@ Live physical system specifications and active peripherals probed automatically.
 ## Storage & Filesystems
 ```
 Filesystem        Size  Used Avail Use% Mounted on
-/dev/mapper/root  475G   21G  455G   5% /
-/dev/mapper/root  475G   21G  455G   5% /home
+/dev/mapper/root  475G   42G  432G   9% /
+/dev/mapper/root  475G   42G  432G   9% /home
 ```
 
 ## Displays & Monitors
@@ -39,7 +39,7 @@ Monitor eDP-1 (ID 0):
 	2560x1600@120.00200 at 0x0
 	make: LG Display
 	model: 0x0804
-	scale: 2
+	scale: 1.25
 	transform: 0
 	availableModes: 2560x1600@120.00Hz 
 ```
@@ -48,4 +48,4 @@ Monitor eDP-1 (ID 0):
 
 
 ### Batteries
-- **BAT0**: 84% (Charging)
+- **BAT0**: 85% (Discharging)

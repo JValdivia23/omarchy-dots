@@ -8,7 +8,7 @@ A dated log of all package changes, configurations, script modifications, and ha
   - **Right Edge Slider**: Master Volume control (+/- 2% steps via `omarchy-audio-output-volume +2`/`-2` with native Omarchy OSD overlay).
   - **Right Edge Tap**: Toggle Audio Mute (`omarchy-audio-output-volume mute-toggle`).
   - **Left Edge Slider**: Display Brightness (+/- 5% steps via `omarchy-brightness-display +5%`/`5%-` with native Omarchy OSD overlay).
-  - **Top Edge Gestures**: Media playback navigation (Swipe left: previous, swipe right: next, tap: play/pause via `omarchy-shell media <cmd>`).
+  - **Top Edge Gestures**: Media playback navigation (Swipe left: previous, swipe right: next track via `omarchy-shell media <cmd>`; single tap disabled to prevent accidental playback toggles).
 - **EdgePad Systemd User Service (`core/.config/systemd/user/edgepad.service`)**: Created background user service that starts `edgepad daemon` on session login with minimal resource usage (~788 KB RAM, 0% idle CPU).
 - **EdgePad Binary & Installer Automation (`install.sh`)**: Added automatic GitHub release binary downloader to `core/.local/bin/edgepad` and automated systemd user service enablement.
 - **Touchpad Uaccess & Uinput Kernel Module Setup (`/etc/udev/rules.d/70-edgepad.rules` & `/etc/modules-load.d/uinput.conf`)**: Configured systemd-logind `uaccess` ACLs for `ID_INPUT_TOUCHPAD` devices and `/dev/uinput`, and configured `uinput` kernel module autoloading on boot.

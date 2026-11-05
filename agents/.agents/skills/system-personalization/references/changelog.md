@@ -2,6 +2,17 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.11.0] - 2026-11-04
+### Added
+- **ArtCraft Office & Document Suite (`core/packages.txt`)**:
+  - Installed **WordCraft** (`wordcraft-bin` 0.15.1-1): Clean-room word processor alternative to Microsoft Word with `.docx`, `.odt`, `.rtf`, markdown, and PDF conversion, plus headless script execution and MCP server.
+  - Installed **GridCraft** (`gridcraft-bin` 0.16.0-1): Clean-room spreadsheet alternative to Microsoft Excel with `.xlsx`/`.csv` conversion, formula calculation engine, headless execution, and MCP server.
+  - Installed **DeckCraft** (`deckcraft-bin` 0.15.1-1): Clean-room presentation alternative to Microsoft PowerPoint with `.pptx` support, slide generation, headless rendering, and MCP server.
+  - Installed **PdfCraft** (`pdfcraft-bin` 0.18.2-1): Native PDF workbench and Adobe Acrobat alternative with structure inspection, reading-order text extraction, page splitting/merging, redaction auditing, and MCP server.
+  - Installed **Storytold Office** (`storytold-office` 1-1): AUR metapackage tying together the ArtCraft office application suite.
+  - Installed and verified standalone CLI binaries: [`wordcraft-cli`](file:///usr/bin/wordcraft-cli), [`gridcraft-cli`](file:///usr/bin/gridcraft-cli), [`deckcraft-cli`](file:///usr/bin/deckcraft-cli), and [`pdfcraft-cli`](file:///usr/bin/pdfcraft-cli).
+  - Tracked universal packages in `core/packages.txt`.
+
 ## [2.10.0] - 2026-11-04
 ### Changed
 - **EdgePad Systemd User Service Bound to Graphical Session (`core/.config/systemd/user/edgepad.service`)**:

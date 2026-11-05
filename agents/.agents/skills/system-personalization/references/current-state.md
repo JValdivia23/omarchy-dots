@@ -37,6 +37,11 @@ Live system snapshot automatically generated on Wed Nov  4 09:20:37 PM MST 2026.
 | localsend | 1.18.2-1 | Core Utility |
 | ani-cli | 5.1-1 | Anime Streaming CLI (English/Sub/Dub) |
 | ani-cli-mx | 3.0.10-1 | Anime Streaming CLI (Spanish/Mexico Sources) |
+| wordcraft-bin | 0.15.1-1 | Clean-room Word Processor & CLI (`wordcraft`, `wordcraft-cli`) |
+| gridcraft-bin | 0.16.0-1 | Clean-room Spreadsheet & CLI (`gridcraft`, `gridcraft-cli`) |
+| deckcraft-bin | 0.15.1-1 | Clean-room Presentation App & CLI (`deckcraft`, `deckcraft-cli`) |
+| pdfcraft-bin | 0.18.2-1 | Native PDF Workbench & CLI (`pdfcraft`, `pdfcraft-cli`) |
+| storytold-office | 1-1 | ArtCraft Office Suite Metapackage |
 
 ## Active Hardware Daemons & Services
 - **bluetooth**: `active`

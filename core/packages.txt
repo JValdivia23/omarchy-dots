@@ -15,3 +15,8 @@ yazi
 7zip
 ani-cli
 ani-cli-mx
+wordcraft-bin
+gridcraft-bin
+deckcraft-bin
+pdfcraft-bin
+storytold-office

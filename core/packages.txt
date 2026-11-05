@@ -13,3 +13,5 @@ brave-origin-bin
 zen-browser-bin
 yazi
 7zip
+ani-cli
+ani-cli-mx

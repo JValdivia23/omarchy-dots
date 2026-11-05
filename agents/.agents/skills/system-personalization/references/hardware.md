@@ -28,8 +28,8 @@ Live physical system specifications and active peripherals probed automatically.
 ## Storage & Filesystems
 ```
 Filesystem        Size  Used Avail Use% Mounted on
-/dev/mapper/root  475G   42G  432G   9% /
-/dev/mapper/root  475G   42G  432G   9% /home
+/dev/mapper/root  475G   49G  426G  11% /
+/dev/mapper/root  475G   49G  426G  11% /home
 ```
 
 ## Displays & Monitors
@@ -48,4 +48,4 @@ Monitor eDP-1 (ID 0):
 
 
 ### Batteries
-- **BAT0**: 85% (Discharging)
+- **BAT0**: 98% (Discharging)

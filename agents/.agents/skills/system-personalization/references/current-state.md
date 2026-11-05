@@ -1,10 +1,10 @@
 # Current System State
 
-Live system snapshot automatically generated on Sat Oct 31 02:40:07 PM MDT 2026.
+Live system snapshot automatically generated on Wed Nov  4 09:20:37 PM MST 2026.
 
 ## Operating System & Kernel
-- **OS**: Omarchy 4.5.0rc2
-- **Kernel**: `7.2.8-9-omarchy`
+- **OS**: Omarchy 4.5.0rc3
+- **Kernel**: `7.2.15-1-omarchy`
 - **Shell**: `/usr/bin/bash`
 - **Compositor**: Hyprland 0.56.2 built from branch v0.56.2 at commit efb50993780079460b0cbed1363e2166a2de1d9f clean ([gha] Nix: update inputs).
 - **Active Profiles**: xps,laptop
@@ -21,10 +21,10 @@ Live system snapshot automatically generated on Sat Oct 31 02:40:07 PM MDT 2026.
 | Package | Version | Purpose |
 |---------|---------|---------|
 | hyprland | 0.56.2-4 | Core Utility |
-| omarchy | 4.5.0rc2-1 | Core Utility |
+| omarchy | 4.5.0rc3-1 | Core Utility |
 | foot | 1.28.0-2 | Core Utility |
 | zen-browser-bin | 1.24b-1 | Core Utility |
-| brave-origin-bin | 1:1.98.62-1 | Core Utility |
+| brave-origin-bin | 1:1.98.63-1 | Core Utility |
 | grim | 1.5.0-2 | Core Utility |
 | slurp | 1.5.0-2 | Core Utility |
 | jq | 1.8.2-1 | Core Utility |
@@ -35,6 +35,8 @@ Live system snapshot automatically generated on Sat Oct 31 02:40:07 PM MDT 2026.
 | lazygit | 0.66.2-1 | Core Utility |
 | fcitx5 | 5.1.23-1 | Core Utility |
 | localsend | 1.18.2-1 | Core Utility |
+| ani-cli | 5.1-1 | Anime Streaming CLI (English/Sub/Dub) |
+| ani-cli-mx | 3.0.10-1 | Anime Streaming CLI (Spanish/Mexico Sources) |
 
 ## Active Hardware Daemons & Services
 - **bluetooth**: `active`

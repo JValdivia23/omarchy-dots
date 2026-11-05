@@ -70,8 +70,8 @@ Complete documentation of this machine's configuration and personalization. This
 |----------|--------|
 | **Hostname** | `xps` |
 | **Hardware / Model** | `XPS 13 DX13260` |
-| **OS** | `Omarchy 4.5.0rc2` |
-| **Kernel** | `7.2.8-9-omarchy` |
+| **OS** | `Omarchy 4.5.0rc3` |
+| **Kernel** | `7.2.15-1-omarchy` |
 | **CPU** | `Intel(R) Core(TM) 5 320` |
 | **GPU** | `Intel Corporation Wildcat Lake [Intel Graphics]` |
 | **Primary Display** | `eDP-1 (2560x1600@120Hz, scale 1.25)` |

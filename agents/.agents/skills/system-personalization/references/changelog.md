@@ -2,6 +2,13 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.7.0] - 2026-11-04
+### Added
+- **Ani-cli & Ani-cli-mx Core Anime Streaming Utilities (`core/packages.txt`)**:
+  - Added `ani-cli` (v5.1-1) to universal core dotfiles packages for terminal anime search and playback via `mpv` and `fzf`.
+  - Added `ani-cli-mx` (v3.0.10-1) to universal core dotfiles packages for Spanish/Mexico-oriented anime streaming (JKAnime, AnimeAV1, AniDB, AnimeX sources) with history tracking and auto-next support.
+  - Installed both packages from the Arch User Repository (AUR) via `yay`.
+
 ## [2.6.0] - 2026-11-04
 ### Added
 - **Rclone Cloud Storage Client for XPS Profile (`profiles/xps/packages.txt`)**: Scoped `rclone` (1.75.2) installation to the `xps` profile packages for Microsoft OneDrive files-on-demand virtual filesystem mounts.

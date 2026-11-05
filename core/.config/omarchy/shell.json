@@ -113,6 +113,10 @@
     "lock": 300,
     "screensaver": 150
   },
-  "plugins": [],
+  "plugins": [
+    {
+      "id": "typecraft.omacast"
+    }
+  ],
   "version": 1
 }

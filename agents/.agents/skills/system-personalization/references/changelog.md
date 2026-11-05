@@ -4,9 +4,9 @@ A dated log of all package changes, configurations, script modifications, and ha
 
 ## [2.6.0] - 2026-11-04
 ### Added
-- **Rclone Cloud Storage Client (`core/packages.txt`)**: Installed `rclone` (1.75.2) from official Arch repositories to support Microsoft OneDrive files-on-demand virtual filesystem mounts.
-- **Rclone OneDrive Files-on-Demand Systemd User Service (`core/.config/systemd/user/onedrive.service`)**: Created background systemd user service mounting `onedrive:` to `~/OneDrive` with `--vfs-cache-mode full`, 15GB cache ceiling, 24h retention, and `fusermount3 -u -z` lazy unmount. Symlinked into `~/.config/systemd/user/onedrive.service`.
-- **Microsoft 365 Drive Selection Gotcha Guide (`references/gotchas/07-rclone-onedrive-business-drive-selection.md`)**: Documented SharePoint `PersonalCacheLibrary` vs primary document `OneDrive` drive selection quirk for institutional/business accounts.
+- **Rclone Cloud Storage Client for XPS Profile (`profiles/xps/packages.txt`)**: Scoped `rclone` (1.75.2) installation to the `xps` profile packages for Microsoft OneDrive files-on-demand virtual filesystem mounts.
+- **Rclone OneDrive Files-on-Demand Systemd User Service (`profiles/xps/.config/systemd/user/onedrive.service`)**: Added background systemd user service in the `xps` profile mounting `onedrive:` to `~/OneDrive` with `--vfs-cache-mode full`, 15GB cache ceiling, 24h retention, and `fusermount3 -u -z` lazy unmount. Symlinked into `~/.config/systemd/user/onedrive.service`.
+- **Microsoft 365 Drive Selection Gotcha Guide (`profiles/xps/gotchas/02-rclone-onedrive-business-drive-selection.md`)**: Documented SharePoint `PersonalCacheLibrary` vs primary document `OneDrive` drive selection quirk for institutional/business accounts.
 
 ### Fixed
 - **OneDrive Root Directory Resolution (`~/.config/rclone/rclone.conf`)**: Corrected `drive_id` to point to the actual OneDrive document library rather than the default `PersonalCacheLibrary` (`WebPartCache`), exposing the user's full 416GB cloud document directory in `~/OneDrive`.

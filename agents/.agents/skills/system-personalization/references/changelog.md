@@ -12,8 +12,7 @@ A dated log of all package changes, configurations, script modifications, and ha
 
 ### Changed
 - **Rebound `oma-cast` to `Super + Space` (`profiles/xps/.config/hypr/omacast.lua`)**:
-  - Rebound `SUPER + SPACE` from the default Omarchy root menu to `omacast launcher` (`hl.dsp.global("omacast:toggle")`).
-  - Explicitly unbound `ALT + SPACE` in Hyprland to resolve key collision with Superwhisper voice dictation system shortcut.
+  - Rebound `SUPER + SPACE` from the default Omarchy root menu to `omacast launcher` (`hl.dsp.global("omacast:toggle")`), leaving `ALT + SPACE` to Omarchy's default dictation toggle (`omarchy-dictation toggle`).
 
 ## [2.7.0] - 2026-11-04
 ### Added

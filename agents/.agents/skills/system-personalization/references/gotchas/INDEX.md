@@ -17,6 +17,7 @@ These gotchas represent core operating guardrails across all installations runni
 | [`05-omarchy-idle-inhibition-fullscreen.md`](05-omarchy-idle-inhibition-fullscreen.md) | Fullscreen Media Playback Idle Sleep & Screensaver Interruptions | Wayland / Hyprland | Universal (Omarchy) | Warning |
 | [`06-edgepad-uaccess-uinput.md`](06-edgepad-uaccess-uinput.md) | EdgePad Touchpad Edge Gestures Uaccess & Uinput Permissions | Input / System | Universal (Laptops) | Warning |
 | [`07-omarchy-bar-accidental-drag-removal.md`](07-omarchy-bar-accidental-drag-removal.md) | Omarchy Status Bar Widget Drag & Accidental Removal ("Poof") | Wayland / Input | Universal (Omarchy) | Warning |
+| [`08-edgepad-graphical-session-target.md`](08-edgepad-graphical-session-target.md) | EdgePad Graphical Session Target & OSD Environment | Input / Wayland / System | Universal (Laptops) | Warning |
 
 ---
 

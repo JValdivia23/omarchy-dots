@@ -2,6 +2,20 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.10.0] - 2026-11-04
+### Changed
+- **EdgePad Systemd User Service Bound to Graphical Session (`core/.config/systemd/user/edgepad.service`)**:
+  - Bound unit to `graphical-session.target` (`After=graphical-session.target`, `PartOf=graphical-session.target`, `WantedBy=graphical-session.target`) rather than starting under early `default.target`.
+  - Added explicit `Environment=OMARCHY_PATH=/usr/share/omarchy` to ensure Omarchy shell IPC commands function unconditionally.
+  - Ensures EdgePad daemon inherits the active Wayland session environment (`WAYLAND_DISPLAY`, `HYPRLAND_INSTANCE_SIGNATURE`, `OMARCHY_PATH`).
+
+### Fixed
+- **EdgePad Volume & Brightness On-Screen Display (OSD) Pop-up Failure**:
+  - Resolved issue where edgepad touchpad edge gestures adjusted volume and brightness levels silently without triggering the native Omarchy Quickshell OSD pop-up overlay.
+  - Resolved `jq: parse error: Invalid numeric literal at line 1, column 28` caused by `omarchy-brightness-display` executing `hyprctl` before `HYPRLAND_INSTANCE_SIGNATURE` was accessible.
+- **Gotcha Guide (`references/gotchas/08-edgepad-graphical-session-target.md`)**:
+  - Documented EdgePad systemd target ordering, environment inheritance nuances, and OSD recovery steps.
+
 ## [2.9.0] - 2026-11-04
 ### Added
 - **Omarchy Bar Widget Locking & Super-Drag Safety (`core/.config/omarchy/plugins/jairo.bar/Bar.qml`)**:

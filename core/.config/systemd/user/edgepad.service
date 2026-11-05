@@ -1,6 +1,8 @@
 [Unit]
 Description=edgepad touchpad edge gesture daemon
 Documentation=https://github.com/assembledev/edgepad
+After=graphical-session.target
+PartOf=graphical-session.target
 
 [Service]
 Type=notify
@@ -11,6 +13,7 @@ ExecReload=kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=1s
 Environment=PATH=%h/.local/bin:/usr/share/omarchy/bin:/usr/local/bin:/usr/bin:/bin
+Environment=OMARCHY_PATH=/usr/share/omarchy
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session.target

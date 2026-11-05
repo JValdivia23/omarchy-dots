@@ -93,7 +93,11 @@
           "id": "omarchy.power"
         }
       ],
-      "tray": []
+      "tray": [
+        {
+          "id": "superwhisper.panel"
+        }
+      ]
     },
     "position": "top"
   },

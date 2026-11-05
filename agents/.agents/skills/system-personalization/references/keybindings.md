@@ -100,14 +100,14 @@ Configured in `~/.config/hypr/bindings.lua` to provide smooth, familiar text edi
 
 | Shortcut | Menu / Action | Description |
 |----------|---------------|-------------|
-| `SUPER` + `Space` | Omarchy Menu | Open root application launcher |
+| `SUPER` + `Space` | oma-cast Launcher | Fast keyboard-driven launcher (`omacast:toggle`, replaces root menu) |
 | `SUPER` + `K` | Keybindings | Searchable keybindings browser overlay |
 | `SUPER` + `Escape` | System Menu | Shutdown, restart, lock, suspend menu |
 | `SUPER` + `CTRL` + `L` | Lock Session | Lock screen immediately |
 | `SUPER` + `CTRL` + `V` | Clipboard | Clipboard history manager |
 | `SUPER` + `CTRL` + `E` | Emojis | Emoji selector menu |
 | `SUPER` + `CTRL` + `Space` | Wallpaper | Wallpaper and background selector |
-| `ALT` + `Space` | oma-cast Launcher | Fast keyboard-driven launcher (`omacast:toggle`) |
+| `ALT` + `Space` | Superwhisper Dictation | Toggle speech-to-text voice dictation |
 | `SUPER` + `SHIFT` + `CTRL` + `Space` | Themes | Omarchy theme switcher |
 | `SUPER` + `SHIFT` + `Space` | Top Bar | Toggle Quickshell top bar visibility |
 | `SUPER` + `CTRL` + `A` | Audio Panel | Audio volume and output settings |

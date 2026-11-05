@@ -2,6 +2,20 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.9.0] - 2026-11-04
+### Added
+- **Omarchy Bar Widget Locking & Super-Drag Safety (`core/.config/omarchy/plugins/jairo.bar/Bar.qml`)**:
+  - Cloned the built-in status bar into user plugin space (`jairo.bar`) using Omarchy's official plugin system.
+  - Implemented bar locking mechanism respecting `"locked": true` in `shell.json`.
+  - Guarded widget dragging behind the Super (`Qt.MetaModifier`) key: when the bar is locked, bare left-click dragging is completely disabled to eliminate accidental widget displacement on laptop touchpads.
+  - Guarded widget removal ("poof" deletion) strictly behind `Super + drag`: widgets dragged off the bar can only be deleted if Super is held down, otherwise snapping safely back onto the bar without deletion.
+- **Gotcha Guide (`references/gotchas/07-omarchy-bar-accidental-drag-removal.md`)**:
+  - Documented accidental widget removal mechanics, distance thresholds, and resolution via `jairo.bar`.
+
+### Fixed
+- **Restored Lost CPU Vitals Widget (`core/.config/omarchy/shell.json`)**:
+  - Re-added the missing `osesantos.vitals` CPU text monitor to the `left` section of the status bar.
+
 ## [2.8.0] - 2026-11-04
 ### Added
 - **`oma-cast` Launcher Plugin for XPS Profile (`profiles/xps`)**:

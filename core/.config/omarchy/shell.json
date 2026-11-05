@@ -55,6 +55,11 @@
         },
         {
           "id": "osesantos.vitals",
+          "module": "cpu",
+          "widget": "text"
+        },
+        {
+          "id": "osesantos.vitals",
           "module": "memory",
           "widget": "text"
         },
@@ -99,7 +104,9 @@
         }
       ]
     },
-    "position": "top"
+    "position": "top",
+    "id": "jairo.bar",
+    "locked": true
   },
   "dock": {
     "pinned": [

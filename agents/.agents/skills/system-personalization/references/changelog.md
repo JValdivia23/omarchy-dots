@@ -2,6 +2,15 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.8.0] - 2026-11-04
+### Added
+- **`oma-cast` Launcher Plugin for XPS Profile (`profiles/xps`)**:
+  - Installed and enabled `typecraft.omacast` shell plugin via `omarchy plugin add https://github.com/typecraft-dev/oma-cast --enable --yes`.
+  - Linked `omacast` CLI wrapper into `~/.local/bin/omacast` via `omacast install`.
+  - Configured Hyprland shortcut `ALT + SPACE` to trigger `hl.dsp.global("omacast:toggle")` in `profiles/xps/.config/hypr/omacast.lua` (symlinked into `~/.config/hypr/omacast.lua`).
+  - Added safe dynamic loader `pcall(require, "hypr.omacast")` to master Hyprland configuration (`core/.config/hypr/hyprland.lua`).
+  - Automated plugin installation, CLI linking, and symlink creation in the XPS profile setup script (`profiles/xps/setup.sh`).
+
 ## [2.7.0] - 2026-11-04
 ### Added
 - **Ani-cli & Ani-cli-mx Core Anime Streaming Utilities (`core/packages.txt`)**:

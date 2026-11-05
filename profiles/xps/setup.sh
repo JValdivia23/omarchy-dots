@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+
 echo "==> Setting up Dell XPS (xps) profile..."
 echo "    Display: 2560x1600@120Hz (scale 1.25, 2048x1280)"
 echo "    Input:   Natural scroll + 3/4-finger touchpad gestures enabled"
@@ -33,6 +36,20 @@ fi
 if [ ! -d "$HOME/.config/omarchy/plugins/com.omastorm.radar" ]; then
     echo "--> Installing Omastorm radar plugin for XPS profile..."
     omarchy plugin add https://github.com/wesleygrimes/omastorm.git --enable --yes || true
+fi
+
+# Ensure oma-cast launcher plugin is installed and enabled for XPS profile
+if [ ! -d "$HOME/.config/omarchy/plugins/typecraft.omacast" ]; then
+    echo "--> Installing oma-cast launcher plugin for XPS profile..."
+    omarchy plugin add https://github.com/typecraft-dev/oma-cast --enable --yes || true
+    if [ -x "$HOME/.config/omarchy/plugins/typecraft.omacast/bin/omacast" ]; then
+        "$HOME/.config/omarchy/plugins/typecraft.omacast/bin/omacast" install || true
+    fi
+fi
+
+# Ensure ~/.config/hypr/omacast.lua symlink exists for XPS profile
+if [ ! -e "$HOME/.config/hypr/omacast.lua" ] && [ -f "$DOTFILES_DIR/profiles/xps/.config/hypr/omacast.lua" ]; then
+    ln -sfn "$DOTFILES_DIR/profiles/xps/.config/hypr/omacast.lua" "$HOME/.config/hypr/omacast.lua"
 fi
 
 echo "==> XPS profile setup complete."

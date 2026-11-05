@@ -107,7 +107,7 @@ Configured in `~/.config/hypr/bindings.lua` to provide smooth, familiar text edi
 | `SUPER` + `CTRL` + `V` | Clipboard | Clipboard history manager |
 | `SUPER` + `CTRL` + `E` | Emojis | Emoji selector menu |
 | `SUPER` + `CTRL` + `Space` | Wallpaper | Wallpaper and background selector |
-| `ALT` + `Space` | Background Switcher | Native Omarchy Quickshell carousel & dynamic palette setter |
+| `ALT` + `Space` | oma-cast Launcher | Fast keyboard-driven launcher (`omacast:toggle`) |
 | `SUPER` + `SHIFT` + `CTRL` + `Space` | Themes | Omarchy theme switcher |
 | `SUPER` + `SHIFT` + `Space` | Top Bar | Toggle Quickshell top bar visibility |
 | `SUPER` + `CTRL` + `A` | Audio Panel | Audio volume and output settings |

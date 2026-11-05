@@ -2,6 +2,11 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.6.0] - 2026-11-04
+### Added
+- **Rclone Cloud Storage Client (`core/packages.txt`)**: Installed `rclone` (1.75.2) from official Arch repositories to support Microsoft OneDrive files-on-demand virtual filesystem mounts.
+- **Rclone OneDrive Files-on-Demand Systemd User Service (`core/.config/systemd/user/onedrive.service`)**: Created background systemd user service mounting `onedrive:` to `~/OneDrive` with `--vfs-cache-mode full`, 15GB cache ceiling, 24h retention, and `fusermount3 -u -z` lazy unmount. Symlinked into `~/.config/systemd/user/onedrive.service`.
+
 ## [2.5.0] - 2026-10-31
 ### Added
 - **EdgePad Core Touchpad Edge Gesture Daemon (`core/.config/edgepad/edgepad.toml`)**: Integrated `assembledev/edgepad` into core dotfiles, enabling continuous edge sliders and tap actions across laptops:

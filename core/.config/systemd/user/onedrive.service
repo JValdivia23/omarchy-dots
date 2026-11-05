@@ -1,0 +1,26 @@
+[Unit]
+Description=RClone OneDrive Mount (Files On Demand)
+Documentation=man:rclone(1)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+ExecStartPre=/usr/bin/mkdir -p %h/OneDrive
+ExecStart=/usr/bin/rclone mount onedrive: %h/OneDrive \
+    --vfs-cache-mode full \
+    --vfs-cache-max-age 24h \
+    --vfs-cache-max-size 15G \
+    --vfs-read-chunk-size 128M \
+    --vfs-read-chunk-size-limit 1G \
+    --buffer-size 32M \
+    --dir-cache-time 72h \
+    --poll-interval 15s \
+    --log-level INFO \
+    --log-file %h/.local/state/rclone-onedrive.log
+ExecStop=/usr/bin/fusermount3 -u -z %h/OneDrive
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

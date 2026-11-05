@@ -55,11 +55,6 @@
         },
         {
           "id": "osesantos.vitals",
-          "module": "cpu",
-          "widget": "text"
-        },
-        {
-          "id": "osesantos.vitals",
           "module": "memory",
           "widget": "text"
         },

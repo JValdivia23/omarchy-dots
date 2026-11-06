@@ -2,6 +2,15 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.12.1] - 2026-11-06
+### Fixed
+- **OpenCode Sudo Dialog Language (`core/.config/opencode/vendor/opencode-sudo/`)**:
+  - Added a local copy of the pinned upstream plugin with English dialogs, notifications, status labels, and server/helper errors to match the current OpenCode terminal interface.
+  - Replaced the hard-coded `pt-BR` time formatter with the runtime's default locale. OpenCode 2.2.5's TUI API has no UI-language/translation API, so automatic language synchronization is unavailable.
+  - Selected the actual source directory through `{env:HOME}/dotfiles/core/.config/opencode/vendor/opencode-sudo` so file-level Stow links cannot cause OpenCode's entrypoint containment check to omit the plugin.
+  - Verified the local plugin is active with server/TUI/RPC components and both running terminal clients successfully reloaded it.
+  - Documented upstream provenance, local changes, and update guidance in the plugin's `LOCAL.md`; added universal language and Stow deployment gotchas.
+
 ## [2.12.0] - 2026-11-06
 ### Added
 - **OpenCode Sudo Password Cache (`core/.config/opencode/opencode.json`)**:

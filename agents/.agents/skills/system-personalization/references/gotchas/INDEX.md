@@ -18,6 +18,8 @@ These gotchas represent core operating guardrails across all installations runni
 | [`06-edgepad-uaccess-uinput.md`](06-edgepad-uaccess-uinput.md) | EdgePad Touchpad Edge Gestures Uaccess & Uinput Permissions | Input / System | Universal (Laptops) | Warning |
 | [`07-omarchy-bar-accidental-drag-removal.md`](07-omarchy-bar-accidental-drag-removal.md) | Omarchy Status Bar Widget Drag & Accidental Removal ("Poof") | Wayland / Input | Universal (Omarchy) | Warning |
 | [`08-edgepad-graphical-session-target.md`](08-edgepad-graphical-session-target.md) | EdgePad Graphical Session Target & OSD Environment | Input / Wayland / System | Universal (Laptops) | Warning |
+| [`09-opencode-sudo-language.md`](09-opencode-sudo-language.md) | OpenCode Sudo Plugin Hard-Coded Portuguese UI | System | Universal | Info |
+| [`10-opencode-plugin-stow-symlinks.md`](10-opencode-plugin-stow-symlinks.md) | OpenCode Local Plugin Entrypoints & Stow Symlinks | System | Universal | Info |
 
 ---
 

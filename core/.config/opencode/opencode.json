@@ -1,0 +1,8 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "theme": "system",
+  "autoupdate": false,
+  "plugins": [
+    "github:maakhai/opencode-sudo#ec093cffd25472eec08f7097f2f53b62c10dd0cb"
+  ]
+}

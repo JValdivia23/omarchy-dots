@@ -2,6 +2,16 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.12.0] - 2026-11-06
+### Added
+- **OpenCode Sudo Password Cache (`core/.config/opencode/opencode.json`)**:
+  - Installed the general-user OpenCode V2 plugin `maakhai/opencode-sudo`, pinned to commit `ec093cffd25472eec08f7097f2f53b62c10dd0cb`, using `opencode plugin add`.
+  - Enabled its default masked TUI password prompt and 15-minute in-memory cache (`policy: on`, `ttl: 900`, password validation enabled, audit logging disabled).
+  - `/sudo status` shows cache state; `/sudo lock` clears authentication; `/sudo ask` prompts for each command; `/sudo off` disables plugin-managed sudo.
+  - Adopted the existing global OpenCode configuration into universal `core/` and linked it with GNU Stow. The pre-install configuration is backed up at `~/.config/opencode/opencode.json.before-sudo`.
+  - Verified installation on OpenCode 2.2.5 with `opencode plugin list` and `/api/plugin`, which reports the plugin active with server, TUI, and RPC components.
+  - Verified authentication with two successful `sudo id -u` calls (both returned `0`); plugin RPC status confirmed `cached: true`, no pending requests, and no authentication errors.
+
 ## [2.11.0] - 2026-11-04
 ### Added
 - **ArtCraft Office & Document Suite (`core/packages.txt`)**:

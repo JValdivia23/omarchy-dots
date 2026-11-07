@@ -117,6 +117,9 @@ Configured in `~/.config/hypr/bindings.lua` to provide smooth, familiar text edi
 | `SUPER` + `CTRL` + `P` | Power Panel | Power profiles and battery management |
 | `SUPER` + `CTRL` + `C` | Capture Menu | Screenshot & screenrecording options |
 | `SUPER` + `CTRL` + `H` | Hardware Menu | System hardware diagnostics |
+| `Copilot` (`SUPER` + `SHIFT` + `code:201`) | Context Menu | Open native right-click context menu (`Menu`) in active window |
+| `Menu` / `Super_R` (Tap) | Context Menu | Open right-click context menu in active window (`release = true`) |
+| `Menu` / `Super_R` (Hold) | Super Modifier | Acts as `SUPER` in combinations (via `altwin:menu_win` on keyboards with a physical `Menu` key) |
 
 ---
 

@@ -18,6 +18,9 @@ The Dell XPS 13 (`DX13260`) ships with a 13.4" `2560x1600@120Hz` internal panel 
 5. **Touchscreen Evdev Discovery & Permissions (`LXST2024:00 1FD2:5010`)**:
    - Unlike Surface devices (which expose `"IPTSD Virtual Touchscreen"` via `iptsd`), the XPS 13 internal touchscreen is an I2C HID device whose `/sys/class/input/event*/device/name` is `"LXST2024:00 1FD2:5010"` (no `"touchscreen"` substring), identified by kernel property bit `INPUT_PROP_DIRECT` (`properties = 2`) and udev `ID_INPUT_TOUCHSCREEN=1`.
    - `profiles/xps/setup.sh` installs `/etc/udev/rules.d/70-touchscreen-uaccess.rules` (`SUBSYSTEM=="input", KERNEL=="event*", ENV{ID_INPUT_TOUCHSCREEN}=="1", TAG+="uaccess"`) so unprivileged user-space tools (such as `SideQuest` touch-to-mouse bridges) receive active-seat ACL access (`uaccess`) without requiring membership in the privileged `input` group.
+6. **Copilot Key Hardware Chord (`SUPER + SHIFT + code:201`)**:
+   - The physical Copilot key on the Dell XPS 13 (`DX13260`) transmits the 3-key hardware chord `Left Super + Left Shift + F23` (evdev `KEY_F23 = 193`, XKB `code:201`), which upstream Omarchy binds to `{ menu = "root" }` (`Omarchy menu`).
+   - Overridden in `core/.config/hypr/bindings-common.lua` by unbinding `SUPER + SHIFT + code:201` and binding it to `hl.dsp.send_shortcut({ mods = "", key = "Menu", window = "activewindow" })` so tapping the Copilot key opens the active application's native right-click context menu.
 
 ## Verification
 ```bash

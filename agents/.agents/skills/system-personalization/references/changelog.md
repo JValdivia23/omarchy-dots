@@ -2,6 +2,15 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.22.0] - 2026-11-07
+### Changed
+- **Updated ArtCraft Office & PDF Suite (`core/packages.txt`)**:
+  - Upgraded **WordCraft** (`wordcraft-bin`): `0.15.1-1` -> `0.16.0-1`.
+  - Upgraded **GridCraft** (`gridcraft-bin`): `0.16.0-1` -> `0.17.0-1`.
+  - Upgraded **DeckCraft** (`deckcraft-bin`): `0.15.1-1` -> `0.16.0-1`.
+  - Upgraded **PdfCraft** (`pdfcraft-bin`): `0.18.2-1` -> `0.19.0-1`.
+  - Verified that all associated headless CLIs ([`wordcraft-cli`](file:///usr/bin/wordcraft-cli), [`gridcraft-cli`](file:///usr/bin/gridcraft-cli), [`deckcraft-cli`](file:///usr/bin/deckcraft-cli), and [`pdfcraft-cli`](file:///usr/bin/pdfcraft-cli)) execute cleanly and report their upgraded versions.
+
 ## [2.21.0] - 2026-11-06
 ### Added
 - **XPS Copilot Dual-Role Modifier via `keyd` (`profiles/xps/`)**:

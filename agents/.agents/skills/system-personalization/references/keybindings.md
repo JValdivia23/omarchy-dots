@@ -62,7 +62,7 @@ Configured in `~/.config/hypr/bindings.lua` to provide smooth, familiar text edi
 | `CTRL` + `Left` / `Right` / `Up` / `Down` | Focus Window | Move focus in directional grid |
 | `CTRL` + `SHIFT` + `Left` / `Right` / `Up` / `Down` | Swap Window | Swap window position in directional grid |
 | `SUPER` + `W` | Close Window | Close the focused window |
-| `SUPER` + `M` | Minimize Window | Park the focused window; restore it from the minimized-windows icon in the bar (works in tiled and floating workspaces) |
+| `SUPER` + `M` | Minimize Window | Park the focused window; open the bar's minimized list and click a window row to restore it into the current workspace (same pool as the floating dock) |
 | `SUPER` + `F` | Fullscreen | Toggle fullscreen mode |
 | `SUPER` + `ALT` + `F` | Full Width | Maximize window width |
 | `SUPER` + `T` | Toggle Floating | Toggle floating / tiling state for active window |

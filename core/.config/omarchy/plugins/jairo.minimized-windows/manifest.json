@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "jairo.minimized-windows",
   "name": "Minimized windows",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Jairo",
   "description": "Restore windows minimized from tiled or floating workspaces",
   "kinds": [

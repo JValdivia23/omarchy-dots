@@ -2,5 +2,7 @@
   "minimized.count": {
     "one": "%1 minimized window",
     "other": "%1 minimized windows"
-  }
+  },
+  "minimized.restoreFailed": "Could not restore the window: %1",
+  "minimized.restoreUnavailable": "The restore command is unavailable."
 }

@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+fail() {
+  printf '%s\n' "$*" >&2
+  exit 1
+}
+
+[[ $# == 2 ]] || fail "Usage: hypr-restore-window <window-address> <workspace-id>"
+address=$1
+workspace=$2
+[[ "$address" =~ ^0x[0-9a-fA-F]+$ ]] || fail "Invalid window address."
+[[ "$workspace" =~ ^[1-9][0-9]{0,9}$ ]] && (( workspace <= 2147483647 )) || fail "Invalid destination workspace."
+
+window_workspace() {
+  hyprctl clients -j | jq -er --arg address "$address" 'first(.[] | select(.address == $address) | .workspace)'
+}
+
+dispatch() {
+  local reply
+  reply=$(hyprctl dispatch "$1" 2>&1) || fail "Hyprland restore failed: $reply"
+  [[ "$reply" == "ok" ]] || fail "Hyprland rejected restore: $reply"
+}
+
+current=$(window_workspace) || fail "The window is no longer available."
+source=$(jq -r '.name' <<<"$current")
+current_id=$(jq -r '.id' <<<"$current")
+[[ "$source" == "special:minimized" || "$current_id" == "$workspace" ]] || fail "The window is no longer minimized."
+
+target="window = \"address:$address\""
+no_anim_set=false
+cleanup() {
+  if $no_anim_set; then
+    # Match the dock's short animation override, including error paths.
+    sleep 0.4
+    hyprctl dispatch "hl.dsp.window.set_prop({ prop = \"no_anim\", value = \"unset\", $target })" >/dev/null 2>&1 || true
+  fi
+}
+trap cleanup EXIT
+
+dispatch "hl.dsp.window.set_prop({ prop = \"no_anim\", value = \"1\", $target })"
+no_anim_set=true
+if [[ "$source" == "special:minimized" ]]; then
+  # Use the same move as the floating dock, not a special-workspace toggle.
+  dispatch "hl.dsp.window.move({ workspace = \"$workspace\", $target })"
+fi
+
+# A focus on a still-minimized window reveals its whole special workspace.
+# Check actual membership, not just the dispatcher's exit status, first.
+current=$(window_workspace) || fail "The window disappeared during restore."
+[[ $(jq -r '.id' <<<"$current") == "$workspace" ]] || fail "The window did not reach the destination workspace; it was not focused."
+
+# Recover a minimized-workspace overlay left visible by an earlier activation.
+# Never toggle a closed drawer open, or change an unrelated special workspace.
+special=$(hyprctl monitors -j | jq -r 'first(.[] | select(.focused) | .specialWorkspace.name) // empty')
+if [[ "$special" == "special:minimized" ]]; then
+  dispatch 'hl.dsp.workspace.toggle_special("minimized")'
+fi
+
+dispatch "hl.dsp.focus({ $target })"
+dispatch "hl.dsp.window.alter_zorder({ mode = \"top\", $target })"

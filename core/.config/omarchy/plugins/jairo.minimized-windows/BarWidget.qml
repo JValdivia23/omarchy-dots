@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
@@ -10,6 +11,7 @@ BarWidget {
   moduleName: "jairo.minimized-windows"
 
   property bool popupOpen: false
+  property string restoreError: ""
   readonly property bool opened: popupOpen
   readonly property color foreground: bar ? bar.foreground : Commons.Color.foreground
   readonly property string countLabel: strings.tn("minimized.count", minimizedWindows.length).arg(Commons.I18n.formatNumber(minimizedWindows.length))
@@ -41,10 +43,12 @@ BarWidget {
   }
 
   function togglePopup() {
+    restoreError = ""
     popupOpen = !popupOpen
   }
 
   function restoreWindow(window) {
+    if (restoreProc.running) return
     var address = String(window && window.address || "")
     if (address && address.indexOf("0x") !== 0) address = "0x" + address
     if (!/^0x[0-9a-fA-F]+$/.test(address)) return
@@ -53,20 +57,9 @@ BarWidget {
     var workspaceId = monitor && monitor.activeWorkspace ? Number(monitor.activeWorkspace.id) : -1
     if (!(workspaceId >= 1) || Math.floor(workspaceId) !== workspaceId) return
 
-    var target = 'window = "address:' + address + '"'
-    var steps = [
-      'hl.dsp.window.set_prop({ prop = "no_anim", value = "1", ' + target + ' })',
-      'hl.dsp.window.move({ workspace = "' + workspaceId + '", follow = false, ' + target + ' })',
-      'hl.dsp.focus({ ' + target + ' })',
-      'hl.dsp.window.alter_zorder({ mode = "top", ' + target + ' })'
-    ]
-    var command = steps.map(function(step) {
-      return "hyprctl dispatch " + Util.shellQuote(step)
-    }).join(" && ")
-    command += "; sleep 0.4; hyprctl dispatch " + Util.shellQuote('hl.dsp.window.set_prop({ prop = "no_anim", value = "unset", ' + target + ' })')
-
-    if (bar) bar.run(command)
-    close()
+    restoreError = ""
+    restoreProc.command = ["bash", Quickshell.env("HOME") + "/.local/bin/hypr-restore-window", address, String(workspaceId)]
+    restoreProc.running = true
   }
 
   visible: minimizedWindows.length > 0
@@ -78,6 +71,19 @@ BarWidget {
   Commons.Translations {
     id: strings
     directory: Qt.resolvedUrl("i18n")
+  }
+
+  Process {
+    id: restoreProc
+    stderr: StdioCollector { id: restoreStderr; waitForEnd: true }
+    onExited: function(exitCode) {
+      if (exitCode === 0) root.close()
+      else {
+        var details = String(restoreStderr.text || "").trim().slice(0, 512)
+        root.restoreError = details || strings.t("minimized.restoreUnavailable")
+        console.warn("Minimized window restore failed:", root.restoreError)
+      }
+    }
   }
 
   BarIconButton {
@@ -117,10 +123,22 @@ BarWidget {
         elide: Text.ElideRight
       }
 
+      Text {
+        id: errorText
+        visible: root.restoreError !== ""
+        textFormat: Text.PlainText
+        text: strings.t("minimized.restoreFailed").arg(root.restoreError)
+        color: Commons.Color.urgent
+        font.family: root.bar ? root.bar.fontFamily : Style.font.family
+        font.pixelSize: Style.font.bodySmall
+        width: parent.width
+        wrapMode: Text.Wrap
+      }
+
       Flickable {
         id: listViewport
         width: parent.width
-        height: Math.min(windowRows.implicitHeight, Style.space(380))
+        height: Math.min(windowRows.implicitHeight, Math.max(Style.space(44), Style.space(380) - (errorText.visible ? errorText.implicitHeight + contentColumn.spacing : 0)))
         contentWidth: width
         contentHeight: windowRows.implicitHeight
         clip: true
@@ -197,6 +215,7 @@ BarWidget {
                 id: rowMouse
                 anchors.fill: parent
                 hoverEnabled: true
+                enabled: !restoreProc.running
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.restoreWindow(row.modelData)
               }

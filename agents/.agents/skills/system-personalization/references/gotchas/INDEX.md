@@ -25,6 +25,7 @@ These gotchas represent core operating guardrails across all installations runni
 | [`13-makepkg-stale-debug-archives.md`](13-makepkg-stale-debug-archives.md) | Stale Split-Debug Archives Included by makepkg Installation | System | Universal (Arch / Omarchy) | Info |
 | [`14-omarchy-native-menu-overrides.md`](14-omarchy-native-menu-overrides.md) | Native Appearance Menu IDs and Normalized Row Metadata | System | Universal (Omarchy 4.5) | Warning |
 | [`15-shell-plugin-cached-reloads.md`](15-shell-plugin-cached-reloads.md) | Verify Plugin Code Reloads Before Debugging Click Routing | System / Wayland | Universal (Omarchy) | Warning |
+| [`16-verify-minimized-restore-before-focus.md`](16-verify-minimized-restore-before-focus.md) | Verify a Minimized Window Moved Before Focusing It | Wayland / Input | Universal (Omarchy) | Warning |
 
 ---
 

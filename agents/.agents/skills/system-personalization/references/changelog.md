@@ -2,6 +2,23 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.19.0] - 2026-11-06
+### Fixed
+- **Dock-Style Checked Window Restore (`core/.local/bin/hypr-restore-window`, `core/.config/omarchy/plugins/jairo.minimized-windows/`)**:
+  - Matched the floating dock's move operation and verified actual normal-workspace membership before focusing. Rejected or ineffective moves cannot fall through to focusing a still-minimized window.
+  - Added checked process execution, plain-text error feedback, duplicate-restore suppression, and cleanup of the temporary animation override on failure. Only an already-visible minimized overlay is conditionally dismissed; the floating dock and system tray remain unchanged.
+  - Clarified that the icon toggles only the list, while selecting a row restores just that window into the current workspace. Both surfaces share Omarchy's existing minimized pool.
+
+### Added
+- **Restore Regression Coverage and Documentation**:
+  - Added helper tests plus real-QML offscreen mouse tests with mocked compositor data/actions, covering failed movement, stale windows, injection rejection, list-only icon toggling, selected-window dispatch, and plain-text title/error rendering.
+  - Added universal gotcha `16-verify-minimized-restore-before-focus.md`, plugin usage documentation, and an updated shortcut description.
+
+### Verification
+- `python -B -m unittest discover -s tests -p 'test_minimized_restore.py' -v` (10 passing tests, including English/Arabic offscreen interaction cases).
+- Original direct restore commands and the live popup row both returned approved disposable terminals to normal workspaces. The reported original overlay was not reproduced; this change enforces the restore invariant rather than claiming its precise cause was isolated.
+- `bash -n core/.local/bin/hypr-restore-window`; checked helper restores passed with both tiled and explicitly floating disposable terminals, preserving existing window memberships and leaving no minimized overlay open. Loaded the clean plugin with `omarchy restart shell`; no widget-specific QML errors. `git diff --check` passed.
+
 ## [2.18.0] - 2026-11-06
 ### Fixed
 - **Minimized-Windows Popup Opening (Universal Shell Recovery)**:

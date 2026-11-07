@@ -63,8 +63,10 @@ Omarchy Quattro supports multiple modern Wayland terminals.
 |------|----------|------------------------|
 | `~/.config/kitty/kitty.conf` | Kitty | `omarchy restart terminal` or `kill -SIGUSR1 $(pidof kitty)` |
 | `~/.config/alacritty/alacritty.toml` | Alacritty | Hot-reloads on save or `omarchy restart terminal` |
-| `~/.config/foot/foot.ini` | Foot | Applied to newly opened windows |
+| `~/.config/foot/foot.ini` | Foot | New windows read the config; native theme switches retint existing windows through `omarchy theme set-foot`. |
 | `~/.config/ghostty/config` | Ghostty | Hot-reloads on save or `omarchy restart terminal` |
+
+The universal `~/.config/omarchy/hooks/theme-set.d/20-opencode-system-refresh` hook runs `~/.local/bin/omarchy-opencode-theme-refresh` after terminal retints. It requests fresh terminal-derived colors from already-open OpenCode TUIs, including npm/mise's `opencode.exe`, without changing app settings or signaling the background service. See [gotcha 17](gotchas/17-opencode-exe-theme-refresh.md).
 
 ---
 

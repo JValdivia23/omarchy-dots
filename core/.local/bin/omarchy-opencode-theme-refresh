@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""Ask existing OpenCode TUIs to reread their terminal palette, never the service."""
+
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import signal
+import sys
+
+
+NAMES = {"opencode", "opencode.exe"}
+PTY = re.compile(r"/dev/pts/[0-9]+")
+
+
+def is_tui(process, uid):
+    try:
+        if process.stat().st_uid != uid or (process / "comm").read_text().strip() not in NAMES:
+            return False
+        if Path(os.readlink(process / "exe")).name not in NAMES:
+            return False
+        stdin = os.readlink(process / "fd/0")
+        if not PTY.fullmatch(stdin) or os.readlink(process / "fd/1") != stdin:
+            return False
+        args = (process / "cmdline").read_bytes().split(b"\0")[1:]
+        if b"--service" in args or (args and args[0] in {b"serve", b"service"}):
+            return False
+        status = dict(line.split(":", 1) for line in (process / "status").read_text().splitlines() if ":" in line)
+        # Without a handler SIGUSR2 terminates a process; a matching name alone is not permission to send it.
+        return bool(int(status["SigCgt"].strip(), 16) & (1 << (signal.SIGUSR2 - 1)))
+    except (OSError, KeyError, ValueError):
+        return False
+
+
+def refresh(proc_root=Path("/proc"), dry_run=False):
+    if not dry_run and not (hasattr(os, "pidfd_open") and hasattr(signal, "pidfd_send_signal")):
+        raise RuntimeError("Safe palette refresh requires Linux pidfd support; no processes were signaled.")
+    refreshed = []
+    for process in proc_root.iterdir():
+        if not process.name.isdigit() or not is_tui(process, os.geteuid()):
+            continue
+        pid = int(process.name)
+        if dry_run:
+            refreshed.append(pid)
+            continue
+        try:
+            # A pidfd pins the process identity, so a recycled PID cannot redirect the signal.
+            descriptor = os.pidfd_open(pid)
+            try:
+                if is_tui(process, os.geteuid()):
+                    signal.pidfd_send_signal(descriptor, signal.SIGUSR2)
+                    refreshed.append(pid)
+            finally:
+                os.close(descriptor)
+        except (ProcessLookupError, PermissionError, FileNotFoundError):
+            # Closing a window during a theme change is normal, not a reason to signal its replacement.
+            continue
+    return sorted(refreshed)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dry-run", action="store_true", help="List eligible windows without signaling anything.")
+    parser.add_argument("--json", action="store_true", help="Print eligible/refreshed process IDs as JSON.")
+    args = parser.parse_args()
+    try:
+        pids = refresh(dry_run=args.dry_run)
+    except (OSError, RuntimeError) as error:
+        print(f"OpenCode palette refresh failed: {error}", file=sys.stderr)
+        return 1
+    if args.json:
+        print(json.dumps({"dry_run": args.dry_run, "eligible" if args.dry_run else "refreshed": pids}))
+    else:
+        print(f"OpenCode palette refresh: {len(pids)} {'eligible' if args.dry_run else 'refreshed'} window(s).")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

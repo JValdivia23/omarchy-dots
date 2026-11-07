@@ -1,0 +1,5 @@
+#!/bin/bash
+set -euo pipefail
+
+# Theme-set hooks run after terminal retints, unlike Omarchy's parallel visible-app reloads.
+exec "$HOME/.local/bin/omarchy-opencode-theme-refresh"

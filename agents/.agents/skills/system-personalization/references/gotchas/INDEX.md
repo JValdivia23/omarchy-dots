@@ -26,6 +26,7 @@ These gotchas represent core operating guardrails across all installations runni
 | [`14-omarchy-native-menu-overrides.md`](14-omarchy-native-menu-overrides.md) | Native Appearance Menu IDs and Normalized Row Metadata | System | Universal (Omarchy 4.5) | Warning |
 | [`15-shell-plugin-cached-reloads.md`](15-shell-plugin-cached-reloads.md) | Verify Plugin Code Reloads Before Debugging Click Routing | System / Wayland | Universal (Omarchy) | Warning |
 | [`16-verify-minimized-restore-before-focus.md`](16-verify-minimized-restore-before-focus.md) | Verify a Minimized Window Moved Before Focusing It | Wayland / Input | Universal (Omarchy) | Warning |
+| [`17-opencode-exe-theme-refresh.md`](17-opencode-exe-theme-refresh.md) | Safely Refresh OpenCode's Terminal-Derived Palette with npm/mise Executable Names | System | Universal (Omarchy / OpenCode V2) | Warning |
 
 ---
 

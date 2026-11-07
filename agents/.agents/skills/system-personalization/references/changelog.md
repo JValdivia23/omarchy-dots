@@ -2,6 +2,25 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.20.0] - 2026-11-06
+### Fixed
+- **OpenCode System-Color Refresh After Theme Changes (Universal User Setting)**:
+  - Confirmed Omarchy's exact-name `opencode` reload helper misses the npm/mise OpenCode 2.2.5 executable named `opencode.exe`, even though its TUI already uses the terminal-derived `system` theme.
+  - Added `core/.local/bin/omarchy-opencode-theme-refresh` and the native `core/.config/omarchy/hooks/theme-set.d/20-opencode-system-refresh` hook with explicit user approval. Refreshes run after terminal retints and target only current-user interactive windows with a registered `SIGUSR2` handler, matching PTYs, and a verified executable name.
+  - Excluded the same-named headless service, used Linux pidfds to avoid PID-reuse races, and treated windows closing during refresh as normal. No service restart, OpenCode configuration change, custom app palette, Aether policy change, or wallpaper/theme switch was performed.
+  - Installed the hook with `omarchy hook install theme-set` and deployed it and its helper through GNU Stow. Preserved unrelated unmanaged shell/bar/service files rather than adopting or overwriting them.
+
+### Added
+- **Refresh Safety Coverage and Gotcha**:
+  - Added `tests/test_opencode_theme_refresh.py` with 11 isolated passing tests for process discovery, service/other-user exclusion, handler and PTY requirements, exit/reuse handling, hook dispatch, and actual signaling of a disposable test process.
+  - Documented universal gotcha `17-opencode-exe-theme-refresh.md` and the helper/hook paths in the personalization references.
+
+### Verification
+- `python -B -m unittest discover -s tests -p 'test_opencode_theme_refresh.py' -v` (11 passing tests).
+- `bash -n core/.config/omarchy/hooks/theme-set.d/20-opencode-system-refresh` and `git diff --check`.
+- Reapplied the existing Foot colors and requested a refresh in both running OpenCode TUI windows; the original headless service remained alive. Verified OpenCode's palette cache matches the current foreground, background, and all 16 ANSI entries, while hashes of the system palette, generated Aether palette, and OpenCode configuration and the active wallpaper path remained unchanged.
+- A visible wallpaper-change acceptance check remains for the user; the existing cached palette already matched the current theme at the time of the approved refresh.
+
 ## [2.19.0] - 2026-11-06
 ### Fixed
 - **Dock-Style Checked Window Restore (`core/.local/bin/hypr-restore-window`, `core/.config/omarchy/plugins/jairo.minimized-windows/`)**:

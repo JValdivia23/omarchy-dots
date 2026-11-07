@@ -5,7 +5,7 @@ A dated log of all package changes, configurations, script modifications, and ha
 ## [2.13.0] - 2026-11-06
 ### Added
 - **Standalone Omarchy Aether Palette Project (`~/Projects/omarchy-aether`)**:
-  - Created a separate C++17 / Qt Quick application with qmake6, an Arch PKGBUILD, launcher integration, headless JSON commands, and an optional bundled agent skill. The project is intended for the public repository `JValdivia23/omarchy-aether`; it keeps source, wallpapers, and personal dotfiles separate.
+  - Created and published the separate C++17 / Qt Quick application at [`JValdivia23/omarchy-aether`](https://github.com/JValdivia23/omarchy-aether), with qmake6, an Arch PKGBUILD, launcher integration, headless JSON commands, and an optional bundled agent skill. It keeps source, wallpapers, and personal dotfiles separate.
   - Installed `omarchy-aether 0.1.0-1` as **Aether Palette**, preserving the existing packaged `aether` executable and the earlier Surface-profile implementation.
   - Implemented Matugen extraction in dry-run mode, dark wallpaper-adaptive surfaces/accents, six distinct semantic color families, 16 unique ANSI entries, contrast validation, and bounded perceptual harmonization. Omarchy generates application themes from `colors.toml`; no OpenCode-specific configuration was changed.
   - Implemented the native Quickshell carousel protocol with cached 1536×864 previews, stable unique source aliases, 35-candidate shuffled batches, a pinned current wallpaper, and low-priority preparation after dismissal. No keybinding, menu override, timer, or automatic theme application was installed.
@@ -14,6 +14,7 @@ A dated log of all package changes, configurations, script modifications, and ha
   - Installed official Arch `matugen 4.2.0-1` through `omarchy pkg add matugen` and tracked it in `core/`, because wallpaper-driven theme generation is a general user feature rather than Surface-specific hardware configuration.
 - **Universal Theme/Picker Gotchas**:
   - Added `11-aether-command-name-collision.md` and `12-native-wallpaper-picker-identity.md`, covering the existing Aether package identity, native basename deduplication, stable thumbnail cache keys, and preservation of images from replaceable theme directories.
+  - Added `13-makepkg-stale-debug-archives.md` after a release rebuild reused an earlier split-debug archive. Disabled split-debug generation for the release, removed only the project's obsolete generated debug archive, and uninstalled its temporary debug package.
 
 ### Changed
 - **Tokyo Night Established as the Visual Reference**:
@@ -606,5 +607,4 @@ A dated log of all package changes, configurations, script modifications, and ha
 - Created safe backup system in `02-stow.sh` to prevent conflict errors when stowing on existing configurations.
 - Exported explicit official/CachyOS package snapshot to `packages/pacman-packages.txt`.
 - Published repository to GitHub as [`JValdivia23/hyprland-dots`](https://github.com/JValdivia23/hyprland-dots).
-
 

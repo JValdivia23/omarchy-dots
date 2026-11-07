@@ -2,6 +2,28 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.13.0] - 2026-11-06
+### Added
+- **Standalone Omarchy Aether Palette Project (`~/Projects/omarchy-aether`)**:
+  - Created a separate C++17 / Qt Quick application with qmake6, an Arch PKGBUILD, launcher integration, headless JSON commands, and an optional bundled agent skill. The project is intended for the public repository `JValdivia23/omarchy-aether`; it keeps source, wallpapers, and personal dotfiles separate.
+  - Installed `omarchy-aether 0.1.0-1` as **Aether Palette**, preserving the existing packaged `aether` executable and the earlier Surface-profile implementation.
+  - Implemented Matugen extraction in dry-run mode, dark wallpaper-adaptive surfaces/accents, six distinct semantic color families, 16 unique ANSI entries, contrast validation, and bounded perceptual harmonization. Omarchy generates application themes from `colors.toml`; no OpenCode-specific configuration was changed.
+  - Implemented the native Quickshell carousel protocol with cached 1536×864 previews, stable unique source aliases, 35-candidate shuffled batches, a pinned current wallpaper, and low-priority preparation after dismissal. No keybinding, menu override, timer, or automatic theme application was installed.
+  - Verified 32 passing Qt Test results, including real-QML offscreen interaction, translated/RTL layouts, original-file preservation, cache identity, and native-shell failure handling. Twelve temporary sample wallpapers from `JValdivia23/walls` all passed, with body contrast 9.29–9.45:1, text contrast above 4.80:1 on tested surfaces, and 16 unique ANSI entries each.
+- **Universal Aether Dependency (`core/packages.txt`)**:
+  - Installed official Arch `matugen 4.2.0-1` through `omarchy pkg add matugen` and tracked it in `core/`, because wallpaper-driven theme generation is a general user feature rather than Surface-specific hardware configuration.
+- **Universal Theme/Picker Gotchas**:
+  - Added `11-aether-command-name-collision.md` and `12-native-wallpaper-picker-identity.md`, covering the existing Aether package identity, native basename deduplication, stable thumbnail cache keys, and preservation of images from replaceable theme directories.
+
+### Changed
+- **Tokyo Night Established as the Visual Reference**:
+  - Analyzed the user's selected Tokyo Night system palette: body contrast 8.10:1 and 16 unique ANSI entries, versus 9 unique entries in the modified Everforest terminal palette. Preserved Tokyo Night as the active theme throughout development; no compositor configuration, shortcuts, wallpapers, or application-specific settings were changed.
+
+### Verification
+- `pacman -Q matugen omarchy-aether aether`
+- `~/Projects/omarchy-aether/bin/build` and `~/Projects/omarchy-aether/bin/test`
+- `omarchy-aether --version`, `omarchy theme current`, and `hyprctl configerrors`
+
 ## [2.12.1] - 2026-11-06
 ### Fixed
 - **OpenCode Sudo Dialog Language (`core/.config/opencode/vendor/opencode-sudo/`)**:
@@ -584,6 +606,5 @@ A dated log of all package changes, configurations, script modifications, and ha
 - Created safe backup system in `02-stow.sh` to prevent conflict errors when stowing on existing configurations.
 - Exported explicit official/CachyOS package snapshot to `packages/pacman-packages.txt`.
 - Published repository to GitHub as [`JValdivia23/hyprland-dots`](https://github.com/JValdivia23/hyprland-dots).
-
 
 

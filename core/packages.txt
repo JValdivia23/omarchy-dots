@@ -20,3 +20,4 @@ gridcraft-bin
 deckcraft-bin
 pdfcraft-bin
 storytold-office
+matugen

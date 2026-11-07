@@ -20,6 +20,8 @@ These gotchas represent core operating guardrails across all installations runni
 | [`08-edgepad-graphical-session-target.md`](08-edgepad-graphical-session-target.md) | EdgePad Graphical Session Target & OSD Environment | Input / Wayland / System | Universal (Laptops) | Warning |
 | [`09-opencode-sudo-language.md`](09-opencode-sudo-language.md) | OpenCode Sudo Plugin Hard-Coded Portuguese UI | System | Universal | Info |
 | [`10-opencode-plugin-stow-symlinks.md`](10-opencode-plugin-stow-symlinks.md) | OpenCode Local Plugin Entrypoints & Stow Symlinks | System | Universal | Info |
+| [`11-aether-command-name-collision.md`](11-aether-command-name-collision.md) | Custom Aether Tool vs. Packaged Aether Command Identity | System | Universal | Warning |
+| [`12-native-wallpaper-picker-identity.md`](12-native-wallpaper-picker-identity.md) | Native Wallpaper Picker Identity, Thumbnail Cache, and Transient Sources | System | Universal (Omarchy 4.5) | Warning |
 
 ---
 

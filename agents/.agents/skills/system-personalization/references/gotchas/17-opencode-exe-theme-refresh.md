@@ -33,7 +33,11 @@ python -B -m unittest discover -s tests -p 'test_opencode_theme_refresh.py' -v
 
 The 11 isolated regression tests cover both names, service exclusion, ownership, signal-handler checks, PTY validation, incomplete metadata, process replacement/exit races, native hook invocation, and actual pidfd signaling of a disposable test process. They never signal personal sessions.
 
-With approval, running the helper without `--dry-run` refreshed two existing TUI processes while leaving the service alive. OpenCode's `latest/tui/system-theme.json` cache matched the current foreground, background, and all 16 ANSI entries afterward. This cache is diagnostic state, not a configuration file to edit. A visible wallpaper-change acceptance check remains a user action.
+With approval, running the helper without `--dry-run` refreshed two existing TUI processes while leaving the service alive. OpenCode's `latest/tui/system-theme.json` cache matched the current foreground, background, and all 16 ANSI entries afterward. This cache is diagnostic state, not a configuration file to edit.
+
+A subsequent user-selected **Appearance → Background** change was observed passively with inotify. Aether reapplied the same named theme with a new generation, the refresh hook/helper ran, and OpenCode's cached background changed from teal `#0d1818` to plum `#1a141a` about 1.1 seconds after the new system palette was published. All 16 cached colors matched, and the user confirmed the visible window updated. No additional configuration change was needed for this acceptance check. A constant theme name does not imply this menu skips `theme-set`.
+
+Always identify the entry point before diagnosing a missed refresh. The integrated Appearance menu regenerates Aether colors, while Omarchy's stock desktop double-click route uses an image-only background setter. Also distinguish subtle ANSI-family changes from the separate system accent, which can move much more dramatically.
 
 To disable the automatic workaround, remove only the `20-opencode-system-refresh` hook from the live `theme-set.d/` directory. Reevaluate its necessity if an Omarchy update fixes process discovery upstream.
 

@@ -32,7 +32,7 @@ A dated log of all package changes, configurations, script modifications, and ha
 - `python -B -m unittest discover -s tests -p 'test_opencode_theme_refresh.py' -v` (11 passing tests).
 - `bash -n core/.config/omarchy/hooks/theme-set.d/20-opencode-system-refresh` and `git diff --check`.
 - Reapplied the existing Foot colors and requested a refresh in both running OpenCode TUI windows; the original headless service remained alive. Verified OpenCode's palette cache matches the current foreground, background, and all 16 ANSI entries, while hashes of the system palette, generated Aether palette, and OpenCode configuration and the active wallpaper path remained unchanged.
-- A visible wallpaper-change acceptance check remains for the user; the existing cached palette already matched the current theme at the time of the approved refresh.
+- Follow-up acceptance: passively observed a user-selected **Appearance → Background** change within Aether. The same-theme generation changed, the native refresh hook/helper ran, and OpenCode's cached teal background changed to the new plum background in about 1.1 seconds, with all 16 ANSI entries matching. The user confirmed the visible window updated. No additional system, palette, or app configuration changes were made during this check.
 
 ## [2.19.0] - 2026-11-06
 ### Fixed

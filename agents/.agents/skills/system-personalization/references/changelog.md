@@ -2,6 +2,22 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.18.0] - 2026-11-06
+### Fixed
+- **Minimized-Windows Popup Opening (Universal Shell Recovery)**:
+  - Restarted the shell with user approval after successful plugin rescans failed to load current diagnostic code. The user confirmed that the minimized-windows icon opened its popup afterward; logs recorded left-clicks and popup-open transitions.
+  - Verified the actual widget with an isolated offscreen mouse test, then inspected live registration, enabled state, hit testing, and popup state. Full-bar offscreen testing was blocked by its compositor-dependent `PanelWindow` backend.
+  - Removed temporary diagnostic code. No permanent widget, system-tray, layout, keybinding, package, or hardware configuration changes were needed.
+
+### Added
+- **Plugin Reload Verification Gotcha (`references/gotchas/15-shell-plugin-cached-reloads.md`)**:
+  - Documented the observed stale-code behavior, the limits of an enabled-plugin check, and permission-gated shell recovery. The exact stale object behind the original missed click remains unconfirmed.
+
+### Verification
+- `omarchy restart shell`, live diagnostic IPC, and user-confirmed popup opening.
+- Isolated Quickshell/QtTest mouse interaction with `QT_QPA_PLATFORM=offscreen` and `QT_FORCE_STDERR_LOGGING=1`.
+- `git diff --check`; confirmed the temporary diagnostic IPC target is absent after the clean restart and the minimized widget remains visible with no widget-specific QML errors.
+
 ## [2.17.0] - 2026-11-06
 ### Added
 - **Minimized Windows in Tiled Workspaces (`core/.local/bin/hypr-minimize-window`, `core/.config/omarchy/plugins/jairo.minimized-windows/`)**:

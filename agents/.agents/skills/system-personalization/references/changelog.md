@@ -2,6 +2,19 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.21.0] - 2026-11-06
+### Added
+- **XPS Copilot Dual-Role Modifier via `keyd` (`profiles/xps/`)**:
+  - Installed `keyd` (tracked in `profiles/xps/packages.txt`) to intercept the hardware-level `Left Super + Left Shift + F23` chord emitted by the Dell XPS 13 (`DX13260`) Copilot key.
+  - Configured `/etc/keyd/default.conf` with `leftmeta+leftshift+f23 = overload(meta, menu)` and deployed `/etc/libinput/local-overrides.quirks` (`AttrKeyboardIntegration=internal`) via `profiles/xps/setup.sh` to preserve touchpad palm rejection.
+  - Enables clean dual-role behavior strictly isolated to the XPS profile: tapping Copilot alone sends `Menu` (pops open the active application's context menu), while holding Copilot and pressing another key cleanly acts as `Super` without physical `Shift` interference (`Copilot + Return` -> Terminal, `Copilot + Space` -> launcher, `Copilot + W` -> Close window).
+  - Resource usage: ~39 MB RSS, 0% CPU idle.
+
+### Verification
+- `systemctl status keyd` (active and running)
+- `ps -C keyd -o pid,%cpu,%mem,rss,vsz,cmd`
+- `hyprctl configerrors` (clean, 0 errors)
+
 ## [2.20.0] - 2026-11-06
 ### Fixed
 - **OpenCode System-Color Refresh After Theme Changes (Universal User Setting)**:

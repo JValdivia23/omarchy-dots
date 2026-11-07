@@ -52,4 +52,39 @@ if [ ! -e "$HOME/.config/hypr/omacast.lua" ] && [ -f "$DOTFILES_DIR/profiles/xps
     ln -sfn "$DOTFILES_DIR/profiles/xps/.config/hypr/omacast.lua" "$HOME/.config/hypr/omacast.lua"
 fi
 
+# Ensure keyd is installed and configured for Dell XPS 13 Copilot dual-role modifier (Super on hold, Menu on tap)
+KEYD_CONF="/etc/keyd/default.conf"
+LIBINPUT_QUIRKS="/etc/libinput/local-overrides.quirks"
+if [ ! -f "$KEYD_CONF" ] || ! grep -q "leftmeta+leftshift+f23" "$KEYD_CONF" 2>/dev/null; then
+    echo "--> Configuring keyd for XPS Copilot key (dual-role Super/Menu)..."
+    KEYD_CONTENT='[ids]
+*
+
+[main]
+leftmeta+leftshift+f23 = overload(meta, menu)
+'
+    QUIRKS_CONTENT='[Serial Keyboards]
+MatchUdevType=keyboard
+MatchName=keyd virtual keyboard
+AttrKeyboardIntegration=internal
+'
+    SETUP_CMDS="
+        pacman -S --needed --noconfirm keyd && \
+        mkdir -p /etc/keyd /etc/libinput && \
+        printf '%s\n' '$KEYD_CONTENT' > '$KEYD_CONF' && \
+        printf '%s\n' '$QUIRKS_CONTENT' > '$LIBINPUT_QUIRKS' && \
+        udevadm control --reload-rules && udevadm trigger && \
+        systemctl enable --now keyd
+    "
+    if (( EUID == 0 )); then
+        eval "$SETUP_CMDS" || true
+    elif sudo -n true 2>/dev/null; then
+        sudo bash -c "$SETUP_CMDS" || true
+    elif command -v pkexec &>/dev/null; then
+        pkexec bash -c "$SETUP_CMDS" || true
+    elif [ -t 0 ]; then
+        sudo bash -c "$SETUP_CMDS" || true
+    fi
+fi
+
 echo "==> XPS profile setup complete."

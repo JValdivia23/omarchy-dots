@@ -23,10 +23,16 @@ The Dell XPS 13 (`DX13260`) ships with a 13.4" `2560x1600@120Hz` internal panel 
    - Overridden in `core/.config/hypr/bindings-common.lua` by unbinding `SUPER + SHIFT + code:201` and binding it to `hl.dsp.send_shortcut({ mods = "", key = "Menu", window = "activewindow" })` so tapping the Copilot key opens the active application's native right-click context menu.
    - **Critical Gotcha (`altwin:menu_win` breaks `send_shortcut` for `Menu`)**: Do NOT enable `altwin:menu_win` in `input:kb_options` when using `hl.dsp.send_shortcut({ key = "Menu" })`. `altwin:menu_win` remaps XKB `<COMP>` (`code:135`, the only keycode producing `XKB_KEY_Menu`) to `Super_R`. Because `send_shortcut` resolves keysyms by scanning the active keyboard's XKB keymap (`hl-virtual-keyboard-fcitx5`), removing `Menu` from the keymap causes `send_shortcut` to fail at runtime with `send_shortcut: key not found`. If `kb_options` is ever changed, restart `fcitx5 -r -d` so `hl-virtual-keyboard-fcitx5` reloads the keymap.
 
+7. **Copilot Key Dual-Role Modifier via `keyd` (`overload(meta, menu)`)**:
+   - Because the hardware firmware emits `Left Super + Left Shift + F23`, holding Copilot and pressing another key physically held `Shift`, turning `Super + Enter` into `Super + Shift + Enter` (opening the browser).
+   - Configured `keyd` in `profiles/xps/setup.sh` (`/etc/keyd/default.conf`) with `leftmeta+leftshift+f23 = overload(meta, menu)` and deployed `/etc/libinput/local-overrides.quirks` (`AttrKeyboardIntegration=internal`) to preserve laptop palm rejection.
+   - Result: Tapping Copilot emits `menu` (Context Menu in active window), while holding Copilot and pressing another key cleanly emits `meta` (`Super`), allowing `Copilot + Enter` for Terminal, `Copilot + Space` for launcher, etc. Strictly isolated to the `xps` profile.
+
 ## Verification
 ```bash
 hyprctl monitors
 hyprctl getoption input:touchpad:natural_scroll
 getfacl /dev/input/event5
+systemctl status keyd
 hyprctl configerrors
 ```

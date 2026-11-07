@@ -118,7 +118,8 @@ Configured in `~/.config/hypr/bindings.lua` to provide smooth, familiar text edi
 | `SUPER` + `CTRL` + `P` | Power Panel | Power profiles and battery management |
 | `SUPER` + `CTRL` + `C` | Capture Menu | Screenshot & screenrecording options |
 | `SUPER` + `CTRL` + `H` | Hardware Menu | System hardware diagnostics |
-| `Copilot` (`SUPER` + `SHIFT` + `code:201`) | Context Menu | Open native right-click context menu (`Menu`) in active window |
+| `Copilot` (Tap) | Context Menu | Open native right-click context menu (`Menu`) in active window |
+| `Copilot` + Key (Hold) | Super Modifier | Acts as pure `SUPER` in combinations (via `keyd` overload on XPS: `+ Return` for Terminal, `+ Space` for launcher, etc.) |
 
 ---
 

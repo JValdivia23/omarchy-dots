@@ -6,7 +6,7 @@ A dated log of all package changes, configurations, script modifications, and ha
 ### Added
 - **XPS Copilot Dual-Role Modifier via `keyd` (`profiles/xps/`)**:
   - Installed `keyd` (tracked in `profiles/xps/packages.txt`) to intercept the hardware-level `Left Super + Left Shift + F23` chord emitted by the Dell XPS 13 (`DX13260`) Copilot key.
-  - Configured `/etc/keyd/default.conf` with `leftmeta+leftshift+f23 = overload(meta, menu)` and deployed `/etc/libinput/local-overrides.quirks` (`AttrKeyboardIntegration=internal`) via `profiles/xps/setup.sh` to preserve touchpad palm rejection.
+  - Configured `/etc/keyd/default.conf` with `leftmeta+leftshift+f23 = overload(meta, compose)` and deployed `/etc/libinput/local-overrides.quirks` (`AttrKeyboardIntegration=internal`) via `profiles/xps/setup.sh` to preserve touchpad palm rejection. Used `compose` (`KEY_COMPOSE` / 127) rather than `menu` (`KEY_MENU` / 139) because XKB maps `<COMP>` (135) to keysym `Menu` (recognized by Flea, browsers, and desktop apps), whereas `KEY_MENU` maps to `XF86MenuKB`.
   - Enables clean dual-role behavior strictly isolated to the XPS profile: tapping Copilot alone sends `Menu` (pops open the active application's context menu), while holding Copilot and pressing another key cleanly acts as `Super` without physical `Shift` interference (`Copilot + Return` -> Terminal, `Copilot + Space` -> launcher, `Copilot + W` -> Close window).
   - Resource usage: ~39 MB RSS, 0% CPU idle.
 

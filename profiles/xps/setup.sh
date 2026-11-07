@@ -61,7 +61,7 @@ if [ ! -f "$KEYD_CONF" ] || ! grep -q "leftmeta+leftshift+f23" "$KEYD_CONF" 2>/d
 *
 
 [main]
-leftmeta+leftshift+f23 = overload(meta, menu)
+leftmeta+leftshift+f23 = overload(meta, compose)
 '
     QUIRKS_CONTENT='[Serial Keyboards]
 MatchUdevType=keyboard

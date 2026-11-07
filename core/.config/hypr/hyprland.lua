@@ -7,13 +7,10 @@ dofile((os.getenv("OMARCHY_PATH") or "/usr/share/omarchy") .. "/default/hypr/boo
 -- Load Omarchy defaults.
 require("default.hypr.omarchy")
 
--- Core cursor, input & desktop behaviors.
+-- Core cursor & desktop behaviors.
 hl.config({
   cursor = {
     inactive_timeout = 3, -- Hide cursor after 3 seconds of inactivity (e.g. watching video)
-  },
-  input = {
-    kb_options = "omarchy:shift_caps_compose,altwin:menu_win", -- Map physical Menu key to Super_R (dual-role with SUPER + SUPER_R release bind)
   },
 })
 

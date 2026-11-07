@@ -102,9 +102,6 @@ o.rebind("SUPER + M", "Minimize window to bar", minimize_cmd)
 hl.unbind("SUPER + SHIFT + code:201")
 o.bind("SUPER + SHIFT + code:201", "Context menu", hl.dsp.send_shortcut({ mods = "", key = "Menu", window = "activewindow" }))
 
--- Trigger Context Menu on Right Super tap (for keyboards with Menu / Super_R via altwin:menu_win)
-o.bind("SUPER + SUPER_R", "Trigger Context Menu on Right Super tap", hl.dsp.send_shortcut({ mods = "", key = "Menu", window = "activewindow" }), { release = true })
-
 -- Launch or focus YouTube via Brave Origin
 -- Previously bound to: omarchy-launch-webapp (Chromium)
 hl.unbind("SUPER + SHIFT + Y")

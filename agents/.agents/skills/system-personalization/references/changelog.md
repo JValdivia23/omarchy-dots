@@ -48,15 +48,13 @@ A dated log of all package changes, configurations, script modifications, and ha
 
 ## [2.14.0] - 2026-11-06
 ### Changed
-- **Copilot Key & Right-Click / Menu Key Context Menu Binding (`core/.config/hypr/bindings-common.lua`, `core/.config/hypr/hyprland.lua`, `core/.local/bin/hypr-toggle-altwin`)**:
+- **Copilot Key Context Menu Binding (`core/.config/hypr/bindings-common.lua`)**:
   - Unbound Omarchy's default `SUPER + SHIFT + code:201` root menu shortcut (`{ menu = "root" }`) and rebound `SUPER + SHIFT + code:201` (the hardware chord emitted by the physical Copilot key: `Left Super + Left Shift + F23`) to `hl.dsp.send_shortcut({ mods = "", key = "Menu", window = "activewindow" })`, opening the native right-click context menu in the active window.
-  - Enabled native XKB option `altwin:menu_win` alongside `omarchy:shift_caps_compose` in `core/.config/hypr/hyprland.lua` and preserved it in `core/.local/bin/hypr-toggle-altwin`, mapping physical `Menu` keys on external/Surface keyboards to `Super_R` and binding `SUPER + SUPER_R` (`release = true`) to dispatch `Menu` on clean tap (matching `hyprland-dots`).
-  - Completely native Hyprland/XKB implementation requiring zero extra packages or background daemons.
+  - Resolved XKB keymap gotcha where enabling `altwin:menu_win` replaced `<COMP>` (`code:135`) with `Super_R`, removing `XKB_KEY_Menu` from the active `hl-virtual-keyboard-fcitx5` keymap and causing `hl.dsp.send_shortcut({ key = "Menu" })` to fail with `send_shortcut: key not found`. Kept `kb_options = "omarchy:shift_caps_compose"` and restarted `fcitx5 -r -d`.
 
 ### Verification
 - `hyprctl reload && hyprctl configerrors`
-- `hyprctl binds | grep -B 4 -A 8 -E "code:201|SUPER_R"`
-- `hyprctl getoption input:kb_options`
+- `hyprctl eval 'return hl.dispatch(hl.dsp.send_shortcut({ mods = "", key = "Menu", window = "activewindow" }))'` (`ok`)
 
 ## [2.13.0] - 2026-11-06
 ### Added

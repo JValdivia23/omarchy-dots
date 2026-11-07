@@ -2,6 +2,31 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.16.0] - 2026-11-06
+### Added
+- **Full GitHub Wallpaper Collection (`~/Pictures/Wallpapers/walls`)**:
+  - Downloaded `JValdivia23/walls` using a shallow, no-tags clone without replacing any existing wallpaper folders. Indexed 1,642 supported static/previewable images, totaling 2.93 GiB of image data, and generated persistent 1536×864 thumbnails for every indexed image at low CPU priority.
+  - Prepared the native carousel with 35 shuffled candidates plus the pinned current wallpaper. The indexed library and thumbnails remain outside the dotfiles repository.
+- **Aether in Omarchy's Native Theme Menu**:
+  - Upgraded the standalone `omarchy-aether` package to `0.2.0-1`. Its theme staging now supplies a normal `preview.png` showing the selected image and its ANSI palette.
+  - Staged the generated theme at `~/.config/omarchy/themes/aether/` using a snowy-lake landscape from the downloaded repository. It is discoverable through **Omarchy → Appearance → Theme → Aether**, without opening the optional preview app or replacing the native Theme action.
+  - The initial palette validated at 9.38:1 body contrast, at least 4.80:1 text contrast on tested surfaces, and 16 distinct ANSI colors. Tokyo Night was left active; no theme activation was performed during setup.
+
+### Changed
+- **Native Background Menu Routing (Universal User Setting)**:
+  - Added `core/.config/omarchy-aether/menu.json`, deployed with GNU Stow, to declare `omarchy-aether background` as the desired native Background action.
+  - Installed that action into the existing `~/.config/omarchy/extensions/omarchy-menu.jsonc` using `omarchy-aether integrate --yes`. The installer preserved comments/unrelated settings, retained the native row label/icon/aliases, and created a dated `before-aether` backup. The earlier Surface implementation and unrelated unmanaged Stow targets were not changed.
+  - With Aether active, **Appearance → Background** uses its cached random subset and applies matching system colors. Other themes use the standard Omarchy selector/setter with their palettes unchanged. No keybinding, bar-plugin replacement, timer, or OpenCode-specific customization was installed.
+- **Menu Compatibility Coverage**:
+  - Added universal gotcha `14-omarchy-native-menu-overrides.md` for `appearance` vs. the `style` alias and metadata loss in action-only overrides.
+  - Verified 43 passing Qt Test results, including the installed native JavaScript menu model, JSONC merge/backups, theme preview generation, static-theme fallback, and protection against a theme changing while the picker is open.
+
+### Verification
+- `git -C ~/Pictures/Wallpapers/walls status --short` (clean)
+- Confirmed all 1,642 indexed thumbnail paths exist.
+- `omarchy theme switcher --print-rows` includes exactly one Aether preview row; the native Theme action remains unchanged.
+- `~/Projects/omarchy-aether/bin/test`, `omarchy theme current`, and `hyprctl configerrors`
+
 ## [2.14.0] - 2026-11-06
 ### Changed
 - **Copilot Key & Right-Click / Menu Key Context Menu Binding (`core/.config/hypr/bindings-common.lua`, `core/.config/hypr/hyprland.lua`, `core/.local/bin/hypr-toggle-altwin`)**:

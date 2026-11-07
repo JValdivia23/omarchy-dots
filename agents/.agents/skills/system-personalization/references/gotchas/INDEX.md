@@ -23,6 +23,7 @@ These gotchas represent core operating guardrails across all installations runni
 | [`11-aether-command-name-collision.md`](11-aether-command-name-collision.md) | Custom Aether Tool vs. Packaged Aether Command Identity | System | Universal | Warning |
 | [`12-native-wallpaper-picker-identity.md`](12-native-wallpaper-picker-identity.md) | Native Wallpaper Picker Identity, Thumbnail Cache, and Transient Sources | System | Universal (Omarchy 4.5) | Warning |
 | [`13-makepkg-stale-debug-archives.md`](13-makepkg-stale-debug-archives.md) | Stale Split-Debug Archives Included by makepkg Installation | System | Universal (Arch / Omarchy) | Info |
+| [`14-omarchy-native-menu-overrides.md`](14-omarchy-native-menu-overrides.md) | Native Appearance Menu IDs and Normalized Row Metadata | System | Universal (Omarchy 4.5) | Warning |
 
 ---
 

@@ -47,8 +47,11 @@ The Omarchy Shell is built with Quickshell, providing an ultra-responsive status
 | `shell.json` | Status bar layout, widgets, and idle timers | Modify widget arrays under `bar.layout` (`left`, `center`, `right`) and idle timers (`idle.lock`, `idle.screensaver`). Hot-reloads on save, or run `omarchy restart shell`. |
 | `extensions/omarchy-menu.jsonc` | Application launcher and menu structure | Hot-reloads on file save. |
 | `themes/<custom-theme>/` | Custom user themes | Overlay `colors.toml`, icons, wallpapers, and fonts. Apply via `omarchy theme set <custom-theme>`. |
+| `themes/aether/` | Generated adaptive Aether theme | Managed by `omarchy-aether`, with regular runtime `colors.toml` and native `preview.png`; choose Aether through Appearance → Theme. Do not Stow generated files. |
 | `hooks/` | Automation event hooks | Executable scripts in event subdirectories (e.g. `theme-set.d/`, `workspace-changed.d/`). Install via `omarchy hook install <event> <script>`. |
 | `plugins/` | Cloned or custom Quickshell plugins | Clone stock plugins via `omarchy plugin clone <plugin>` to edit them locally in user space without modifying vendor files. |
+
+The universal Aether menu preference lives at `~/.config/omarchy-aether/menu.json` (backed by `core/`). Explicit `omarchy-aether integrate --yes` merges it into the existing native menu file with a backup; it does not replace the Theme action. With Aether active, Appearance → Background uses cached random candidates from the indexed library at `~/Pictures/Wallpapers/walls`. Other themes keep the stock background selector/setter. The standalone source repository is `~/Projects/omarchy-aether`; generated caches are under `~/.cache/omarchy-aether/`.
 
 ---
 

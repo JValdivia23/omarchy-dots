@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+read -r address workspace < <(hyprctl activewindow -j | jq -r '"\(.address // "") \(.workspace.id // "")"')
+
+[[ "$address" =~ ^0x[0-9a-fA-F]+$ ]] || exit 1
+[[ "$workspace" =~ ^[0-9]+$ ]] && (( workspace > 0 )) || exit 1
+
+clients=$(hyprctl clients -j)
+while IFS= read -r tag; do
+  [[ "$tag" =~ ^omarchy-minimized-from-[0-9]+$ && "$tag" != "omarchy-minimized-from-$workspace" ]] || continue
+  hyprctl dispatch "hl.dsp.window.tag({ tag = \"-$tag\", window = \"address:$address\" })" >/dev/null
+done < <(jq -r --arg address "$address" '.[] | select(.address == $address) | (.tags // [])[]' <<<"$clients")
+
+hyprctl dispatch "hl.dsp.window.tag({ tag = \"+omarchy-minimized-from-$workspace\", window = \"address:$address\" })" >/dev/null
+hyprctl dispatch "hl.dsp.window.move({ workspace = \"special:minimized\", follow = false, window = \"address:$address\" })" >/dev/null
+hyprctl dispatch "hl.dsp.focus({ workspace = \"$workspace\" })" >/dev/null

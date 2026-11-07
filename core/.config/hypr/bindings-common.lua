@@ -93,6 +93,10 @@ local home = os.getenv("HOME")
 local altwin_cmd = home and (home .. "/.local/bin/hypr-toggle-altwin") or "hypr-toggle-altwin"
 o.bind("SUPER + ALT + K", "Toggle Super/Alt layout swap", altwin_cmd)
 
+-- Make Omarchy's minimize-to-special-workspace action work on tiled workspaces too.
+local minimize_cmd = home and (home .. "/.local/bin/hypr-minimize-window") or "hypr-minimize-window"
+o.rebind("SUPER + M", "Minimize window to bar", minimize_cmd)
+
 -- Rebind Copilot key (SUPER + SHIFT + code:201) to open native Context Menu in active window
 -- Previously bound to: Omarchy menu ({ menu = "root" })
 hl.unbind("SUPER + SHIFT + code:201")
@@ -165,7 +169,6 @@ o.bind("SUPER + R", "Enter window resize mode", function()
   hl.dispatch(hl.dsp.submap("resize"))
   hl.dispatch(hl.dsp.exec_cmd("notify-send -t 2500 -a 'Hyprland' 'Resize Mode' 'Active: Use Arrows/HJKL or drag (Esc or Super+R to exit)'"))
 end)
-
 
 
 

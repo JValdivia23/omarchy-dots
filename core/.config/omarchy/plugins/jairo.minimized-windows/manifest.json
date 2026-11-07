@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "jairo.minimized-windows",
+  "name": "Minimized windows",
+  "version": "1.0.0",
+  "author": "Jairo",
+  "description": "Restore windows minimized from tiled or floating workspaces",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Minimized windows",
+    "description": "Access and restore windows on the minimized workspace",
+    "category": "Compositor",
+    "defaultSection": "right",
+    "allowMultiple": false
+  }
+}

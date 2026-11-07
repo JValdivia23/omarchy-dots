@@ -2,6 +2,25 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.17.0] - 2026-11-06
+### Added
+- **Minimized Windows in Tiled Workspaces (`core/.local/bin/hypr-minimize-window`, `core/.config/omarchy/plugins/jairo.minimized-windows/`)**:
+  - Rebound `SUPER + M` to move the active window to Omarchy's existing `special:minimized` workspace from either tiled or floating workspaces, while returning focus to its source workspace.
+  - Added a universal bar icon next to the system tray. It appears while windows are minimized, lists their app/window titles, and restores a selected window to the focused monitor's active workspace.
+  - Kept Omarchy's existing floating-workspace dock behavior intact; no packages or hardware-specific settings were added.
+
+### Changed
+- **Bar Layout (`core/.config/omarchy/shell.json`)**:
+  - Added the minimized-windows widget beside the system tray.
+- **Keyboard Shortcut Reference (`agents/.agents/skills/system-personalization/references/keybindings.md`)**:
+  - Documented `SUPER + M` and the bar-based restore flow for tiled and floating workspaces.
+
+### Verification
+- `bash -n core/.local/bin/hypr-minimize-window` and a mocked `hyprctl` run confirmed the script tags, parks, and unfocuses the active window.
+- `hyprctl configerrors && hyprctl reload && hyprctl configerrors` (clean after reload).
+- `omarchy plugin list --json` confirms the widget is enabled; the Quickshell log had no errors loading this widget.
+- Interactive minimize/restore on a live window remains for manual verification.
+
 ## [2.16.0] - 2026-11-06
 ### Added
 - **Full GitHub Wallpaper Collection (`~/Pictures/Wallpapers/walls`)**:
@@ -644,4 +663,3 @@ A dated log of all package changes, configurations, script modifications, and ha
 - Created safe backup system in `02-stow.sh` to prevent conflict errors when stowing on existing configurations.
 - Exported explicit official/CachyOS package snapshot to `packages/pacman-packages.txt`.
 - Published repository to GitHub as [`JValdivia23/hyprland-dots`](https://github.com/JValdivia23/hyprland-dots).
-

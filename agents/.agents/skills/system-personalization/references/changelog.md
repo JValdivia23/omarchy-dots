@@ -2,6 +2,19 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.26.0] - 2026-11-11
+### Added
+- **Dedicated Native SSH Repair Access to the CachyOS Laptop (Device-Specific)**:
+  - With explicit user selection, generated a passphrase-free Ed25519 automation identity at `~/.ssh/nanokvm_cachy_asus_ed25519` (mode `0600`) and a dedicated pinned-host file at `~/.ssh/nanokvm_cachy_asus_known_hosts` (mode `0600`); the new controller `.ssh` directory is mode `0700`. Private material remains outside project/dotfiles source and was not displayed or copied into documentation.
+  - Verified the target's Ed25519 host fingerprint against its KVM-displayed public host key before authentication. Appended only the new public key to the target user's existing `authorized_keys`, preserving its other keys and mode `0600`, with `from="10.0.0.217",restrict,pty` to limit source and disable forwarding while permitting a terminal.
+  - Added project-local `~/Work/nanoKVM/targetssh` and `ssh-target.conf` for key-only, strict-pinned native SSH. No global SSH profile, target server/startup/password/sudo policy, root permission, package, or new daemon was added; sshd was already active and enabled. The source-address restriction must be reviewed if the controller's LAN address changes.
+
+### Verification
+- Authenticated native SSH commands succeeded before and after reboot, including `targetssh`; target hostname was `cachy-asus`. Key/host-file ownership and modes were checked without reading private-key contents, and the pinned server fingerprint was unchanged.
+- User confirmed saved work and authorized reboot. A normal `systemctl reboot --firmware-setup` request from the target's active graphical terminal respected inhibitors and reached BIOS. User observed KVM F8 opening its boot menu, confirmed Limine after two Down taps, and then authorized Enter. Linux returned with a different boot ID; the one-shot firmware property reported false afterward.
+- **Pre-boot video limitation:** BIOS/menu appeared on the built-in panel, but HDMI capture remained black; only keyboard/menu interaction was verified with the user's visual help. KVM video returned at the GUI password screen. No boot-order, Secure Boot, firmware-image, or default settings were edited, and the login screen was left untouched.
+- `python -B -m unittest discover -s tests -v`: 62 passing offline tests, including native SSH profile/wrapper safety and status propagation. Updated project agent instructions, CLI/native SSH documentation, verification matrix, and the NanoKVM profile gotcha.
+
 ## [2.25.0] - 2026-11-11
 ### Changed
 - **Disable Keyboard Auto-Repeat Universally (`core/.config/hypr/hyprland.lua`)**:

@@ -66,7 +66,19 @@ The command `echo nanokvm-terminal-ok` was entered without Enter, checked in a c
 
 The temporary helper has been superseded by the permanent project-local `~/Work/nanoKVM/kvmctl` and `nanokvm/` Python API. It requires no pip packages or service installation and exposes local JSON/Python interfaces, not a network listener. Input requires explicit `--send` / `allow_input=True`; typing never adds Enter. KVM serial data is HID control, not a target shell: read output from fresh captures, and release keys after each press.
 
-The permanent tool passed 57 offline tests and real device checks for status, capture/OCR, left-click focus, keyboard/terminal input, scrolling up/down, explicit release, and bounded foreground preview. The visually inspected `echo nanokvm-cli-ready` returned the expected marker. Pointer visibility alone was sometimes inconclusive; a safe click visibly established focus. BIOS input and other buttons/layouts remain untested. The persistent guide and capability limits are in `~/Work/nanoKVM/docs/cli.md` and `docs/verification.md`.
+The initial permanent tool passed 57 offline tests and real device checks for status, capture/OCR, left-click focus, keyboard/terminal input, scrolling up/down, explicit release, and bounded foreground preview. The visually inspected `echo nanokvm-cli-ready` returned the expected marker. Pointer visibility alone was sometimes inconclusive; a safe click visibly established focus. The persistent guide and capability limits are in `~/Work/nanoKVM/docs/cli.md` and `docs/verification.md`.
+
+### Follow-up: native SSH and pre-boot display limits
+
+The user explicitly approved a dedicated SSH repair key and a reboot with work saved. The target's existing sshd was already active/enabled. Its host fingerprint was compared with the public key printed on the KVM display before authentication; only one source-restricted public-key line was appended to the user's existing `authorized_keys`. The private key and pinned host file are under the controller's `~/.ssh/` with mode `0600`, not in source control. No server, password, sudo, or root-access policy was changed.
+
+Use `~/Work/nanoKVM/targetssh 'reviewed command'` for native target stdout/exit status when Linux/networking are available. The project profile uses only the dedicated identity and a strict host-key alias/pin. The key's `from="10.0.0.217",restrict,pty` restriction is tied to the controller's current LAN address; do not silently remove it after a DHCP/network change.
+
+An authorized `systemctl reboot --firmware-setup` from the active target console reached BIOS. **HDMI capture was black, while the user saw firmware on the built-in panel.** KVM F8 opened the boot menu, and Down/Enter navigation to the user-confirmed Limine entry returned to Linux. The boot ID changed, authenticated SSH returned, the one-shot firmware property cleared, and HDMI capture returned at the login/password screen. No boot-order, Secure Boot, firmware-image, or default settings were edited.
+
+This is consistent with internal-versus-secondary display routing, but the exact cause was not independently established. It does **not** verify fully unattended pre-boot video. If firmware capture is black, require a trusted observer/photo and confirm the highlighted entry before selection; never blindly save/reset settings or force power off. SSH is unavailable in firmware, but works at the Linux login screen without unlocking the GUI. Leave that password prompt untouched unless the user authenticates privately.
+
+The expanded suite has 62 passing offline tests. Other BIOS input modes, cold power-on Esc interception, other buttons/layouts, and USB-media boot are not claimed tested. See `~/Work/nanoKVM/docs/ssh-and-boot.md` for key paths, authentication restrictions, revocation guidance, and the exact boot-test scope.
 
 ## Related References
 

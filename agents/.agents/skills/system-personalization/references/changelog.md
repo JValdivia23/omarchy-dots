@@ -9,6 +9,9 @@ A dated log of all package changes, configurations, script modifications, and ha
   - Automatically reads single QR codes from the webcam (`/dev/video0`), copies the decoded string to the Wayland clipboard (`wl-copy --sensitive`), and triggers an Omarchy desktop notification via `omarchy-notification-send`.
   - Added a `.desktop` application entry (`Scan QR Code`) with `Icon=camera-photo` in `~/.local/share/applications/` so it is directly launchable from the application launcher (Walker / Rofi).
   - Configured Hyprland window rule in `core/.config/hypr/hyprland.lua` (`o.window("^zbar$", { float = true, center = true })`) to float and center the camera viewfinder window rather than tiling it.
+- **GNOME Snapshot Camera App (`core/packages.txt`)**:
+  - Installed GNOME `snapshot` (51.0-1) via `pkexec pacman -S --needed snapshot` to provide a modern, dedicated camera photo and video recording application.
+  - Tracked `snapshot` and `zbar` in `core/packages.txt` so camera and QR scanner tools are preserved across machine profiles and deployments.
 
 ## [2.22.0] - 2026-11-07
 ### Changed

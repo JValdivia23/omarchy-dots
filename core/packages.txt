@@ -21,3 +21,5 @@ deckcraft-bin
 pdfcraft-bin
 storytold-office
 matugen
+zbar
+snapshot

@@ -2,6 +2,17 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.25.0] - 2026-11-11
+### Changed
+- **Disable Keyboard Auto-Repeat Universally (`core/.config/hypr/hyprland.lua`)**:
+  - Configured `input = { repeat_rate = 0 }` in universal Hyprland master configuration (`core/.config/hypr/hyprland.lua`).
+  - Disables repeated character output when pressing and holding down any key for an extended duration.
+
+### Verification
+- `hyprctl reload` (executed cleanly)
+- `hyprctl configerrors` (clean, 0 errors reported)
+- `hyprctl getoption input:repeat_rate` (`int: 0`, set: true)
+
 ## [2.24.0] - 2026-11-11
 ### Added
 - **NanoKVM-USB Serial Permission (Device-Specific, XPS Controller)**:

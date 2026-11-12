@@ -7,10 +7,13 @@ dofile((os.getenv("OMARCHY_PATH") or "/usr/share/omarchy") .. "/default/hypr/boo
 -- Load Omarchy defaults.
 require("default.hypr.omarchy")
 
--- Core cursor & desktop behaviors.
+-- Core cursor, desktop, and input behaviors.
 hl.config({
   cursor = {
     inactive_timeout = 3, -- Hide cursor after 3 seconds of inactivity (e.g. watching video)
+  },
+  input = {
+    repeat_rate = 0, -- Disable keyboard auto-repeat when holding keys
   },
 })
 

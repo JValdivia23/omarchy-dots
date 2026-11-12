@@ -2,6 +2,22 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.24.0] - 2026-11-11
+### Added
+- **NanoKVM-USB Serial Permission (Device-Specific, XPS Controller)**:
+  - With explicit user approval, installed `/etc/udev/rules.d/70-nanokvm-usb.rules` as `root:root`, mode `0644`, matching only USB vendor/product `1a86:55d3` and serial `5C82073583` with `TAG+="uaccess"`.
+  - Grants the active local desktop user access to this unit's serial interface without adding serial-device group membership or granting world access. Native `cdc_acm` was already working; no packages or drivers were installed.
+  - Recorded profile-specific gotcha `profiles/xps/gotchas/03-nanokvm-usb-serial-access.md` and indexed it in the personalization references. Updated the separate project guide in `~/Work/nanoKVM/` with verified setup status and safe diagnostic instructions.
+
+### Fixed
+- **NanoKVM Serial Access Denied Despite Working Video**:
+  - Changed effective read/write access from false to true by reloading udev rules and emitting a change event only for the verified NanoKVM serial sysfs node. No reconnect, reboot, target reset, or general device trigger was needed.
+
+### Verification
+- `udevadm verify /etc/udev/rules.d/70-nanokvm-usb.rules` passed; the installed rule is root-owned and mode `0644`.
+- `getfacl` confirms `user:jairo:rw-` on the serial device; Python `os.access` confirms read/write access. Original `root:uucp` ownership and mode `0660` remain intact.
+- Separately captured the real target desktop at 1920 × 1080. No serial port was opened and no target keyboard/mouse input was sent; end-to-end input remains untested.
+
 ## [2.23.0] - 2026-11-11
 ### Added
 - **Webcam QR Code Scanner (`core/.local/bin/camera-qr`, `core/.local/share/applications/camera-qr.desktop`)**:

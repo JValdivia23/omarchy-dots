@@ -54,7 +54,17 @@ print('Writable:', os.access(p, os.W_OK))
 PY
 ```
 
-These checks do not open the serial port or send control bytes. End-to-end target keyboard/mouse operation remains untested. Video capture separately showed the target desktop at 1920 × 1080; device-reported zero DV timings did not mean the signal was absent.
+These permission checks do not open the serial port or send control bytes. Video capture separately showed the target desktop at 1920 × 1080; device-reported zero DV timings did not mean the signal was absent.
+
+### Follow-up: approved target input and terminal verification
+
+Later on 2026-11-11, the user separately approved mouse and terminal tests. A temporary standard-library Python helper followed Sipeed's 57600-baud protocol, validated packet checksums, and used only `GET_INFO` and ordinary keyboard/mouse commands. The device reported the target USB connection present.
+
+Initial acknowledged input produced no visible terminal. An absolute pointer move into the captured desktop, followed by Super + Enter, opened Kitty on the CachyOS/ROG Zephyrus G14 target. This was consistent with focus initially being on another display; the monitor topology was not queried. Do not type blindly when acknowledgements arrive but the capture is unchanged.
+
+The command `echo nanokvm-terminal-ok` was entered without Enter, checked in a capture, then executed. A subsequent capture showed `nanokvm-terminal-ok` and a fresh fish prompt. This verified pointer motion, the terminal shortcut, typing, and Enter; clicks/scroll and BIOS input remain untested. No target packages or system configuration were changed.
+
+The temporary helper lives in `/tmp/opencode/nanokvm-control-terminal-20261111.py` and is not an installed dependency. KVM serial data is HID control, not a target shell: read output from fresh captures, and release keys after each press. The persistent usage guide is in `~/Work/nanoKVM/`.
 
 ## Related References
 

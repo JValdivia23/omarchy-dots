@@ -16,7 +16,9 @@ A dated log of all package changes, configurations, script modifications, and ha
 ### Verification
 - `udevadm verify /etc/udev/rules.d/70-nanokvm-usb.rules` passed; the installed rule is root-owned and mode `0644`.
 - `getfacl` confirms `user:jairo:rw-` on the serial device; Python `os.access` confirms read/write access. Original `root:uucp` ownership and mode `0660` remain intact.
-- Separately captured the real target desktop at 1920 × 1080. No serial port was opened and no target keyboard/mouse input was sent; end-to-end input remains untested.
+- Separately captured the real target desktop at 1920 × 1080. During the initial permission verification, no serial port was opened and no target input was sent.
+- Follow-up, separately user-approved input verification: a temporary standard-library Python helper using Sipeed's documented 57600-baud HID protocol confirmed target USB connectivity, visibly positioned the pointer, opened Kitty with Super + Enter, and executed the visually checked `echo nanokvm-terminal-ok` on the CachyOS target. Captured the expected output and a new fish prompt; no target packages or system settings changed.
+- Recorded the observed display-focus issue: acknowledged input initially produced no visible terminal until the pointer was placed on the captured output. Updated the profile gotcha and project instructions with focus checks, key-release requirements, and the distinction between KVM control and a native remote shell. Clicks/scroll, BIOS input, and the browser UI remain untested.
 
 ## [2.23.0] - 2026-11-11
 ### Added

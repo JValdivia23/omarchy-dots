@@ -2,6 +2,14 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.23.0] - 2026-11-11
+### Added
+- **Webcam QR Code Scanner (`core/.local/bin/camera-qr`, `core/.local/share/applications/camera-qr.desktop`)**:
+  - Added lightweight webcam QR scanner script utilizing the pre-installed `zbarcam` utility.
+  - Automatically reads single QR codes from the webcam (`/dev/video0`), copies the decoded string to the Wayland clipboard (`wl-copy --sensitive`), and triggers an Omarchy desktop notification via `omarchy-notification-send`.
+  - Added a `.desktop` application entry (`Scan QR Code`) with `Icon=camera-photo` in `~/.local/share/applications/` so it is directly launchable from the application launcher (Walker / Rofi).
+  - Configured Hyprland window rule in `core/.config/hypr/hyprland.lua` (`o.window("^zbar$", { float = true, center = true })`) to float and center the camera viewfinder window rather than tiling it.
+
 ## [2.22.0] - 2026-11-07
 ### Changed
 - **Updated ArtCraft Office & PDF Suite (`core/packages.txt`)**:

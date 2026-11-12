@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# camera-qr — Scan a QR code using the webcam and copy the result to the clipboard
+
+set -eo pipefail
+
+# Run zbarcam in oneshot mode, decoding only QR codes.
+# Exit code from zbarcam when closed or killed is safely ignored.
+RESULT=$(zbarcam --oneshot --raw -Sdisable -Sqrcode.enable 2>/dev/null || true)
+
+# If the window was closed without scanning a QR code, exit quietly
+if [[ -z "$RESULT" ]]; then
+  exit 0
+fi
+
+# Copy the decoded content to clipboard securely
+printf '%s' "$RESULT" | wl-copy --sensitive
+
+# Notify the user
+if command -v omarchy-notification-send >/dev/null 2>&1; then
+  omarchy-notification-send -g 󰐲 "$(omarchy-i18n capture.qrCopied 2>/dev/null || echo "QR code copied to clipboard")"
+elif command -v notify-send >/dev/null 2>&1; then
+  notify-send -i camera-photo "QR Code Scanned" "Copied to clipboard"
+fi

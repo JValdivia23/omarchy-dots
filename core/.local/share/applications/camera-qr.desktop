@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Scan QR Code
+GenericName=Camera QR Scanner
+Comment=Scan QR codes using the webcam and copy to clipboard
+Exec=camera-qr
+Icon=camera-photo
+Terminal=false
+Categories=Utility;
+Keywords=QR;Barcode;Camera;Webcam;Scan;

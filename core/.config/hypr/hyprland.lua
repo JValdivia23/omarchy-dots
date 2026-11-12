@@ -17,6 +17,9 @@ hl.config({
 -- Inhibit idle (screensaver & sleep) when any window is fullscreen (e.g. YouTube, Netflix, media players, games)
 o.window(".*", { idle_inhibit = "fullscreen" })
 
+-- Float zbar barcode/QR reader window
+o.window("^zbar$", { float = true, center = true })
+
 -- Load core personal keybinding overrides.
 require("hypr.bindings-common")
 

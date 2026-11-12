@@ -62,9 +62,11 @@ Later on 2026-11-11, the user separately approved mouse and terminal tests. A te
 
 Initial acknowledged input produced no visible terminal. An absolute pointer move into the captured desktop, followed by Super + Enter, opened Kitty on the CachyOS/ROG Zephyrus G14 target. This was consistent with focus initially being on another display; the monitor topology was not queried. Do not type blindly when acknowledgements arrive but the capture is unchanged.
 
-The command `echo nanokvm-terminal-ok` was entered without Enter, checked in a capture, then executed. A subsequent capture showed `nanokvm-terminal-ok` and a fresh fish prompt. This verified pointer motion, the terminal shortcut, typing, and Enter; clicks/scroll and BIOS input remain untested. No target packages or system configuration were changed.
+The command `echo nanokvm-terminal-ok` was entered without Enter, checked in a capture, then executed. A subsequent capture showed `nanokvm-terminal-ok` and a fresh fish prompt. This initial test verified pointer motion, the terminal shortcut, typing, and Enter. No target packages or system configuration were changed.
 
-The temporary helper lives in `/tmp/opencode/nanokvm-control-terminal-20261111.py` and is not an installed dependency. KVM serial data is HID control, not a target shell: read output from fresh captures, and release keys after each press. The persistent usage guide is in `~/Work/nanoKVM/`.
+The temporary helper has been superseded by the permanent project-local `~/Work/nanoKVM/kvmctl` and `nanokvm/` Python API. It requires no pip packages or service installation and exposes local JSON/Python interfaces, not a network listener. Input requires explicit `--send` / `allow_input=True`; typing never adds Enter. KVM serial data is HID control, not a target shell: read output from fresh captures, and release keys after each press.
+
+The permanent tool passed 57 offline tests and real device checks for status, capture/OCR, left-click focus, keyboard/terminal input, scrolling up/down, explicit release, and bounded foreground preview. The visually inspected `echo nanokvm-cli-ready` returned the expected marker. Pointer visibility alone was sometimes inconclusive; a safe click visibly established focus. BIOS input and other buttons/layouts remain untested. The persistent guide and capability limits are in `~/Work/nanoKVM/docs/cli.md` and `docs/verification.md`.
 
 ## Related References
 

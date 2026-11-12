@@ -8,6 +8,9 @@ A dated log of all package changes, configurations, script modifications, and ha
   - With explicit user approval, installed `/etc/udev/rules.d/70-nanokvm-usb.rules` as `root:root`, mode `0644`, matching only USB vendor/product `1a86:55d3` and serial `5C82073583` with `TAG+="uaccess"`.
   - Grants the active local desktop user access to this unit's serial interface without adding serial-device group membership or granting world access. Native `cdc_acm` was already working; no packages or drivers were installed.
   - Recorded profile-specific gotcha `profiles/xps/gotchas/03-nanokvm-usb-serial-access.md` and indexed it in the personalization references. Updated the separate project guide in `~/Work/nanoKVM/` with verified setup status and safe diagnostic instructions.
+- **Permanent Project-Local NanoKVM Tooling (`~/Work/nanoKVM/`)**:
+  - Added `kvmctl` JSON CLI and a standard-library Python API for readiness/status, identity-checked serial HID input, private PNG capture, cropped/upscaled OCR, emergency release, and foreground view-only preview. Source and per-device settings remain in the dedicated workspace; no global install, third-party Python package, daemon, network listener, or target-side service was added.
+  - Added CLI/API documentation, a live verification matrix, and agent-facing instructions. Input is explicitly gated, text cannot embed Enter, uncertain presses are not automatically retried, and ordinary interruption releases held toolkit input on a best-effort basis.
 
 ### Fixed
 - **NanoKVM Serial Access Denied Despite Working Video**:
@@ -18,7 +21,8 @@ A dated log of all package changes, configurations, script modifications, and ha
 - `getfacl` confirms `user:jairo:rw-` on the serial device; Python `os.access` confirms read/write access. Original `root:uucp` ownership and mode `0660` remain intact.
 - Separately captured the real target desktop at 1920 × 1080. During the initial permission verification, no serial port was opened and no target input was sent.
 - Follow-up, separately user-approved input verification: a temporary standard-library Python helper using Sipeed's documented 57600-baud HID protocol confirmed target USB connectivity, visibly positioned the pointer, opened Kitty with Super + Enter, and executed the visually checked `echo nanokvm-terminal-ok` on the CachyOS target. Captured the expected output and a new fish prompt; no target packages or system settings changed.
-- Recorded the observed display-focus issue: acknowledged input initially produced no visible terminal until the pointer was placed on the captured output. Updated the profile gotcha and project instructions with focus checks, key-release requirements, and the distinction between KVM control and a native remote shell. Clicks/scroll, BIOS input, and the browser UI remain untested.
+- Recorded the observed display-focus issue: acknowledged input initially produced no visible terminal until the pointer was placed on the captured output. Updated the profile gotcha and project instructions with focus checks, key-release requirements, and the distinction between KVM control and a native remote shell.
+- Permanent toolkit acceptance: 57 offline tests passed, including partial writes/fragmented replies over a disposable PTY, plus live status/capture/OCR, left-click focus, visually checked `echo nanokvm-cli-ready`, bidirectional terminal scrolling, explicit release, and a bounded preview. The viewer uses a wall-clock stop because FFplay's media-time `-t` did not reliably terminate this live V4L2 source. BIOS input, the browser UI, and other layouts/buttons are not claimed verified.
 
 ## [2.23.0] - 2026-11-11
 ### Added

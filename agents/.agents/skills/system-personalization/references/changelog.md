@@ -2,6 +2,16 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.29.0] - 2026-11-12
+### Changed
+- **Automatic Aether Upgrade, Live Reload & First-Boot Wallpaper Sync (`install.sh`, `core/.local/bin/omarchy-sync-wallpapers`)**:
+  - Added `--init` mode to `core/.local/bin/omarchy-sync-wallpapers` so `install.sh` step 7 automatically clones/indexes `JValdivia23/walls` on fresh installs while skipping `git pull` on existing clones.
+  - Both scripts now validate `~/.config/omarchy/themes/aether/colors.toml` via `omarchy-aether check`, back up unmanaged legacy `aether` folders lacking `.omarchy-aether.json`, and run `omarchy theme set aether` when `aether` is already active with a stale palette.
+
+### Verification
+- `bash -n install.sh core/.local/bin/omarchy-sync-wallpapers` and `./install.sh --dry-run </dev/null` passed cleanly.
+- `omarchy-sync-wallpapers --init --no-warm` detected the stale active Aether palette and reloaded `aether`; `omarchy-aether check ~/.local/state/omarchy/current/theme/colors.toml --json` reported `valid: true`, `unique_ansi_colors: 16`, `minimum_color_distance: 8.95`, and `hyprctl configerrors` returned 0 errors.
+
 ## [2.28.0] - 2026-11-12
 ### Added
 - **`surface-go3` Device Profile (`profiles/surface-go3/`)**:

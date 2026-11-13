@@ -942,19 +942,18 @@ EOF
             echo "    Added Fish auto-launch guard to ~/.bashrc"
         fi
     fi
-    # 7. Check wallpaper library
+    # 7. Sync wallpaper library & Aether index/staging
     WALLS_DIR="$HOME/Pictures/Wallpapers/walls"
-    if [ ! -d "$WALLS_DIR" ]; then
+    SYNC_SCRIPT="$DOTFILES_DIR/core/.local/bin/omarchy-sync-wallpapers"
+    if [ -x "$SYNC_SCRIPT" ]; then
+        if [ "$DRY_RUN" = true ]; then
+            echo "--> [dry-run] Would run: $SYNC_SCRIPT --init"
+        else
+            bash "$SYNC_SCRIPT" --init || true
+        fi
+    elif [ ! -d "$WALLS_DIR" ]; then
         echo "--> Wallpaper collection not detected in ~/Pictures/Wallpapers/walls."
         echo "    Run 'omarchy-sync-wallpapers' anytime to fetch and index JValdivia23/walls."
-    elif command -v omarchy-aether &>/dev/null && [ ! -f "$HOME/.cache/omarchy-aether/catalog.json" ]; then
-        echo "--> Indexing existing wallpaper library for omarchy-aether..."
-        if [ "$DRY_RUN" = false ]; then
-            omarchy-aether index "$WALLS_DIR" --json >/dev/null || true
-            omarchy-aether prepare --count 35 --json >/dev/null || true
-        else
-            echo "    [dry-run] omarchy-aether index $WALLS_DIR --json && omarchy-aether prepare --count 35 --json"
-        fi
     fi
 
     # 8. Reload Hyprland if active
@@ -967,7 +966,7 @@ EOF
         fi
     fi
 
-    # 9. Ensure Aether menu integration & theme staging
+    # 9. Ensure Aether menu integration & fallback staging/sync
     if command -v omarchy-aether &>/dev/null; then
         if [ -f "$HOME/.config/omarchy-aether/menu.json" ] && \
            { [ ! -f "$HOME/.config/omarchy/extensions/omarchy-menu.jsonc" ] || ! grep -q "omarchy-aether background" "$HOME/.config/omarchy/extensions/omarchy-menu.jsonc" 2>/dev/null; }; then
@@ -980,65 +979,80 @@ EOF
         fi
 
         aether_user_dir="$HOME/.config/omarchy/themes/aether"
-        if [ ! -f "$aether_user_dir/colors.toml" ] || [ ! -f "$aether_user_dir/preview.png" ]; then
-            aether_seed_img="$WALLS_DIR/aerial/a_aerial_view_of_a_snowy_mountain_range.jpg"
-            if [ ! -f "$aether_seed_img" ] && [ -d "$WALLS_DIR" ]; then
-                aether_seed_img="$(find "$WALLS_DIR" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | head -n 1)"
-            fi
-            if [ -z "$aether_seed_img" ] || [ ! -f "$aether_seed_img" ]; then
-                for p in "${STOWABLE_PROFILES[@]}"; do
-                    aether_profile_walls="$DOTFILES_DIR/profiles/$p/Pictures/Wallpapers"
-                    if [ -d "$aether_profile_walls" ]; then
-                        aether_seed_img="$(find "$aether_profile_walls" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | head -n 1)"
-                        [ -n "$aether_seed_img" ] && break
-                    fi
-                done
-            fi
+        aether_needs_stage=false
+        if [ ! -f "$aether_user_dir/colors.toml" ] || [ ! -f "$aether_user_dir/preview.png" ] || [ ! -f "$aether_user_dir/.omarchy-aether.json" ]; then
+            aether_needs_stage=true
+        elif ! omarchy-aether check "$aether_user_dir/colors.toml" &>/dev/null; then
+            aether_needs_stage=true
+        fi
+
+        if [ "$aether_needs_stage" = true ]; then
+            aether_seed_img=""
+            for p in "${STOWABLE_PROFILES[@]}"; do
+                aether_profile_walls="$DOTFILES_DIR/profiles/$p/Pictures/Wallpapers"
+                if [ -d "$aether_profile_walls" ]; then
+                    aether_seed_img="$(find "$aether_profile_walls" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | head -n 1)"
+                    [ -n "$aether_seed_img" ] && break
+                fi
+            done
             if [ -n "$aether_seed_img" ] && [ -f "$aether_seed_img" ]; then
-                echo "--> Staging Aether theme from $(basename "$aether_seed_img")..."
+                echo "--> Staging Aether theme from profile fallback $(basename "$aether_seed_img")..."
                 if [ "$DRY_RUN" = false ]; then
+                    if [ -L "$aether_user_dir" ] || { [ -e "$aether_user_dir" ] && [ ! -f "$aether_user_dir/.omarchy-aether.json" ]; }; then
+                        mv "$aether_user_dir" "${aether_user_dir}.legacy.$(date +%Y%m%d_%H%M%S)"
+                    fi
                     omarchy-aether apply --image "$aether_seed_img" --stage-only --json >/dev/null || true
                 else
                     echo "    [dry-run] omarchy-aether apply --image $aether_seed_img --stage-only --json"
                 fi
             fi
         fi
-    fi
 
-    # Legacy colors.toml.seed fallback (for profiles without omarchy-aether)
-    for p in "${STOWABLE_PROFILES[@]}"; do
-        aether_seed="$DOTFILES_DIR/profiles/$p/.config/omarchy/themes/aether/colors.toml.seed"
-        if [ -f "$aether_seed" ]; then
-            aether_user_dir="$HOME/.config/omarchy/themes/aether"
-            mkdir -p "$aether_user_dir"
-            if [ -L "$aether_user_dir/colors.toml" ]; then
-                rm -f "$aether_user_dir/colors.toml"
-            fi
-            if [ ! -f "$aether_user_dir/colors.toml" ]; then
-                echo "--> Seeding dynamic aether colors.toml..."
-                if [ "$DRY_RUN" = false ]; then
-                    cp "$aether_seed" "$aether_user_dir/colors.toml"
-                else
-                    echo "    [dry-run] cp $aether_seed $aether_user_dir/colors.toml"
-                fi
-            fi
-
-            aether_bg_dir="$aether_user_dir/backgrounds"
-            aether_profile_walls="$DOTFILES_DIR/profiles/$p/Pictures/Wallpapers"
-            if [ -d "$aether_profile_walls" ] && [ -z "$(find -L "$aether_bg_dir" -maxdepth 1 -type f 2>/dev/null | head -n 1)" ]; then
-                echo "--> Linking default backgrounds for aether theme selector..."
-                if [ "$DRY_RUN" = false ]; then
-                    mkdir -p "$aether_bg_dir"
-                    for wall in "$aether_profile_walls"/*; do
-                        [ -f "$wall" ] || continue
-                        ln -sf "$wall" "$aether_bg_dir/$(basename "$wall")"
-                    done
-                else
-                    echo "    [dry-run] ln -sf $aether_profile_walls/* $aether_bg_dir/"
-                fi
+        if [ "$DRY_RUN" = false ] && command -v omarchy &>/dev/null && \
+           [ "$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null || true)" = "aether" ] && \
+           [ -f "$aether_user_dir/colors.toml" ]; then
+            if [ ! -f "$HOME/.local/state/omarchy/current/theme/colors.toml" ] || \
+               ! cmp -s "$aether_user_dir/colors.toml" "$HOME/.local/state/omarchy/current/theme/colors.toml"; then
+                echo "--> Reloading active Aether theme..."
+                omarchy theme set aether || true
             fi
         fi
-    done
+    else
+        # Legacy colors.toml.seed fallback (for profiles without omarchy-aether)
+        for p in "${STOWABLE_PROFILES[@]}"; do
+            aether_seed="$DOTFILES_DIR/profiles/$p/.config/omarchy/themes/aether/colors.toml.seed"
+            if [ -f "$aether_seed" ]; then
+                aether_user_dir="$HOME/.config/omarchy/themes/aether"
+                mkdir -p "$aether_user_dir"
+                if [ -L "$aether_user_dir/colors.toml" ]; then
+                    rm -f "$aether_user_dir/colors.toml"
+                fi
+                if [ ! -f "$aether_user_dir/colors.toml" ]; then
+                    echo "--> Seeding dynamic aether colors.toml..."
+                    if [ "$DRY_RUN" = false ]; then
+                        cp "$aether_seed" "$aether_user_dir/colors.toml"
+                    else
+                        echo "    [dry-run] cp $aether_seed $aether_user_dir/colors.toml"
+                    fi
+                fi
+
+                aether_bg_dir="$aether_user_dir/backgrounds"
+                aether_profile_walls="$DOTFILES_DIR/profiles/$p/Pictures/Wallpapers"
+                if [ -d "$aether_profile_walls" ] && [ -z "$(find -L "$aether_bg_dir" -maxdepth 1 -type f 2>/dev/null | head -n 1)" ]; then
+                    echo "--> Linking default backgrounds for aether theme selector..."
+                    if [ "$DRY_RUN" = false ]; then
+                        mkdir -p "$aether_bg_dir"
+                        for wall in "$aether_profile_walls"/*; do
+                            [ -f "$wall" ] || continue
+                            ln -sf "$wall" "$aether_bg_dir/$(basename "$wall")"
+                        done
+                    else
+                        echo "    [dry-run] ln -sf $aether_profile_walls/* $aether_bg_dir/"
+                    fi
+                fi
+            fi
+        done
+    fi
     echo ""
 else
     echo "==> [4/4] Skipping post-install setup."

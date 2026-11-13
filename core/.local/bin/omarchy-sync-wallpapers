@@ -1,8 +1,8 @@
 #!/bin/bash
 set -eo pipefail
 
-# omarchy:summary=Download/sync JValdivia23/walls and index it for omarchy-aether
-# omarchy:args=[--force] [--no-warm]
+# omarchy:summary=Download/sync JValdivia23/walls and keep omarchy-aether indexed, staged, and synced
+# omarchy:args=[--force] [--no-warm] [--init]
 
 WALLPAPERS_DIR="$HOME/Pictures/Wallpapers"
 mkdir -p "$WALLPAPERS_DIR"
@@ -10,13 +10,18 @@ mkdir -p "$WALLPAPERS_DIR"
 WALLS_REPO="${WALLS_REPO:-https://github.com/JValdivia23/walls.git}"
 FALLBACK_REPO="https://github.com/dharmx/walls.git"
 TARGET_DIR="$WALLPAPERS_DIR/walls"
+CACHE_DIR="$HOME/.cache/omarchy-aether"
+AETHER_DIR="$HOME/.config/omarchy/themes/aether"
+STATE_THEME_DIR="$HOME/.local/state/omarchy/current"
 FORCE=false
 DO_WARM=true
+INIT_ONLY=false
 
 for arg in "$@"; do
     case "$arg" in
         --force) FORCE=true ;;
         --no-warm) DO_WARM=false ;;
+        --init) INIT_ONLY=true ;;
     esac
 done
 
@@ -25,9 +30,15 @@ echo "       🖼️  Omarchy Wallpaper Collection Sync          "
 echo "======================================================="
 echo "Target directory: $TARGET_DIR"
 
+newly_indexed=false
+
 if [ -d "$TARGET_DIR/.git" ] && [ "$FORCE" = false ]; then
-    echo "--> Existing git repository detected. Fetching latest updates..."
-    git -C "$TARGET_DIR" pull --depth 1 || true
+    if [ "$INIT_ONLY" = false ]; then
+        echo "--> Existing git repository detected. Fetching latest updates..."
+        git -C "$TARGET_DIR" pull --depth 1 || true
+    else
+        echo "--> Existing wallpaper repository detected; skipping git pull (--init)."
+    fi
 elif [ -d "$TARGET_DIR" ] && [ "$FORCE" = false ]; then
     echo "--> Wallpaper directory already exists ($TARGET_DIR)."
     echo "    To re-clone from GitHub, pass --force."
@@ -42,19 +53,36 @@ else
         echo "    Notice: $WALLS_REPO was unreachable. Falling back to upstream $FALLBACK_REPO..."
         git clone --depth 1 --no-tags "$FALLBACK_REPO" "$TARGET_DIR"
     fi
+    newly_indexed=true
 fi
 
 if command -v omarchy-aether &>/dev/null && [ -d "$TARGET_DIR" ]; then
-    echo "--> Indexing wallpaper collection for omarchy-aether..."
-    omarchy-aether index "$TARGET_DIR" --json || true
+    if [ "$INIT_ONLY" = false ] || [ ! -f "$CACHE_DIR/catalog.json" ] || [ ! -f "$CACHE_DIR/ready.json" ]; then
+        echo "--> Indexing wallpaper collection for omarchy-aether..."
+        omarchy-aether index "$TARGET_DIR" --json || true
+        newly_indexed=true
 
-    if omarchy-aether prepare --help &>/dev/null; then
-        echo "--> Preparing Aether wallpaper carousel (35 candidates)..."
-        omarchy-aether prepare --count 35 --preload --json 2>/dev/null || \
-            omarchy-aether prepare --count 35 --json || true
+        if omarchy-aether prepare --help &>/dev/null; then
+            echo "--> Preparing Aether wallpaper carousel (35 candidates)..."
+            omarchy-aether prepare --count 35 --preload --json 2>/dev/null || \
+                omarchy-aether prepare --count 35 --json || true
+        fi
     fi
 
-    if [ ! -f "$HOME/.config/omarchy/themes/aether/colors.toml" ] || [ ! -f "$HOME/.config/omarchy/themes/aether/preview.png" ]; then
+    needs_stage=false
+    if [ ! -f "$AETHER_DIR/colors.toml" ] || [ ! -f "$AETHER_DIR/preview.png" ] || [ ! -f "$AETHER_DIR/.omarchy-aether.json" ]; then
+        needs_stage=true
+    elif ! omarchy-aether check "$AETHER_DIR/colors.toml" &>/dev/null; then
+        needs_stage=true
+    fi
+
+    if [ "$needs_stage" = true ]; then
+        if [ -L "$AETHER_DIR" ] || { [ -e "$AETHER_DIR" ] && [ ! -f "$AETHER_DIR/.omarchy-aether.json" ]; }; then
+            backup_path="${AETHER_DIR}.legacy.$(date +%Y%m%d_%H%M%S)"
+            echo "--> Backing up unmanaged Aether theme to $(basename "$backup_path")..."
+            mv "$AETHER_DIR" "$backup_path"
+        fi
+
         SEED_IMG="$TARGET_DIR/aerial/a_aerial_view_of_a_snowy_mountain_range.jpg"
         if [ ! -f "$SEED_IMG" ]; then
             SEED_IMG="$(find "$TARGET_DIR" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | head -n 1)"
@@ -65,7 +93,17 @@ if command -v omarchy-aether &>/dev/null && [ -d "$TARGET_DIR" ]; then
         fi
     fi
 
-    if [ "$DO_WARM" = true ]; then
+    if command -v omarchy &>/dev/null && \
+       [ "$(cat "$STATE_THEME_DIR/theme.name" 2>/dev/null || true)" = "aether" ] && \
+       [ -f "$AETHER_DIR/colors.toml" ]; then
+        if [ ! -f "$STATE_THEME_DIR/theme/colors.toml" ] || \
+           ! cmp -s "$AETHER_DIR/colors.toml" "$STATE_THEME_DIR/theme/colors.toml"; then
+            echo "--> Active theme is Aether with stale palette; reloading..."
+            omarchy theme set aether || true
+        fi
+    fi
+
+    if [ "$DO_WARM" = true ] && { [ "$INIT_ONLY" = false ] || [ "$newly_indexed" = true ] || [ -z "$(ls -A "$CACHE_DIR/thumbnails" 2>/dev/null)" ]; }; then
         echo "--> Warming Aether thumbnail cache in background (Nice=19)..."
         if command -v systemd-run &>/dev/null && systemctl --user status &>/dev/null; then
             if systemctl --user is-active --quiet omarchy-aether-warm.service 2>/dev/null; then

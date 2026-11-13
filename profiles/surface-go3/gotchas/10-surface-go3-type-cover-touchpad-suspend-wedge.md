@@ -30,21 +30,40 @@ The Microsoft Surface Type Cover (`045e:09b5`) exposes separate USB HID interfac
 
 `/sys/bus/usb/devices/1-7/quirks` is `0x0` (no USB reset-resume quirk configured), and no `systemd-sleep` post-resume rebind hook is currently installed.
 
-*(Note: Permanent prevention via a `usbcore` quirk or `systemd-sleep` hook is intentionally not yet applied; only the immediate recovery workaround is documented below.)*
+*(Note: This is a **temporary** workaround until the underlying kernel/driver suspend-resume issue is fixed.)*
 
 ## Solution & Fix
 
-**Immediate live recovery (without detaching the Type Cover or rebooting):**
+### 1. Temporary Automatic Wake Recovery (Active)
+
+Installed a local systemd resume unit ([surface-go3-touchpad-resume.service](file:///etc/systemd/system/surface-go3-touchpad-resume.service)) and helper script ([surface-go3-touchpad-recover](file:///usr/local/bin/surface-go3-touchpad-recover)) outside `~/dotfiles` (since it is temporary):
+
+- **Trigger**: `WantedBy` / `After` `suspend.target`, `hibernate.target`, `hybrid-sleep.target`, and `suspend-then-hibernate.target`.
+- **Action**:
+  1. Dynamically locates USB devices matching `045e:09b5` and `bInterfaceNumber == 03` (e.g. `1-7:1.3`).
+  2. Stops `edgepad.service` for any active user sessions running it so `/dev/input/event*` is cleanly released.
+  3. Unbinds and rebinds that interface on `/sys/bus/usb/drivers/usbhid` (with a `0.5s` delay) and runs `udevadm settle --timeout=5`.
+  4. Restarts `edgepad.service` for those user sessions.
+
+**Removal once kernel/driver is fixed:**
+
+```bash
+sudo systemctl disable --now surface-go3-touchpad-resume.service
+sudo rm -f /etc/systemd/system/surface-go3-touchpad-resume.service /usr/local/bin/surface-go3-touchpad-recover
+sudo systemctl daemon-reload
+```
+
+### 2. Manual Live Recovery
 
 Stop `edgepad.service` so `/dev/input/event7` is released, unbind and rebind USB HID interface `1-7:1.3` via `usbhid`, wait for udev (`70-edgepad.rules` `uaccess` ACLs), and restart `edgepad.service`:
 
 ```bash
+sudo /usr/local/bin/surface-go3-touchpad-recover
+# or manually:
 systemctl --user stop edgepad.service && \
 pkexec bash -c 'echo -n "1-7:1.3" > /sys/bus/usb/drivers/usbhid/unbind && sleep 0.5 && echo -n "1-7:1.3" > /sys/bus/usb/drivers/usbhid/bind && udevadm settle --timeout=5' && \
 systemctl --user start edgepad.service
 ```
-
-*(Note: If the Type Cover was re-enumerated on a different USB bus/port path, verify the interface ID under `/sys/bus/usb/drivers/usbhid/` or `udevadm info /dev/input/event*` first.)*
 
 ## Verification
 

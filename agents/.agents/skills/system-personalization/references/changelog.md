@@ -2,6 +2,17 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.30.0] - 2026-11-12
+### Added
+- **Temporary Surface Go 3 Type Cover Touchpad Wake Recovery (`surface-go3-touchpad-resume.service`)**:
+  - After a second `s2idle` suspend/resume occurrence (`19:54:13`, same `hid-multitouch 0003:045E:09B5.000A: usb_submit_urb(ctrl) failed: -1` / `usbhid 1-7:1.3: suspend error -5`), installed a temporary local-only systemd wake recovery unit (`/etc/systemd/system/surface-go3-touchpad-resume.service`) and script (`/usr/local/bin/surface-go3-touchpad-recover`).
+  - On resume from `suspend.target`, `hibernate.target`, `hybrid-sleep.target`, and `suspend-then-hibernate.target`, the helper dynamically locates `045e:09b5` interface `03`, stops `edgepad.service` for active user sessions, unbinds/rebinds the interface on `usbhid`, runs `udevadm settle`, and restarts `edgepad.service`.
+  - Kept out of `~/dotfiles` deployment scripts as a temporary measure until the underlying kernel/driver issue is resolved; updated `profiles/surface-go3/gotchas/10-surface-go3-type-cover-touchpad-suspend-wedge.md` with exact removal steps.
+
+### Verification
+- `systemctl is-enabled surface-go3-touchpad-resume.service`: `enabled` across all four sleep targets.
+- Executed `/usr/local/bin/surface-go3-touchpad-recover` live: kernel re-probed `hid-multitouch 0003:045E:09B5.000B` and `edgepad virtual touchpad`, `edgepad doctor` passed (`ok=15 warn=0 fail=0`, `result: ready`), and `edgepad.service` returned `active`.
+
 ## [2.29.0] - 2026-11-12
 ### Changed
 - **Automatic Aether Upgrade, Live Reload & First-Boot Wallpaper Sync (`install.sh`, `core/.local/bin/omarchy-sync-wallpapers`)**:

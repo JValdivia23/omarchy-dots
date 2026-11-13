@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Lichess
+GenericName=Chess Game
+Comment=Free and open-source chess platform
+Exec=lichess
+Icon=lichess
+Terminal=false
+Categories=Game;BoardGame;
+Keywords=chess;lichess;board;
+StartupNotify=true
+StartupWMClass=lichess_mobile

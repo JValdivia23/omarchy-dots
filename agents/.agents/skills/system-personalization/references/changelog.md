@@ -2,6 +2,31 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.28.0] - 2026-11-12
+### Added
+- **`surface-go3` Device Profile (`profiles/surface-go3/`)**:
+  - Added Microsoft Surface Go 3 profile (`monitors.lua` `1920x1280@60` at scale `1.6` with `GDK_SCALE=2`, `input.lua`, `bindings-profile.lua`, `surface-rotate` at scale `1.6`, `foot.ini`, `jmvp.power`, `packages.txt` without `linux-surface` / `iptsd` / `surface-dtx-daemon-bin`, `setup.sh`, wallpapers, and Surface Go 3 gotchas).
+
+### Changed
+- **Single-Prompt Installer & Aether/`walls` Core Sync (`install.sh`, `core/.local/bin/omarchy-sync-wallpapers`)**:
+  - Updated `install.sh` to auto-detect `surface-go3`, authenticate at most once per run (`ensure_privilege_session` / `run_elevated` via `sudo -v` keepalive or single `pkexec` worker), batch repo/AUR packages, build/install `JValdivia23/omarchy-aether` if absent, integrate `omarchy-aether` into `~/.config/omarchy/extensions/omarchy-menu.jsonc`, and stage `~/.config/omarchy/themes/aether/` if missing.
+  - Updated `core/.local/bin/omarchy-sync-wallpapers` to sync `JValdivia23/walls` into `~/Pictures/Wallpapers/walls`, run `omarchy-aether index` and `prepare --count 35 --preload`, stage Aether when missing, and warm thumbnails in the background (`Nice=19`).
+
+### Verification
+- `bash -n install.sh core/.local/bin/omarchy-sync-wallpapers` and `./install.sh --dry-run </dev/null` passed cleanly.
+- `omarchy-sync-wallpapers --no-warm` verified 1,642 indexed wallpapers and 36 prepared carousel entries.
+- `omarchy-theme-switcher --print-rows | grep -i aether` listed Aether's preview row, and `hyprctl configerrors` reported 0 errors.
+
+## [2.27.0] - 2026-11-12
+### Added
+- **Surface Go 3 Type Cover Touchpad Suspend/Resume Gotcha (`profiles/surface-go3/gotchas/10-surface-go3-type-cover-touchpad-suspend-wedge.md`)**:
+  - Documented the observed `s2idle` suspend/resume failure where the Surface Type Cover touchpad (`045e:09b5`, USB interface `1-7:1.3`) stops sending events after `hid-multitouch 0003:045E:09B5.0004: usb_submit_urb(ctrl) failed: -1` and `usbhid 1-7:1.3: suspend error -5`, while the keyboard interfaces (`1-7:1.0`/`1-7:1.1`) keep working and Hyprland cursor auto-hide keeps the pointer hidden.
+  - Indexed the profile-specific gotcha in `references/gotchas/INDEX.md` and symlinked it into `~/.agents/skills/system-personalization/references/gotchas/`.
+  - Recorded the verified live recovery workaround (stop `edgepad.service`, unbind/rebind `1-7:1.3` via `usbhid`, run `udevadm settle`, restart `edgepad.service`). No permanent kernel quirk or sleep hook was applied yet per user request.
+
+### Verification
+- Immediate recovery executed and verified live: kernel re-probed `hid-multitouch 0003:045E:09B5.000A` (`Microsoft Surface Keyboard Touchpad`) and `edgepad virtual touchpad`, `edgepad doctor` passed (`ok=15 warn=0 fail=0`, `result: ready`), `hyprctl devices` listed both touchpad devices, and user confirmed the trackpad worked again.
+
 ## [2.26.0] - 2026-11-11
 ### Added
 - **Dedicated Native SSH Repair Access to the CachyOS Laptop (Device-Specific)**:

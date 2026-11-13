@@ -134,8 +134,10 @@ else
         DETECTED+=("xps")
     fi
 
-    # Check for Surface
-    if [[ "${SYS_PRODUCT_NAME,,}" =~ surface ]] || [[ "${SYS_VENDOR,,}" =~ microsoft && "${SYS_PRODUCT_NAME,,}" =~ surface ]] || [[ "${KERNEL_RELEASE,,}" =~ surface ]]; then
+    # Check for Surface Go 3 vs general Surface
+    if [[ "${SYS_PRODUCT_NAME,,}" =~ surface\ go\ 3 ]]; then
+        DETECTED+=("surface-go3")
+    elif [[ "${SYS_PRODUCT_NAME,,}" =~ surface ]] || [[ "${SYS_VENDOR,,}" =~ microsoft && "${SYS_PRODUCT_NAME,,}" =~ surface ]] || [[ "${KERNEL_RELEASE,,}" =~ surface ]]; then
         DETECTED+=("surface")
     fi
 
@@ -175,6 +177,187 @@ echo ""
 
 # --- Helper Functions ---
 backup_needed=false
+ELEVATE_MODE=""
+ELEVATE_DIR=""
+SUDO_KEEPALIVE_PID=""
+ELEVATE_WORKER_PID=""
+
+cleanup_privilege_session() {
+    if [ -n "$SUDO_KEEPALIVE_PID" ]; then
+        kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
+        SUDO_KEEPALIVE_PID=""
+    fi
+    if [ -n "$ELEVATE_DIR" ] && [ -d "$ELEVATE_DIR" ]; then
+        local wstate=""
+        if [ -n "$ELEVATE_WORKER_PID" ] && [ -r "/proc/$ELEVATE_WORKER_PID/stat" ]; then
+            wstate=$(awk '{print $3}' "/proc/$ELEVATE_WORKER_PID/stat" 2>/dev/null || true)
+        fi
+        if [ -p "$ELEVATE_DIR/req.fifo" ] && [ -n "$wstate" ] && [ "$wstate" != "Z" ]; then
+            printf 'EXIT\n' > "$ELEVATE_DIR/req.fifo" 2>/dev/null || true
+            wait "$ELEVATE_WORKER_PID" 2>/dev/null || true
+        fi
+        rm -rf "$ELEVATE_DIR"
+        ELEVATE_DIR=""
+    fi
+}
+trap cleanup_privilege_session EXIT INT TERM
+
+# Authenticate at most once per installer run (sudo keepalive in TTY, single pkexec worker otherwise)
+ensure_privilege_session() {
+    if [ -n "$ELEVATE_MODE" ]; then
+        [ "$ELEVATE_MODE" != "none" ]
+        return $?
+    fi
+
+    if (( EUID == 0 )); then
+        ELEVATE_MODE="root"
+        return 0
+    fi
+
+    if [ -t 0 ] || sudo -n true 2>/dev/null; then
+        if sudo -v; then
+            (
+                while kill -0 $$ 2>/dev/null; do
+                    sudo -n true 2>/dev/null || exit 0
+                    sleep 50
+                done
+            ) &
+            SUDO_KEEPALIVE_PID=$!
+            ELEVATE_MODE="sudo"
+            return 0
+        fi
+        ELEVATE_MODE="none"
+        return 1
+    fi
+
+    if command -v pkexec &>/dev/null; then
+        ELEVATE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/omarchy-elevate.XXXXXX")"
+        chmod 700 "$ELEVATE_DIR"
+        mkdir -p "$ELEVATE_DIR/bin"
+        mkfifo -m 600 "$ELEVATE_DIR/req.fifo" "$ELEVATE_DIR/ack.fifo" "$ELEVATE_DIR/out.fifo" "$ELEVATE_DIR/err.fifo"
+        : > "$ELEVATE_DIR/lock"
+
+        cat > "$ELEVATE_DIR/worker.sh" <<'EOF'
+#!/usr/bin/env bash
+set -u
+DIR="$1"
+exec 3<>"$DIR/req.fifo"
+touch "$DIR/ready"
+while IFS= read -r cmd <&3; do
+    case "$cmd" in
+        EXIT)
+            break
+            ;;
+        RUN)
+            mapfile -d '' -t args < "$DIR/argv.dat"
+            cwd="${args[0]:-/}"
+            if [ "${#args[@]}" -gt 1 ]; then
+                (
+                    cd "$cwd" 2>/dev/null || cd /
+                    "${args[@]:1}"
+                ) < "$DIR/stdin.dat" > "$DIR/out.fifo" 2> "$DIR/err.fifo"
+                rc=$?
+            else
+                : > "$DIR/out.fifo"
+                : > "$DIR/err.fifo"
+                rc=0
+            fi
+            printf '%s\n' "$rc" > "$DIR/ack.fifo"
+            ;;
+    esac
+done
+EOF
+        chmod 700 "$ELEVATE_DIR/worker.sh"
+
+        cat > "$ELEVATE_DIR/bin/sudo" <<EOF
+#!/usr/bin/env bash
+set -u
+DIR="$ELEVATE_DIR"
+validate=false
+while [[ \$# -gt 0 ]]; do
+    case "\$1" in
+        -v) validate=true; shift ;;
+        -n|-E|-H|-S|-i|-s|-b|-A|-P|-k|-K) shift ;;
+        -u|-g|-p|-C|-T|-D|-r|-t) shift 2 ;;
+        --) shift; break ;;
+        -*) shift ;;
+        *) break ;;
+    esac
+done
+if [ "\$validate" = true ] && [ \$# -eq 0 ]; then
+    exit 0
+fi
+if [ \$# -eq 0 ]; then
+    exit 0
+fi
+exec 9<>"\$DIR/lock"
+flock 9
+if [ -t 0 ]; then
+    : > "\$DIR/stdin.dat"
+else
+    cat > "\$DIR/stdin.dat"
+fi
+printf '%s\0' "\$PWD" "\$@" > "\$DIR/argv.dat"
+cat "\$DIR/out.fifo" &
+out_pid=\$!
+cat "\$DIR/err.fifo" >&2 &
+err_pid=\$!
+printf 'RUN\n' > "\$DIR/req.fifo"
+IFS= read -r rc < "\$DIR/ack.fifo" || rc=1
+wait "\$out_pid" "\$err_pid" 2>/dev/null || true
+exit "\${rc:-1}"
+EOF
+        chmod 700 "$ELEVATE_DIR/bin/sudo"
+
+        pkexec bash "$ELEVATE_DIR/worker.sh" "$ELEVATE_DIR" </dev/null >/dev/null 2>"$ELEVATE_DIR/worker.err" &
+        ELEVATE_WORKER_PID=$!
+
+        while true; do
+            if [ -f "$ELEVATE_DIR/ready" ]; then
+                export PATH="$ELEVATE_DIR/bin:$PATH"
+                ELEVATE_MODE="pkexec_worker"
+                return 0
+            fi
+            local wstate=""
+            if [ -r "/proc/$ELEVATE_WORKER_PID/stat" ]; then
+                wstate=$(awk '{print $3}' "/proc/$ELEVATE_WORKER_PID/stat" 2>/dev/null || true)
+            fi
+            if [ -z "$wstate" ] || [ "$wstate" = "Z" ]; then
+                break
+            fi
+            sleep 0.1
+        done
+
+        if [ -f "$ELEVATE_DIR/ready" ]; then
+            export PATH="$ELEVATE_DIR/bin:$PATH"
+            ELEVATE_MODE="pkexec_worker"
+            return 0
+        fi
+
+        echo "    Error: Privilege elevation cancelled or failed." >&2
+        if [ -s "$ELEVATE_DIR/worker.err" ]; then
+            cat "$ELEVATE_DIR/worker.err" >&2
+        fi
+        wait "$ELEVATE_WORKER_PID" 2>/dev/null || true
+        rm -rf "$ELEVATE_DIR"
+        ELEVATE_DIR=""
+        ELEVATE_WORKER_PID=""
+        ELEVATE_MODE="none"
+        return 1
+    fi
+
+    ELEVATE_MODE="none"
+    return 1
+}
+
+run_elevated() {
+    ensure_privilege_session || return 1
+    if [ "$ELEVATE_MODE" = "root" ]; then
+        "$@"
+    else
+        sudo "$@"
+    fi
+}
 
 # Non-destructive backup handler for conflicting paths
 check_and_backup_path() {
@@ -275,80 +458,141 @@ scan_and_backup_package_conflicts() {
     done < <(find "$pkg_dir" -mindepth 1 \( -type f -o -type l \) -print0)
 }
 
-# Helper to install package lists with omarchy or pacman/yay
-install_packages_list() {
-    local pkg_file="$1"
-    [ ! -f "$pkg_file" ] && return 0
-
-    local pkgs=()
-    while IFS= read -r line || [ -n "$line" ]; do
-        line=$(echo "$line" | sed 's/#.*//' | xargs)
-        [ -z "$line" ] && continue
-        pkgs+=("$line")
-    done < "$pkg_file"
-
-    [ ${#pkgs[@]} -eq 0 ] && return 0
-
-    local rel_path="${pkg_file#$DOTFILES_DIR/}"
-    echo "--> Checking packages from $rel_path (${#pkgs[@]} items)..."
-
+# Collect missing repo and AUR packages across one or more package files, then install in one batch
+install_packages_from_files() {
     local missing_repo_pkgs=()
     local missing_aur_pkgs=()
+    local -A seen_pkgs=()
 
-    for pkg in "${pkgs[@]}"; do
-        if pacman -Q "$pkg" &>/dev/null; then
-            continue
-        fi
-        if pacman -Si "$pkg" &>/dev/null; then
-            missing_repo_pkgs+=("$pkg")
-        else
-            missing_aur_pkgs+=("$pkg")
+    for pkg_file in "$@"; do
+        [ ! -f "$pkg_file" ] && continue
+
+        local pkgs=()
+        while IFS= read -r line || [ -n "$line" ]; do
+            line=$(echo "$line" | sed 's/#.*//' | xargs)
+            [ -z "$line" ] && continue
+            pkgs+=("$line")
+        done < "$pkg_file"
+
+        [ ${#pkgs[@]} -eq 0 ] && continue
+
+        local rel_path="${pkg_file#$DOTFILES_DIR/}"
+        echo "--> Checking packages from $rel_path (${#pkgs[@]} items)..."
+
+        local file_missing=0
+        for pkg in "${pkgs[@]}"; do
+            if [ -n "${seen_pkgs[$pkg]:-}" ]; then
+                continue
+            fi
+            seen_pkgs["$pkg"]=1
+
+            if pacman -Q "$pkg" &>/dev/null; then
+                continue
+            fi
+            file_missing=$((file_missing + 1))
+            if pacman -Si "$pkg" &>/dev/null; then
+                missing_repo_pkgs+=("$pkg")
+            else
+                missing_aur_pkgs+=("$pkg")
+            fi
+        done
+
+        if [ "$file_missing" -eq 0 ]; then
+            echo "    All packages from $rel_path are already installed."
         fi
     done
 
     if [ ${#missing_repo_pkgs[@]} -eq 0 ] && [ ${#missing_aur_pkgs[@]} -eq 0 ]; then
-        echo "    All packages from $rel_path are already installed."
         return 0
     fi
 
-    # 1. Install missing official repository packages
+    if [ "$DRY_RUN" = false ]; then
+        ensure_privilege_session || {
+            echo "    Warning: Skipping privileged package installation (authentication unavailable)." >&2
+            return 0
+        }
+    fi
+
+    # 1. Install missing official repository packages in one batch
     if [ ${#missing_repo_pkgs[@]} -gt 0 ]; then
         echo "    Installing repository packages: ${missing_repo_pkgs[*]}..."
         if [ "$DRY_RUN" = true ]; then
             echo "    [dry-run] Would install via pacman/omarchy: ${missing_repo_pkgs[*]}"
+        elif [ "$ELEVATE_MODE" = "root" ]; then
+            pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
+        elif command -v omarchy &>/dev/null; then
+            omarchy pkg add "${missing_repo_pkgs[@]}" || run_elevated pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
         else
-            if (( EUID == 0 )); then
-                pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
-            elif [ -t 0 ] || sudo -n true 2>/dev/null; then
-                if command -v omarchy &>/dev/null; then
-                    omarchy pkg add "${missing_repo_pkgs[@]}" || sudo pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
-                else
-                    sudo pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
-                fi
-            elif command -v pkexec &>/dev/null; then
-                pkexec pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
-            fi
+            run_elevated pacman -S --needed --noconfirm "${missing_repo_pkgs[@]}" || true
         fi
     fi
 
-    # 2. Install missing AUR packages
+    # 2. Install missing AUR packages in one batch
     if [ ${#missing_aur_pkgs[@]} -gt 0 ]; then
         echo "    Installing AUR packages: ${missing_aur_pkgs[*]}..."
         if [ "$DRY_RUN" = true ]; then
             echo "    [dry-run] Would install via AUR (omarchy pkg aur add / yay): ${missing_aur_pkgs[*]}"
+        elif command -v omarchy &>/dev/null; then
+            omarchy pkg aur add "${missing_aur_pkgs[@]}" || true
+        elif command -v yay &>/dev/null; then
+            yay -S --needed --noconfirm "${missing_aur_pkgs[@]}" || true
         else
-            if [ -t 0 ] || sudo -n true 2>/dev/null; then
-                if command -v omarchy &>/dev/null; then
-                    omarchy pkg aur add "${missing_aur_pkgs[@]}" || true
-                elif command -v yay &>/dev/null; then
-                    yay -S --needed --noconfirm "${missing_aur_pkgs[@]}" || true
-                fi
-            elif command -v yay &>/dev/null && command -v pkexec &>/dev/null; then
-                yay --sudo pkexec -S --needed --noconfirm "${missing_aur_pkgs[@]}" || true
-            else
-                echo "    Warning: Neither omarchy nor yay found to install AUR packages: ${missing_aur_pkgs[*]}" >&2
-            fi
+            echo "    Warning: Neither omarchy nor yay found to install AUR packages: ${missing_aur_pkgs[*]}" >&2
         fi
+    fi
+}
+
+install_omarchy_aether() {
+    if command -v omarchy-aether &>/dev/null; then
+        return 0
+    fi
+
+    local repo_url="${OMARCHY_AETHER_REPO:-https://github.com/JValdivia23/omarchy-aether.git}"
+    local project_dir="${OMARCHY_AETHER_DIR:-$HOME/Projects/omarchy-aether}"
+
+    echo "--> Installing omarchy-aether from $repo_url..."
+    if [ "$DRY_RUN" = true ]; then
+        echo "    [dry-run] Would clone/build $repo_url in $project_dir and install package"
+        return 0
+    fi
+
+    if [ ! -d "$project_dir/.git" ]; then
+        mkdir -p "$(dirname "$project_dir")"
+        git clone --depth 1 "$repo_url" "$project_dir" || {
+            echo "    Warning: Could not clone $repo_url" >&2
+            return 1
+        }
+    fi
+
+    if [ ! -f "$project_dir/pkgbuild/PKGBUILD" ]; then
+        echo "    Warning: PKGBUILD not found in $project_dir/pkgbuild" >&2
+        return 1
+    fi
+
+    local deps=(qt6-base qt6-declarative qt6-wayland xdg-desktop-portal matugen libvips gcc make)
+    local missing_deps=()
+    local dep
+    for dep in "${deps[@]}"; do
+        if ! pacman -Qi "$dep" &>/dev/null; then
+            missing_deps+=("$dep")
+        fi
+    done
+    if [ "${#missing_deps[@]}" -gt 0 ]; then
+        run_elevated pacman -S --needed --noconfirm "${missing_deps[@]}" || return 1
+    fi
+
+    (
+        cd "$project_dir/pkgbuild" || exit 1
+        makepkg -f --noconfirm
+    ) || return 1
+
+    local pkgfile
+    pkgfile=$(find "$project_dir/pkgbuild" -maxdepth 1 -type f -name 'omarchy-aether-*.pkg.tar.*' ! -name '*-debug-*' | sort -V | tail -n 1)
+    if [ -n "$pkgfile" ]; then
+        run_elevated pacman -U --noconfirm "$pkgfile"
+    else
+        echo "    Warning: Built omarchy-aether package archive not found" >&2
+        return 1
     fi
 }
 
@@ -364,21 +608,22 @@ if [ "$DO_PACKAGES" = true ]; then
             if [ "$DRY_RUN" = true ]; then
                 echo "    [dry-run] Would execute: bash $PRE_INSTALL"
             else
+                ensure_privilege_session || true
                 chmod +x "$PRE_INSTALL"
                 bash "$PRE_INSTALL"
             fi
         fi
     done
 
-    # 1. Core universal packages
-    install_packages_list "$DOTFILES_DIR/core/packages.txt"
-
-    # 2. Profile-specific packages
+    # 1. Core + profile packages installed in unified repo/AUR batches
+    PKG_FILES=("$DOTFILES_DIR/core/packages.txt")
     for p in "${STOWABLE_PROFILES[@]}"; do
         if [ -f "$DOTFILES_DIR/profiles/$p/packages.txt" ]; then
-            install_packages_list "$DOTFILES_DIR/profiles/$p/packages.txt"
+            PKG_FILES+=("$DOTFILES_DIR/profiles/$p/packages.txt")
         fi
     done
+    install_packages_from_files "${PKG_FILES[@]}"
+    install_omarchy_aether || true
     echo ""
 else
     echo "==> [2/4] Skipping package synchronization (--only-stow specified)."
@@ -439,13 +684,10 @@ if [ "$DO_STOW" = true ]; then
         if [ "$DRY_RUN" = false ]; then
             echo "    Notice: GNU Stow is not currently installed. Attempting installation via omarchy/pacman..."
             if command -v omarchy &>/dev/null; then
+                ensure_privilege_session || true
                 omarchy pkg add stow || true
             elif command -v pacman &>/dev/null; then
-                if (( EUID == 0 )); then
-                    pacman -S --needed --noconfirm stow || true
-                else
-                    sudo pacman -S --needed --noconfirm stow || true
-                fi
+                run_elevated pacman -S --needed --noconfirm stow || true
             fi
             if command -v stow &>/dev/null; then
                 HAS_STOW=true
@@ -586,6 +828,9 @@ if [ "$DO_SETUP" = true ]; then
             if [ "$DRY_RUN" = true ]; then
                 echo "    [dry-run] Would execute: bash $SETUP_SCRIPT"
             else
+                if grep -qE '\bsudo\b' "$SETUP_SCRIPT" 2>/dev/null; then
+                    ensure_privilege_session || true
+                fi
                 chmod +x "$SETUP_SCRIPT"
                 bash "$SETUP_SCRIPT"
             fi
@@ -648,12 +893,8 @@ SUBSYSTEM=="misc", KERNEL=="uinput", TAG+="uaccess", OPTIONS+="static_node=uinpu
         EDGEPAD_CMD="printf '%s\n' '$EDGEPAD_RULE_CONTENT' > '$EDGEPAD_UDEV_RULE' && modprobe uinput && echo 'uinput' > /etc/modules-load.d/uinput.conf && udevadm control --reload && udevadm trigger --subsystem-match=input --action=change && udevadm trigger --subsystem-match=misc --action=change"
         if [ "$DRY_RUN" = true ]; then
             echo "    [dry-run] Would install $EDGEPAD_UDEV_RULE, load uinput, and reload udev"
-        elif (( EUID == 0 )); then
-            bash -c "$EDGEPAD_CMD" || true
-        elif [ -t 0 ] || sudo -n true 2>/dev/null; then
-            sudo bash -c "$EDGEPAD_CMD" || true
-        elif command -v pkexec &>/dev/null; then
-            pkexec bash -c "$EDGEPAD_CMD" || true
+        else
+            run_elevated bash -c "$EDGEPAD_CMD" || true
         fi
     fi
 
@@ -702,9 +943,18 @@ EOF
         fi
     fi
     # 7. Check wallpaper library
-    if [ ! -d "$HOME/Pictures/Wallpapers/dharmx-walls" ]; then
-        echo "--> Wallpaper collection not detected in ~/Pictures/Wallpapers/dharmx-walls."
-        echo "    Run 'omarchy-sync-wallpapers' anytime to fetch 1500+ wallpapers from GitHub."
+    WALLS_DIR="$HOME/Pictures/Wallpapers/walls"
+    if [ ! -d "$WALLS_DIR" ]; then
+        echo "--> Wallpaper collection not detected in ~/Pictures/Wallpapers/walls."
+        echo "    Run 'omarchy-sync-wallpapers' anytime to fetch and index JValdivia23/walls."
+    elif command -v omarchy-aether &>/dev/null && [ ! -f "$HOME/.cache/omarchy-aether/catalog.json" ]; then
+        echo "--> Indexing existing wallpaper library for omarchy-aether..."
+        if [ "$DRY_RUN" = false ]; then
+            omarchy-aether index "$WALLS_DIR" --json >/dev/null || true
+            omarchy-aether prepare --count 35 --json >/dev/null || true
+        else
+            echo "    [dry-run] omarchy-aether index $WALLS_DIR --json && omarchy-aether prepare --count 35 --json"
+        fi
     fi
 
     # 8. Reload Hyprland if active
@@ -717,7 +967,45 @@ EOF
         fi
     fi
 
-    # 9. Ensure Aether dynamic theme is seeded if active profile includes it
+    # 9. Ensure Aether menu integration & theme staging
+    if command -v omarchy-aether &>/dev/null; then
+        if [ -f "$HOME/.config/omarchy-aether/menu.json" ] && \
+           { [ ! -f "$HOME/.config/omarchy/extensions/omarchy-menu.jsonc" ] || ! grep -q "omarchy-aether background" "$HOME/.config/omarchy/extensions/omarchy-menu.jsonc" 2>/dev/null; }; then
+            echo "--> Integrating omarchy-aether into Omarchy background menu..."
+            if [ "$DRY_RUN" = false ]; then
+                omarchy-aether integrate --yes --json >/dev/null || true
+            else
+                echo "    [dry-run] omarchy-aether integrate --yes --json"
+            fi
+        fi
+
+        aether_user_dir="$HOME/.config/omarchy/themes/aether"
+        if [ ! -f "$aether_user_dir/colors.toml" ] || [ ! -f "$aether_user_dir/preview.png" ]; then
+            aether_seed_img="$WALLS_DIR/aerial/a_aerial_view_of_a_snowy_mountain_range.jpg"
+            if [ ! -f "$aether_seed_img" ] && [ -d "$WALLS_DIR" ]; then
+                aether_seed_img="$(find "$WALLS_DIR" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | head -n 1)"
+            fi
+            if [ -z "$aether_seed_img" ] || [ ! -f "$aether_seed_img" ]; then
+                for p in "${STOWABLE_PROFILES[@]}"; do
+                    aether_profile_walls="$DOTFILES_DIR/profiles/$p/Pictures/Wallpapers"
+                    if [ -d "$aether_profile_walls" ]; then
+                        aether_seed_img="$(find "$aether_profile_walls" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | head -n 1)"
+                        [ -n "$aether_seed_img" ] && break
+                    fi
+                done
+            fi
+            if [ -n "$aether_seed_img" ] && [ -f "$aether_seed_img" ]; then
+                echo "--> Staging Aether theme from $(basename "$aether_seed_img")..."
+                if [ "$DRY_RUN" = false ]; then
+                    omarchy-aether apply --image "$aether_seed_img" --stage-only --json >/dev/null || true
+                else
+                    echo "    [dry-run] omarchy-aether apply --image $aether_seed_img --stage-only --json"
+                fi
+            fi
+        fi
+    fi
+
+    # Legacy colors.toml.seed fallback (for profiles without omarchy-aether)
     for p in "${STOWABLE_PROFILES[@]}"; do
         aether_seed="$DOTFILES_DIR/profiles/$p/.config/omarchy/themes/aether/colors.toml.seed"
         if [ -f "$aether_seed" ]; then
@@ -732,6 +1020,21 @@ EOF
                     cp "$aether_seed" "$aether_user_dir/colors.toml"
                 else
                     echo "    [dry-run] cp $aether_seed $aether_user_dir/colors.toml"
+                fi
+            fi
+
+            aether_bg_dir="$aether_user_dir/backgrounds"
+            aether_profile_walls="$DOTFILES_DIR/profiles/$p/Pictures/Wallpapers"
+            if [ -d "$aether_profile_walls" ] && [ -z "$(find -L "$aether_bg_dir" -maxdepth 1 -type f 2>/dev/null | head -n 1)" ]; then
+                echo "--> Linking default backgrounds for aether theme selector..."
+                if [ "$DRY_RUN" = false ]; then
+                    mkdir -p "$aether_bg_dir"
+                    for wall in "$aether_profile_walls"/*; do
+                        [ -f "$wall" ] || continue
+                        ln -sf "$wall" "$aether_bg_dir/$(basename "$wall")"
+                    done
+                else
+                    echo "    [dry-run] ln -sf $aether_profile_walls/* $aether_bg_dir/"
                 fi
             fi
         fi
@@ -763,11 +1066,11 @@ echo "Next Steps:"
 echo "  1. Validate Hyprland Lua configuration:"
 echo "     hyprctl configerrors"
 echo "     hyprctl reload"
-if [[ "$ACTIVE_PROFILES" =~ surface ]]; then
+if [[ "$ACTIVE_PROFILES" =~ surface ]] && [[ ! "$ACTIVE_PROFILES" =~ surface-go3 ]]; then
     echo "  2. Test active Surface hardware daemons:"
     echo "     systemctl status surface-dtx-daemon iptsd 2>/dev/null || true"
 fi
-echo "  3. Download or sync wallpaper collection from GitHub:"
+echo "  3. Download/sync JValdivia23/walls and index for Aether:"
 echo "     omarchy-sync-wallpapers"
 echo "  4. Log out and log back in (or restart your session) to"
 echo "     load all environment variables."

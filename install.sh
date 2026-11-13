@@ -415,7 +415,7 @@ sanitize_directory_symlinks() {
 
     while IFS= read -r -d '' src_d; do
         local rel_d="${src_d#$pkg_dir/}"
-        if [[ "$rel_d" =~ ^(webapps|\.stow)($|/) ]] || [[ "$rel_d" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|gotchas)($|/) ]] || [[ "$rel_d" =~ __pycache__|\.seed$ ]]; then
+        if [[ "$rel_d" =~ ^(webapps|\.stow)($|/) ]] || [[ "$rel_d" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|gotchas)($|/) ]] || [[ "$rel_d" =~ ^\.config/omarchy/plugins($|/) ]] || [[ "$rel_d" =~ __pycache__|\.seed$ ]]; then
             continue
         fi
 
@@ -444,8 +444,8 @@ scan_and_backup_package_conflicts() {
 
     while IFS= read -r -d '' src_item; do
         local rel_item="${src_item#$pkg_dir/}"
-        # Exclude ignored metadata files, pycache, and non-dotfile trees
-        if [[ "$rel_item" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|webapps|gotchas)($|/) ]] || [[ "$rel_item" =~ ^\.stow ]] || [[ "$rel_item" =~ __pycache__|\.pyc$|\.seed$ ]]; then
+        # Exclude ignored metadata files, pycache, non-dotfile trees, and omarchy plugins (synced as real files)
+        if [[ "$rel_item" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|webapps|gotchas)($|/) ]] || [[ "$rel_item" =~ ^\.stow ]] || [[ "$rel_item" =~ ^\.config/omarchy/plugins($|/) ]] || [[ "$rel_item" =~ __pycache__|\.pyc$|\.seed$ ]]; then
             continue
         fi
 
@@ -704,6 +704,7 @@ if [ "$DO_STOW" = true ]; then
         "--ignore=^pre-install\.sh$"
         "--ignore=^webapps"
         "--ignore=^gotchas"
+        "--ignore=^\.config/omarchy/plugins"
         "--ignore=^\.stow-local-ignore$"
         "--ignore=__pycache__"
         "--ignore=\.pyc$"
@@ -744,7 +745,7 @@ if [ "$DO_STOW" = true ]; then
             local root_dir="$2"
             while IFS= read -r -d '' src_f; do
                 local rel="${src_f#$root_dir/}"
-                if [[ "$rel" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|webapps|gotchas)($|/) ]] || [[ "$rel" =~ ^\.stow ]] || [[ "$rel" =~ __pycache__|\.pyc$|\.seed$ ]]; then
+                if [[ "$rel" =~ ^(packages\.txt|services\.txt|setup\.sh|pre-install\.sh|webapps|gotchas)($|/) ]] || [[ "$rel" =~ ^\.stow ]] || [[ "$rel" =~ ^\.config/omarchy/plugins($|/) ]] || [[ "$rel" =~ __pycache__|\.pyc$|\.seed$ ]]; then
                     continue
                 fi
                 local dest="$HOME/$rel"
@@ -766,6 +767,45 @@ if [ "$DO_STOW" = true ]; then
         done
         link_dir_files "$DOTFILES_DIR/agents" "$DOTFILES_DIR/agents"
     fi
+
+    # Sync Omarchy shell plugins as real files (omarchy-plugin-validate rejects symlinks)
+    sync_omarchy_plugins() {
+        local pkg_dir="$1"
+        local plugins_src="$pkg_dir/.config/omarchy/plugins"
+        [ -d "$plugins_src" ] || return 0
+
+        for plugin_src in "$plugins_src"/*/; do
+            [ -d "$plugin_src" ] || continue
+            local plugin_name
+            plugin_name="$(basename "$plugin_src")"
+            local dest_plugin="$HOME/.config/omarchy/plugins/$plugin_name"
+
+            if [ "$DRY_RUN" = true ]; then
+                echo "    [dry-run] Sync plugin $plugin_name -> $dest_plugin"
+                continue
+            fi
+
+            if [ -L "$dest_plugin" ]; then
+                rm -f "$dest_plugin"
+            fi
+            mkdir -p "$dest_plugin"
+            # Remove any leftover symlinks from prior Stow runs
+            find "$dest_plugin" -name .git -prune -o -type l -delete 2>/dev/null || true
+
+            if command -v rsync &>/dev/null; then
+                rsync -a --delete --copy-links --exclude='.git' --exclude='__pycache__' "$plugin_src" "$dest_plugin/"
+            else
+                rm -rf "$dest_plugin"
+                cp -aL "$plugin_src" "$dest_plugin"
+            fi
+        done
+    }
+
+    echo "--> Syncing Omarchy shell plugins (real files)..."
+    sync_omarchy_plugins "$DOTFILES_DIR/core"
+    for p in "${STOWABLE_PROFILES[@]}"; do
+        sync_omarchy_plugins "$DOTFILES_DIR/profiles/$p"
+    done
 
     # Link custom webapp icons to standard XDG directories
     if [ -d "$DOTFILES_DIR/core/.local/share/applications/icons" ] && [ "$DRY_RUN" = false ]; then

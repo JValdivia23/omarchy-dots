@@ -2,6 +2,89 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.35.0] - 2026-11-12
+### Changed
+- **Sync Omarchy Shell Plugins as Real Files (`install.sh`)**:
+  - Updated `install.sh` to ignore `.config/omarchy/plugins` during GNU Stow / symlink fallback and added `sync_omarchy_plugins()` to deploy `core/.config/omarchy/plugins/*` and active `profiles/<profile>/.config/omarchy/plugins/*` into `~/.config/omarchy/plugins/` as real files (replacing prior per-file Stow symlinks).
+
+### Fixed
+- **Restored Bar Vitals (`osesantos.vitals`) & `shell.json` Link**:
+  - Backed up the standalone `~/.config/omarchy/shell.json` (`21:52` overwrite missing `osesantos.vitals` and `jairo.bar`) to `~/.dotfiles_backup_20261112_230301/.config/omarchy/shell.json`, re-stowed `~/.config/omarchy/shell.json` -> `../../dotfiles/core/.config/omarchy/shell.json`, and ran `omarchy restart shell` so `jairo.bar` and the `osesantos.vitals` (`cpu`, `memory`, `sensors`) widgets load cleanly.
+
+### Verification
+- `bash -n ~/dotfiles/install.sh` and `~/dotfiles/install.sh --dry-run </dev/null` passed cleanly.
+- `~/dotfiles/install.sh --only-stow </dev/null` linked `~/.config/omarchy/shell.json` and synced `jairo.bar`, `jairo.minimized-windows`, `jmvp.power`, and `osesantos.vitals` as real files.
+- `omarchy plugin validate` passed (`VALID`) for `jairo.bar`, `jairo.minimized-windows`, `jmvp.power`, and `osesantos.vitals`.
+- `omarchy-shell shell debugBarGeometry` confirmed all three `osesantos.vitals` widgets in `bar.layout.left` are `visible: true` (`width: 59`, `51`, `51`).
+
+## [2.34.0] - 2026-11-12
+### Fixed
+- **Surface Go 3 UCSI Cold-Boot Init (`surface-go3-ucsi-acpi/0.1.0`)**:
+  - Post-reboot check showed `USBC000:00` unbound (`/sys/class/typec/` empty, `bind` -> `-ENODEV`), traced to two additional firmware behaviors in `ucsi_surface_go_*`:
+    1. `DSDT` `_DSM(READ)` never copies `VER1`/`VER2` from `EC0` into `UBTC`, so `ucsi_acpi_read_version()` reads `0x0000` on cold boot and `ucsi_register()` exits with `-ENODEV`. Added `!*version` -> `UCSI_VERSION_1_1` (`0x0110`) fallback in `ucsi_surface_go_read_version()`.
+    2. After `UCSI_PPM_RESET` and the first `_DSM(READ)` sees `0x08000000` (`UCSI_CCI_RESET_COMPLETE`), `EC0.CCI` (`0xFE708880`) still held `0x08000000` at +30 ms and cleared to `0` on a second `_DSM(READ)` at +60 ms; without draining it, the immediate `SET_NOTIFICATION_ENABLE` (`0x0000000080010005`) stalled for 10 s (`-ETIMEDOUT`). Added a post-`UCSI_PPM_RESET` drain loop (`msleep(30)` + `_DSM(READ)` up to 8 iterations until `0`) inside `ucsi_surface_go_poll_cci()`.
+  - Updated `/usr/src/surface-go3-ucsi-acpi-0.1.0/src/ucsi_acpi.c` from `devices/surface-go-3/ucsi-acpi/src/ucsi_acpi.c` and reinstalled `surface-go3-ucsi-acpi/0.1.0` for `7.2.15-1-omarchy` via `dkms`.
+
+### Verification
+- `dkms status`: `surface-go3-cameras/0.1.0`, `surface-go3-hid-multitouch/0.1.0`, and `surface-go3-ucsi-acpi/0.1.0` installed for `7.2.15-1-omarchy`.
+- `modinfo -n ucsi_acpi` resolves to `/lib/modules/7.2.15-1-omarchy/updates/dkms/ucsi_acpi.ko.zst`; `modprobe -r ucsi_acpi && modprobe ucsi_acpi` loaded `srcversion 54404D360C085D541D6A94B` (matching `modinfo -F srcversion ucsi_acpi`).
+- `/sys/class/typec/port0` active with `usb_typec_revision: 1.3`, `usb_power_delivery_revision: 3.0`, `data_role: host [device]`, `power_role: source [sink]`, `port0.0` (`svid: ff01`), and `ucsi-source-psy-USBC000:001`.
+- Post-reboot check on the `22:50` boot also confirmed `hid_multitouch` (`srcversion 2519D6F64F70642A0DC752F`, logging `skipping mode changes during system suspend`) and `surface-go3-cameras/0.1.0` (`cam -l`, dual-camera `cam` NV12 captures, `wpctl status` hiding raw IPU3 nodes).
+- **Pending:** reboot to verify auto-load of updated `surface-go3-ucsi-acpi/0.1.0` at boot, physical USB-C plug/unplug test, and one post-reboot lid-close cycle for `hid_multitouch`.
+
+## [2.33.0] - 2026-11-12
+### Added
+- **Surface Go 3 UCSI + Type Cover DKMS Packages**:
+  - Added `devices/surface-go-3/ucsi-acpi/dkms.conf` and installed `surface-go3-ucsi-acpi/0.1.0` via DKMS. The patched `ucsi_acpi.ko` now resolves from `/lib/modules/7.2.15-1-omarchy/updates/dkms/`, with the stock module archived by DKMS. `modinfo -F srcversion ucsi_acpi` matches the loaded module (`117FC7B6EFCD0778BB7DB02`).
+  - Added a targeted `hid-multitouch` quirk tree at `devices/surface-go-3/hid-multitouch/` (`Makefile`, `dkms.conf`, `src/hid-multitouch.c`, `src/hid-ids.h`, `src/hid-haptic.h`, `src/Kbuild`):
+    - `MT_QUIRK_NO_SUSPEND_MODES` (`BIT(27)`) and `MT_CLS_WIN_8_NO_SUSPEND_MODES` (`0x001a`), with the same base quirks as `MT_CLS_WIN_8`.
+    - Specific `HID_DEVICE(BUS_USB, HID_GROUP_MULTITOUCH_WIN_8, USB_VENDOR_ID_MICROSOFT, 0x09b5)` entry ahead of the generic Win 8 entry.
+    - `mt_suspend()` and `mt_resume()` both return early when the quirk is set. Skipping only `mt_suspend()` left intermittent 10 s aborts because `mt_resume()` queued three `SET_REPORT` transfers that could remain pending into the next suspend.
+  - Installed `surface-go3-hid-multitouch/0.1.0` via DKMS to `/lib/modules/7.2.15-1-omarchy/updates/dkms/hid-multitouch.ko.zst`; stock module archived, and `srcversion 2519D6F64F70642A0DC752F` matches the running module.
+  - Added `/etc/mkinitcpio.conf.d/zz-surface-go3-hid-multitouch.conf` (`MODULES+=(hid_multitouch)`, repo copy at `devices/surface-go-3/hid-multitouch/mkinitcpio.conf.d/zz-surface-go3-hid-multitouch.conf`) and rebuilt the boot UKI via `pkexec limine-mkinitcpio`. The `zz-` prefix is required because `99-` sorts before `surface_device_modules.conf`, whose `MODULES=(...)` assignment discards earlier appends.
+  - Kept the temporary `surface-go3-touchpad-resume.service` and `/usr/local/bin/surface-go3-touchpad-recover` as a fallback, but neutralized the unit for testing with `/etc/systemd/system/surface-go3-touchpad-resume.service.d/90-test-noop.conf` (`ExecStart=/bin/true`).
+
+### Verification
+- `dkms status` lists `surface-go3-cameras/0.1.0`, `surface-go3-ucsi-acpi/0.1.0`, and `surface-go3-hid-multitouch/0.1.0` as installed for `7.2.15-1-omarchy`; `depmod` resolves `ucsi_acpi` and `hid_multitouch` to `updates/dkms`.
+- Trackpad test history with the recovery unit neutralized:
+  - Suspend-only quirk: 3 of 4 lid-close cycles still logged `usbhid 1-7:1.3: suspend error -5` (pending resume transfers), although the touchpad recovered.
+  - Suspend+resume-skip quirk: function-graph trace showed `mt_suspend` at ~1.8–2.2 µs, `usbhid_wait_io` under 1 µs, and `mt_resume` at ~3.4–3.8 µs with no `mt_set_modes()` or `hid_hw_idle()` calls.
+  - Three recorded back-to-back `s2idle` cycles after the final reload (`2600.8`, `2631.8`, `2662.7` monotonic) were clean, with zero `suspend error -5` or `usb_submit_urb(ctrl) failed` lines.
+- Rebuilt `/boot/EFI/Linux/omarchy_linux-omarchy.efi` and verified with `lsinitcpio -l` that it embeds `usr/lib/modules/7.2.15-1-omarchy/updates/dkms/hid-multitouch.ko.zst` (sha256 `f9cc4e4f059d26fef81f37087646cc4e72601fb8db4027f4af4af0c0508dd8dd`, matching the installed DKMS module) and no stock `kernel/drivers/hid/hid-multitouch.ko.zst`. The Limine entry's BLAKE2b-512 hash (`e7c51fbd…`) matches `b2sum` of the new image (`b1175f59…` SHA-256).
+- Updated `profiles/surface-go3/gotchas/10-surface-go3-type-cover-touchpad-suspend-wedge.md` with the installed fix, the resume finding, the UKI drop-in ordering caveat, and post-reboot verification steps.
+- **Pending:** reboot to verify both DKMS modules auto-load and the touchpad survives a post-reboot lid-close cycle. The UKI now embeds the touchpad module; `ucsi_acpi` is not embedded and is expected to load from the rootfs `updates/dkms` path after boot. The recovery drop-in stays in place until that test passes.
+
+## [2.32.0] - 2026-11-12
+### Changed
+- **Surface Go 3 UCSI Live Test + Type Cover Suspend Root-Cause Analysis**:
+  - Built the repo-local `devices/surface-go-3/ucsi-acpi/src/ucsi_acpi.ko` against `7.2.15-1-omarchy` and live-reloaded it in RAM via `pkexec` (`rmmod ucsi_acpi` + `insmod`). The loaded module's `srcversion` (`117FC7B6EFCD0778BB7DB02`) matches the freshly built module.
+  - The patched module initialized the PPM cleanly (no `-ETIMEDOUT`), registered `/sys/class/typec/port0`, reported `usb_typec_revision 1.3`, `data_role host [device]`, and `power_role source [sink]`, and re-bound `usb1-port1`/`usb2-port1`. No persistent install was performed; the stock module still lives in `/lib/modules`.
+  - Finished the Type Cover touchpad suspend RCA: `mt_suspend()` queues `SET_REPORT` control transfers, the Type Cover does not complete them in the cover-closed/lid-close path, `usbhid_wait_io()` times out after 10 s, `hid_cease_io()` kills `urbctrl`, and the killed URB's completion handler resubmits the next queued report while `urb->reject` is set, producing the secondary `usb_submit_urb(ctrl) failed: -1` line. The `intel-hid ... 0xcb` message is the EC cover-closed marker, not the cause.
+  - Updated `profiles/surface-go3/gotchas/10-surface-go3-type-cover-touchpad-suspend-wedge.md` with the full kernel code path and two candidate permanent fixes (targeted `MT_QUIRK_NO_SUSPEND_MODES` for `045e:09b5`, and usbhid resubmit hardening). The temporary `surface-go3-touchpad-resume.service` remains enabled; no kernel/DKMS fix was installed.
+
+### Verification
+- `srcversion` of `/home/user/Work/surface-RE/devices/surface-go-3/ucsi-acpi/src/ucsi_acpi.ko` exactly matched the loaded module; `dmesg` after reload showed only the `typec port0: bound usb1-port1/usb2-port1` messages.
+- No UCSI/PPM errors appeared after the reload, and `port0` exposed the expected typec attributes.
+- Trackpad analysis was read-only against `local/linux-7.2.15/hid-multitouch.c`, `usbhid-core.c`, `local/acpi/dsdt.dsl`, and the live sysfs state; no permanent trackpad change was made.
+
+## [2.31.0] - 2026-11-12
+### Added
+- **Surface Go 3 Camera Stack, DKMS Fixes & WirePlumber Rules**:
+  - Installed `libcamera 0.7.2-4`, `libcamera-ipa 0.7.2-4`, `libcamera-tools 0.7.2-4`, `pipewire-libcamera 1:1.6.9-1`, `gst-plugin-libcamera 0.7.2-4`, `acpica 20251212-1`, `usbutils 019-1`, and `dkms 3.4.4-1` via `pacman`.
+  - Built and installed `surface-go3-cameras/0.1.0` via DKMS (`/usr/src/surface-go3-cameras-0.1.0`, installing signed `.ko.zst` modules to `/lib/modules/7.2.15-1-omarchy/updates/dkms/`):
+    - `ov8865.ko.zst`: applied stream-start initialization and runtime-PM failure/stream-stop cleanup fixes (`ov8865_s_stream` / `ov8865_resume`).
+    - `ov7251.ko.zst`: switched gain control to `V4L2_CID_ANALOGUE_GAIN` with optional `avdd`/`powerdown`/`reset` INT3472 GPIOs/regulators.
+    - `ov5693.ko.zst`: added `ov5693_mode_configure()` in `ov5693_s_stream()` plus non-continuous CSI-2 clock gating.
+    - `dw9719.ko.zst`: enabled VCM power-on write and added 10ms `regulator_enable()` delay (`fsleep(10000)`).
+  - Installed `~/.config/wireplumber/wireplumber.conf.d/52-surface-go3-ipu3.conf` to hide raw `ipu3-imgu` / `ipu3-cio2` V4L2 devices and nodes and label/prioritize the `libcamera` cameras.
+
+### Verification
+- Pre-DKMS baseline on `libcamera 0.7.2`: Front `ov5693` captured 30/30 frames (`1280x720-NV12` at ~28.5 fps), while Rear `ov8865` stalled after frame 0 (`ipu3-cio2: payload length is 2585088, received 2588672`) and IR `ov7251` was hidden.
+- `dkms status`: `surface-go3-cameras/0.1.0, 7.2.15-1-omarchy, x86_64: installed` and `modinfo -F filename` resolves all 4 modules to `/lib/modules/7.2.15-1-omarchy/updates/dkms/`.
+- `wpctl status` confirms all 14 raw `ipu3-imgu` / `Intel IPU3 CIO2` V4L2 devices and nodes are hidden.
+- Note: live runtime unloading of `ipu3_cio2` leaves `ipu_bridge` `software_node` link-frequencies incomplete (`-EINVAL`), so live capture testing of the installed DKMS `ov8865`/`ov7251`/`ov5693` modules requires a reboot to re-initialize `ipu_bridge` cleanly.
+- Post-reboot verification (2026-11-12 20:46, boot `7.2.15-1-omarchy`): all four DKMS modules auto-loaded from `/lib/modules/7.2.15-1-omarchy/updates/dkms/`; `ipu3-cio2` logged `Connected 3 cameras` (`INT33BE`, `INT347A`, `INT347E`), `ov7251` detected revision `7 (1F)`, and `ov8865` instantiated the `dw9719` VCM. `cam -l` enumerated `Internal back camera` and `Internal front camera`; `cam -C30 -s role=viewfinder` captured 30/30 frames on both at ~29-30 fps, and a direct 5-frame CIO2 capture from `/dev/video0` at 1632x1224 succeeded. The rear frames looked black only because the lens was physically obstructed at night (user confirmed), not because of a pipeline failure. `wpctl status` still lists only the two named `libcamera` sources, with the 14 raw `ipu3-imgu`/`ipu3-cio2` nodes hidden.
+
 ## [2.30.0] - 2026-11-12
 ### Added
 - **Temporary Surface Go 3 Type Cover Touchpad Wake Recovery (`surface-go3-touchpad-resume.service`)**:

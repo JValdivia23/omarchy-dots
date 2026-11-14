@@ -1,1 +1,3 @@
 ModemManager.service
+thermald.service
+systemd-pstore.service

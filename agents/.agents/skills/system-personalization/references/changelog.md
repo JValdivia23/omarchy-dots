@@ -2,6 +2,54 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.39.0] - 2026-11-13
+### Added
+- **Surface Go 3 LTE (`045e:09a5`) Profile Package, Service & Initialization Fix (`/home/user/dotfiles/profiles/surface-go3/`)**:
+  - Added `modemmanager`, `libmbim`, and `libqmi` to `profiles/surface-go3/packages.txt` and installed them via `/home/user/dotfiles/install.sh --only-packages`.
+  - Added `ModemManager.service` to `profiles/surface-go3/services.txt` and updated `profiles/surface-go3/setup.sh` to deploy `/usr/local/bin/surface-go3-lte-init`, `/etc/udev/rules.d/78-surface-go3-lte.rules`, `/etc/systemd/system/ModemManager.service.d/surface-go3-lte.conf`, reload udev/systemd, and enable/start `ModemManager.service`.
+  - Root causes addressed by `surface-go3-lte-init`:
+    1. `cdc_ncm` defaults `rx_max`/`tx_max` to `16384` on cold boot and USB reset, causing `045e:09a5` to reject `MBIM_OPEN` with `Failure (0x00000002)` until set to `16383`.
+    2. When both Physical slot 1 (physical SIM) and Physical slot 2 (`Is eUICC: yes`) report `Card status: present`, `ModemManager 1.24.2-2` caches Slot 2's ICCID and reprobes in an infinite loop on `SIM identifier has changed`; powering off Slot 2 via `qmicli --uim-sim-power-off=2` (only when Slot 1 is present) resolves the loop while leaving eSIM usable when no physical SIM is inserted.
+
+### Verification
+- Ran `bash /home/user/dotfiles/profiles/surface-go3/setup.sh` and simulated a USB reset (`USBDEVFS_RESET` on `2-3`): `udev` automatically set `rx_max=16383` and `tx_max=16383` on bind, `ModemManager` brought up `/org/freedesktop/ModemManager1/Modem/0` (`state: enabled`, `power state: on`), `nmcli dev` lists `cdc-wdm0 (gsm)`, LTE RF signal measured `RSSI -55 dBm` / `RSRP -83 dBm` / `SNR 8.2 dB`, and `mmcli -m 0 --3gpp-scan` listed local AT&T/Verizon networks (physical AT&T SIM currently `registration: idle` without an active plan).
+- Confirmed `/home/user/dotfiles/install.sh --dry-run` succeeds cleanly with `surface-go3` active.
+
+## [2.38.0] - 2026-11-13
+### Added
+- **Surface Go 3 Touchscreen `i2c-hid` Resume Reset DKMS Fix (`surface-go3-i2c-hid/0.1.0`)**:
+  - Investigated overnight `s2idle` (`~7.7 h`) touchscreen loss on `ELAN9038:00` (`04F3:2A1C`): GPIO pin `103` (`INT344B:00`, IRQ `136`) and I2C `HIDIOCGFEATURE` (`rid=10`) remained functional while broken, and an ephemeral `i2c_hid_acpi` `unbind`/`bind` (issuing `SET_POWER(ON)` + `RESET`) immediately restored touch. Also checked Windows Surface Go 3 driver package (`SurfaceGo3_Win11_22631_26.100.616.0.msi`), confirming Windows uses inbox `hidi2c.sys` + `iaLPSS2_I2C.sys` (`WdfDirectedPowerTransitionEnable=1`) with no custom ELAN kernel driver.
+  - Packaged out-of-tree DKMS module `surface-go3-i2c-hid/0.1.0` from `v7.2.15` `i2c-hid` sources in `/home/user/Work/surface-RE/devices/surface-go-3/i2c-hid` and installed to `/usr/src/surface-go3-i2c-hid-0.1.0`, adding `{ USB_VENDOR_ID_ELAN, 0x2a1c, I2C_HID_QUIRK_NO_WAKEUP_AFTER_RESET | I2C_HID_QUIRK_BOGUS_IRQ | I2C_HID_QUIRK_RESET_ON_RESUME }` after `{ USB_VENDOR_ID_ELAN, HID_ANY_ID, ... }` in `i2c_hid_quirks[]` so `i2c_hid_core_resume()` issues `RESET` after `SET_POWER(ON)` on resume.
+  - Removed temporary Windows driver download archives (`SurfaceGo3_Win11_22631_26.100.616.0.msi`, `cab1.cab`, `cab2.cab`, ~1.4 GB freed) while keeping `local/windows-drivers/extracted/` (`28M`).
+
+### Verification
+- Checked UKI `/boot/EFI/Linux/omarchy_linux-omarchy.efi` `.initrd` with `lsinitcpio -l`: `i2c-hid` is not in initrd (`IN_UKI=none`), so no UKI rebuild was required.
+- `dkms status`: `surface-go3-cameras/0.1.0`, `surface-go3-hid-multitouch/0.1.0`, `surface-go3-i2c-hid/0.1.0`, and `surface-go3-ucsi-acpi/0.1.0` all `installed` for `7.2.15-1-omarchy`.
+- Reloaded `i2c_hid_acpi`/`i2c_hid` live; `modinfo -n i2c_hid` resolves to `/lib/modules/7.2.15-1-omarchy/updates/dkms/i2c-hid.ko.zst`, `modinfo -F srcversion i2c_hid` and `/sys/module/i2c_hid/srcversion` match (`D9C1DA0F275212672B82CB8`), and `0018:04F3:2A1C.0017` is bound to `hid-multitouch`.
+- **Pending:** user test confirming touchscreen works now and across extended `s2idle` suspend/resume cycles.
+
+## [2.37.0] - 2026-11-12
+### Removed
+- **Temporary Surface Go 3 Type Cover Suspend Workaround**:
+  - Disabled and removed `/etc/systemd/system/surface-go3-touchpad-resume.service` (including `suspend.target.wants`, `hibernate.target.wants`, `hybrid-sleep.target.wants`, and `suspend-then-hibernate.target.wants` symlinks), `/etc/systemd/system/surface-go3-touchpad-resume.service.d/90-test-noop.conf`, and `/usr/local/bin/surface-go3-touchpad-recover`, followed by `systemctl daemon-reload`.
+
+### Verification
+- Post-reboot cold boot (`23:47`) loaded DKMS/UKI `hid_multitouch` (`srcversion 0C550FE4364C9359E8BD94C`) and completed the first cold-boot `s2idle` suspend/resume cycle (`23:48:11` -> `23:48:38`) with zero `usb_submit_urb(ctrl) failed: -1` or `usbhid ... suspend error -5` kernel errors, working trackpad (`edgepad.service` `active`), and `surface-go3-touchpad-resume.service` confirmed `not-found` after cleanup.
+- `dkms status` confirms `surface-go3-cameras/0.1.0`, `surface-go3-hid-multitouch/0.1.0`, and `surface-go3-ucsi-acpi/0.1.0` all installed for `7.2.15-1-omarchy`.
+
+## [2.36.0] - 2026-11-12
+### Fixed
+- **Surface Go 3 Type Cover `hid-multitouch` Cold-Boot Feature Report Fix (`surface-go3-hid-multitouch/0.1.0`)**:
+  - Post-reboot testing on the `23:36` boot showed the trackpad survived both lid-close cycles (`90-test-noop.conf` keeping recovery disabled), **but** the first cold-boot suspend (`48.519612` -> `58.808175`) still logged `usb_submit_urb(ctrl) failed: -1` + `usbhid 1-7:1.3: suspend error -5` (10.28 s wait), while the 2nd suspend (`199.430069` -> `212.431046`, 6-function `usbhid` ftrace) completed in 0.28 ms with zero `usbhid_request`s on `1-7:1.3`.
+  - Root cause: `mt_probe()` at cold boot (`1.878s`) queued Feature Reports `7` (`HID_DG_INPUTMODE`), `8` (`HID_DG_LATENCYMODE`), and `16` (`HID_DG_SURFACESWITCH`/`HID_DG_BUTTONSWITCH`); `rep=7` succeeded while `rep=8` and `rep=16` stalled in `usbhid->ctrl[]` until first suspend's `hid_cease_io()`.
+  - Updated `mt_need_to_apply_feature()` in `devices/surface-go-3/hid-multitouch/src/hid-multitouch.c` to skip `HID_DG_LATENCYMODE`, `HID_DG_SURFACESWITCH`, and `HID_DG_BUTTONSWITCH` under `MT_QUIRK_NO_SUSPEND_MODES` (leaving `HID_DG_INPUTMODE`), synced to `/usr/src/surface-go3-hid-multitouch-0.1.0/src/hid-multitouch.c`, reinstalled `surface-go3-hid-multitouch/0.1.0` via DKMS, and rebuilt `/boot/EFI/Linux/omarchy_linux-omarchy.efi` via `limine-mkinitcpio`.
+
+### Verification
+- `dkms status`: `surface-go3-cameras/0.1.0`, `surface-go3-hid-multitouch/0.1.0`, and `surface-go3-ucsi-acpi/0.1.0` installed for `7.2.15-1-omarchy`.
+- Reloaded `hid_multitouch` cleanly (`edgepad.service` stopped/started around `1-7:1.3` unbind/bind); `modinfo -F srcversion hid_multitouch` matches `/sys/module/hid_multitouch/srcversion` (`0C550FE4364C9359E8BD94C`), `0003:045E:09B5.000A` bound to `hid-multitouch`, and `edgepad.service` is `active`.
+- Extracted `usr/lib/modules/7.2.15-1-omarchy/updates/dkms/hid-multitouch.ko.zst` from `/boot/EFI/Linux/omarchy_linux-omarchy.efi`; its SHA-256 (`0b1510289a991f390b2c52308f2a664f861de151aeadf4f1189d1f1daf5fd16b`) matches `/usr/lib/modules/7.2.15-1-omarchy/updates/dkms/hid-multitouch.ko.zst`, and `/boot/limine.conf` BLAKE2b-512 (`73889b73a701d06b42b5cc70e10263900ab727a3f62152cfcf4bf4787e5b973d24308b44f3bfaeb7aab2f837d4d712db618ded0b99a124d60968510300d38d64`) matches `/boot/EFI/Linux/omarchy_linux-omarchy.efi`.
+- **Pending:** reboot and run a cold-boot first-suspend lid-close test (with `90-test-noop.conf` still active), then ask to remove the temporary `surface-go3-touchpad-resume.service` workaround once `dmesg` shows zero `suspend error -5`.
+
 ## [2.35.0] - 2026-11-12
 ### Changed
 - **Sync Omarchy Shell Plugins as Real Files (`install.sh`)**:
@@ -17,6 +65,19 @@ A dated log of all package changes, configurations, script modifications, and ha
 - `omarchy plugin validate` passed (`VALID`) for `jairo.bar`, `jairo.minimized-windows`, `jmvp.power`, and `osesantos.vitals`.
 - `omarchy-shell shell debugBarGeometry` confirmed all three `osesantos.vitals` widgets in `bar.layout.left` are `visible: true` (`width: 59`, `51`, `51`).
 
+## [2.35.0] - 2026-11-12
+### Fixed
+- **Surface Go 3 Type Cover `hid-multitouch` Open/Close Mode Guard (`surface-go3-hid-multitouch/0.1.0`)**:
+  - First cold-boot lid-close suspend on the `23:07` boot still failed at suspend entry (`usb_submit_urb(ctrl) failed: -1`, `usbhid 1-7:1.3: suspend error -5`, 10.3 s timeout), whereas a post-recovery `23:27` lid-close suspend passed cleanly.
+  - Tracing showed `mt_on_hid_hw_open()` and `mt_on_hid_hw_close()` in `hid-multitouch.c` were still calling `mt_set_modes()` (Feature Reports `7`, `8`, `16`) on every input handle open/close during boot/SDDM/Hyprland/udev transitions.
+  - Added `MT_QUIRK_NO_SUSPEND_MODES` early-return guards to `mt_on_hid_hw_open()` and `mt_on_hid_hw_close()` in `devices/surface-go-3/hid-multitouch/src/hid-multitouch.c`, synced to `/usr/src/surface-go3-hid-multitouch-0.1.0/src/hid-multitouch.c`, reinstalled `surface-go3-hid-multitouch/0.1.0` via DKMS, and rebuilt `/boot/EFI/Linux/omarchy_linux-omarchy.efi` via `limine-mkinitcpio`.
+
+### Verification
+- `dkms status`: `surface-go3-cameras/0.1.0`, `surface-go3-hid-multitouch/0.1.0`, and `surface-go3-ucsi-acpi/0.1.0` all installed for `7.2.15-1-omarchy`.
+- Reloaded `hid_multitouch` via `modprobe` and ran `surface-go3-touchpad-recover`; `modinfo -F srcversion hid_multitouch` matches `/sys/module/hid_multitouch/srcversion` (`E914C3E2FA6D6772A48131F`), and `edgepad.service` is `active`.
+- Extracted `usr/lib/modules/7.2.15-1-omarchy/updates/dkms/hid-multitouch.ko.zst` from `/boot/EFI/Linux/omarchy_linux-omarchy.efi`; its SHA-256 (`1f3f0ca6fd777f661d3e4f779effee3a7a6712400298c93e1d05c98114f68afa`) matches the installed DKMS module, and `/boot/limine.conf` BLAKE2b-512 matches `c23f90da…`.
+- **Pending:** reboot and run a cold-boot first-suspend lid-close test (with `90-test-noop.conf` still active).
+
 ## [2.34.0] - 2026-11-12
 ### Fixed
 - **Surface Go 3 UCSI Cold-Boot Init (`surface-go3-ucsi-acpi/0.1.0`)**:
@@ -30,7 +91,10 @@ A dated log of all package changes, configurations, script modifications, and ha
 - `modinfo -n ucsi_acpi` resolves to `/lib/modules/7.2.15-1-omarchy/updates/dkms/ucsi_acpi.ko.zst`; `modprobe -r ucsi_acpi && modprobe ucsi_acpi` loaded `srcversion 54404D360C085D541D6A94B` (matching `modinfo -F srcversion ucsi_acpi`).
 - `/sys/class/typec/port0` active with `usb_typec_revision: 1.3`, `usb_power_delivery_revision: 3.0`, `data_role: host [device]`, `power_role: source [sink]`, `port0.0` (`svid: ff01`), and `ucsi-source-psy-USBC000:001`.
 - Post-reboot check on the `22:50` boot also confirmed `hid_multitouch` (`srcversion 2519D6F64F70642A0DC752F`, logging `skipping mode changes during system suspend`) and `surface-go3-cameras/0.1.0` (`cam -l`, dual-camera `cam` NV12 captures, `wpctl status` hiding raw IPU3 nodes).
-- **Pending:** reboot to verify auto-load of updated `surface-go3-ucsi-acpi/0.1.0` at boot, physical USB-C plug/unplug test, and one post-reboot lid-close cycle for `hid_multitouch`.
+- **Post-reboot & live USB-C PD verification (23:08):**
+  - Cold-booted `7.2.15-1-omarchy` with updated `ucsi_acpi` auto-loading cleanly from `updates/dkms` (`srcversion 54404D360C085D541D6A94B`) and zero UCSI/PPM errors; `typec port0` bound `usb1-port1` and `usb2-port1`.
+  - Connected USB-C PD partner/cable: `/sys/class/typec/` populated `port0`, `port0-partner`, `port0-cable`, and `port0-plug0`; `port0` reported `power_operation_mode: usb_power_delivery`, `data_role: [host] device`, `power_role: source [sink]`; `ucsi-source-psy-USBC000:001` reported `Charging`, `usb_type: C [PD] PD_PPS`, `20 V` / `2.25 A` (`3.25 A` max).
+- **Pending:** one post-reboot lid-close cycle for `hid_multitouch` (with `90-test-noop.conf` still active), after which the temporary `surface-go3-touchpad-resume.service` workaround can be removed.
 
 ## [2.33.0] - 2026-11-12
 ### Added

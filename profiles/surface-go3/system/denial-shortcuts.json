@@ -1,6 +1,6 @@
 {
   "version": 12,
-  "revision": 2,
+  "revision": 4,
   "shortcuts": [
     {
       "shortcut": "Ctrl+Alt+Backspace",
@@ -12,15 +12,100 @@
     {
       "shortcut": "Super",
       "target": {
-        "type": "pluginAction",
-        "id": "denial_launcher.openApplications"
+        "type": "spawn",
+        "command": [
+          "/usr/local/bin/denial-gesture",
+          "home"
+        ]
       }
     },
     {
       "shortcut": "Super+Space",
       "target": {
-        "type": "pluginAction",
-        "id": "denial_launcher.openApplications"
+        "type": "spawn",
+        "command": [
+          "/usr/local/bin/denial-gesture",
+          "home"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+G",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "/usr/local/bin/denial-gesture",
+          "recents"
+        ]
+      }
+    },
+    {
+      "shortcut": "ThreeFingerSwipeUp",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "/usr/local/bin/denial-gesture",
+          "recents"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+Tab",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "/usr/local/bin/denial-gesture",
+          "next"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+Shift+Tab",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "/usr/local/bin/denial-gesture",
+          "prev"
+        ]
+      }
+    },
+    {
+      "shortcut": "ThreeFingerSwipeLeft",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "/usr/local/bin/denial-gesture",
+          "next"
+        ]
+      }
+    },
+    {
+      "shortcut": "ThreeFingerSwipeRight",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "/usr/local/bin/denial-gesture",
+          "prev"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+D",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "/usr/local/bin/denial-gesture",
+          "shade"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+K",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "/usr/local/bin/denial-keybindings-help"
+        ]
       }
     },
     {
@@ -31,6 +116,63 @@
           "foot"
         ],
         "desktopFileId": "foot.desktop"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+Enter",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "zen-browser"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+Shift+B",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "zen-browser"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+Shift+Alt+B",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "zen-browser",
+          "--private-window"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+Shift+F",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "nautilus"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+Shift+N",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "foot",
+          "-e",
+          "nvim"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+Shift+O",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "obsidian"
+        ]
       }
     },
     {
@@ -48,31 +190,74 @@
       }
     },
     {
-      "shortcut": "Super+A",
+      "shortcut": "Super+Shift+Alt+M",
       "target": {
-        "type": "denialAction",
-        "action": "openOverview"
+        "type": "spawn",
+        "command": [
+          "foot",
+          "--app-id=org.omarchy.cliamp",
+          "-e",
+          "cliamp"
+        ]
       }
     },
     {
-      "shortcut": "ThreeFingerSwipeUp",
+      "shortcut": "Super+Shift+A",
       "target": {
-        "type": "denialAction",
-        "action": "openOverview"
+        "type": "spawn",
+        "command": [
+          "brave-origin",
+          "--new-window",
+          "--ozone-platform=wayland",
+          "--app=https://chatgpt.com"
+        ]
       }
     },
     {
-      "shortcut": "Super+Tab",
+      "shortcut": "Super+Shift+X",
       "target": {
-        "type": "denialAction",
-        "action": "windowSwitcher"
+        "type": "spawn",
+        "command": [
+          "brave-origin",
+          "--new-window",
+          "--ozone-platform=wayland",
+          "--app=https://x.com"
+        ]
       }
     },
     {
-      "shortcut": "Super+V",
+      "shortcut": "Super+Shift+Alt+G",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "brave-origin",
+          "--new-window",
+          "--ozone-platform=wayland",
+          "--app=https://web.whatsapp.com"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+Ctrl+V",
       "target": {
         "type": "denialAction",
         "action": "openClipboard"
+      }
+    },
+    {
+      "shortcut": "Super+Ctrl+D",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "denial-settings"
+        ]
+      }
+    },
+    {
+      "shortcut": "Print",
+      "target": {
+        "type": "denialAction",
+        "action": "captureRegion"
       }
     },
     {
@@ -80,6 +265,13 @@
       "target": {
         "type": "denialAction",
         "action": "captureRegion"
+      }
+    },
+    {
+      "shortcut": "Super+W",
+      "target": {
+        "type": "denialAction",
+        "action": "closeWindow"
       }
     },
     {
@@ -97,24 +289,17 @@
       }
     },
     {
-      "shortcut": "Super+W",
-      "target": {
-        "type": "denialAction",
-        "action": "closeWindow"
-      }
-    },
-    {
-      "shortcut": "Super+Shift+F",
-      "target": {
-        "type": "denialAction",
-        "action": "toggleMaximize"
-      }
-    },
-    {
       "shortcut": "Super+F",
       "target": {
         "type": "denialAction",
         "action": "toggleFullscreen"
+      }
+    },
+    {
+      "shortcut": "Super+O",
+      "target": {
+        "type": "denialAction",
+        "action": "toggleWindowAlwaysOnTop"
       }
     },
     {
@@ -126,6 +311,13 @@
     },
     {
       "shortcut": "Super+L",
+      "target": {
+        "type": "denialAction",
+        "action": "lockScreen"
+      }
+    },
+    {
+      "shortcut": "Super+Ctrl+L",
       "target": {
         "type": "denialAction",
         "action": "lockScreen"
@@ -192,76 +384,6 @@
       "target": {
         "type": "denialAction",
         "action": "previousKeyboardLayout"
-      }
-    },
-    {
-      "shortcut": "ThreeFingerSwipeLeft",
-      "target": {
-        "type": "denialAction",
-        "action": "nextWorkspace"
-      }
-    },
-    {
-      "shortcut": "ThreeFingerSwipeRight",
-      "target": {
-        "type": "denialAction",
-        "action": "previousWorkspace"
-      }
-    },
-    {
-      "shortcut": "Ctrl+Left",
-      "target": {
-        "type": "denialAction",
-        "action": "focusLeft"
-      }
-    },
-    {
-      "shortcut": "Ctrl+Right",
-      "target": {
-        "type": "denialAction",
-        "action": "focusRight"
-      }
-    },
-    {
-      "shortcut": "Ctrl+Up",
-      "target": {
-        "type": "denialAction",
-        "action": "focusUp"
-      }
-    },
-    {
-      "shortcut": "Ctrl+Down",
-      "target": {
-        "type": "denialAction",
-        "action": "focusDown"
-      }
-    },
-    {
-      "shortcut": "Ctrl+Shift+Left",
-      "target": {
-        "type": "denialAction",
-        "action": "swapLeft"
-      }
-    },
-    {
-      "shortcut": "Ctrl+Shift+Right",
-      "target": {
-        "type": "denialAction",
-        "action": "swapRight"
-      }
-    },
-    {
-      "shortcut": "Ctrl+Shift+Up",
-      "target": {
-        "type": "denialAction",
-        "action": "swapUp"
-      }
-    },
-    {
-      "shortcut": "Ctrl+Shift+Down",
-      "target": {
-        "type": "denialAction",
-        "action": "swapDown"
       }
     },
     {

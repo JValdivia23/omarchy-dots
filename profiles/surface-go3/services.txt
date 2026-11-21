@@ -4,3 +4,4 @@ systemd-pstore.service
 iio-sensor-proxy.service
 steinerd-iio-bridge.service
 touch-doubletap-wake.service
+denial-mobile-gestures.service

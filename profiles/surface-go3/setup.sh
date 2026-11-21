@@ -40,6 +40,8 @@ dbus_changed=false
 thermald_changed=false
 rapl_changed=false
 pstore_changed=false
+iio_udev_changed=false
+steinerd_changed=false
 
 install_root_file 755 /usr/local/bin/surface-go3-lte-init <<'EOF' || true
 #!/usr/bin/env bash
@@ -425,7 +427,18 @@ RememberLastSession=true
 EOF
 
 if [ -f "$SCRIPT_DIR/system/steinerd-iio-bridge" ]; then
-    install_root_file 755 /usr/local/bin/steinerd-iio-bridge < "$SCRIPT_DIR/system/steinerd-iio-bridge" || true
+    if install_root_file 755 /usr/local/bin/steinerd-iio-bridge < "$SCRIPT_DIR/system/steinerd-iio-bridge"; then
+        steinerd_changed=true
+    fi
+fi
+
+if install_root_file 644 /etc/udev/rules.d/81-surface-go3-iio-poll.rules <<'EOF'; then
+# Surface Go 3 Intel ISH hid-sensor-accel-3d IIO ring buffer stalls after s2idle suspend/resume,
+# wedging iio-sensor-proxy ClaimAccelerometer(). Force reliable sysfs polling instead.
+SUBSYSTEM=="iio", ATTR{name}=="accel_3d", ENV{IIO_SENSOR_PROXY_TYPE}="iio-poll-accel"
+EOF
+    udev_changed=true
+    iio_udev_changed=true
 fi
 
 if install_root_file 644 /etc/dbus-1/system.d/org.steinerd.conf <<'EOF'; then
@@ -486,8 +499,8 @@ EOF
     systemd_changed=true
 fi
 
-# Deploy Denial-only keyd (macOS text editing shortcuts active ONLY inside Denial sessions)
-# and keep keyd.service disabled at boot so Omarchy/Hyprland & SDDM remain 100% untouched.
+# Deploy Denial Mobile uinput touch-gesture daemon + CLI (makes keyboard & touchpad
+# shortcuts drive Home, Recents, Next/Prev App, and Quick Settings directly in Mobile Mode).
 TARGET_USER="${SUDO_USER:-}"
 if [ -z "$TARGET_USER" ] && [ -n "${PKEXEC_UID:-}" ]; then
     TARGET_USER="$(getent passwd "$PKEXEC_UID" | cut -d: -f1 || true)"
@@ -495,14 +508,53 @@ fi
 TARGET_USER="${TARGET_USER:-$USER}"
 TARGET_HOME="$(getent passwd "$TARGET_USER" | cut -d: -f6 || echo "$HOME")"
 
+if [ -f "$SCRIPT_DIR/system/denial-mobile-gesturesd" ]; then
+    install_root_file 755 /usr/local/bin/denial-mobile-gesturesd < "$SCRIPT_DIR/system/denial-mobile-gesturesd" || true
+fi
+
+if [ -f "$SCRIPT_DIR/system/denial-gesture" ]; then
+    install_root_file 755 /usr/local/bin/denial-gesture < "$SCRIPT_DIR/system/denial-gesture" || true
+fi
+
+if [ -f "$SCRIPT_DIR/system/denial-keybindings-help" ]; then
+    install_root_file 755 /usr/local/bin/denial-keybindings-help < "$SCRIPT_DIR/system/denial-keybindings-help" || true
+fi
+
+if install_root_file 644 /etc/systemd/system/denial-mobile-gestures.service <<EOF; then
+[Unit]
+Description=Surface Go 3 Denial Mobile uinput touch gesture bridge
+After=systemd-udevd.service
+
+[Service]
+Type=simple
+Environment=DENIAL_GESTURE_USER=$TARGET_USER
+ExecStart=/usr/local/bin/denial-mobile-gesturesd
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemd_changed=true
+fi
+
+# Deploy Denial-only keyd (macOS text editing shortcuts active ONLY inside Denial sessions)
+# and keep keyd.service disabled at boot so Omarchy/Hyprland & SDDM remain 100% untouched.
+
 if ! command -v keyd >/dev/null 2>&1; then
     echo "--> Installing keyd..."
     run_root pacman -S --needed --noconfirm keyd
 fi
 
 if [ -f "$SCRIPT_DIR/system/keyd-default.conf" ]; then
-    install_root_file 644 /etc/keyd/default.conf < "$SCRIPT_DIR/system/keyd-default.conf" || true
-    run_root keyd check /etc/keyd/default.conf
+    if install_root_file 644 /etc/keyd/default.conf < "$SCRIPT_DIR/system/keyd-default.conf"; then
+        run_root keyd check /etc/keyd/default.conf
+        if systemctl is-active --quiet keyd.service 2>/dev/null; then
+            run_root keyd reload || true
+        fi
+    else
+        run_root keyd check /etc/keyd/default.conf
+    fi
 fi
 
 install_root_file 644 /etc/libinput/local-overrides.quirks <<'EOF' || true
@@ -578,6 +630,22 @@ if [ "$udev_changed" = true ]; then
     run_root udevadm control --reload-rules || true
 fi
 
+if [ "$iio_udev_changed" = true ]; then
+    echo "--> Applying Surface Go 3 IIO accel_3d polling override..."
+    if systemctl is-active --quiet iio-sensor-proxy.service; then
+        run_root systemctl stop iio-sensor-proxy.service || true
+    fi
+    for iio_dev in /sys/bus/iio/devices/iio:device*; do
+        [ -f "$iio_dev/name" ] || continue
+        [ "$(cat "$iio_dev/name" 2>/dev/null || true)" = "accel_3d" ] || continue
+        if [ -f "$iio_dev/buffer/enable" ] && [ "$(cat "$iio_dev/buffer/enable" 2>/dev/null || echo 0)" = "1" ]; then
+            run_root sh -c 'echo 0 > "$1"' _ "$iio_dev/buffer/enable" 2>/dev/null || true
+        fi
+    done
+    run_root udevadm trigger --subsystem-match=iio --attr-match=name=accel_3d --action=change || true
+    run_root udevadm settle || true
+fi
+
 if [ "$systemd_changed" = true ]; then
     echo "--> Reloading systemd daemon..."
     run_root systemctl daemon-reload || true
@@ -606,7 +674,7 @@ if [ -f "$SCRIPT_DIR/services.txt" ]; then
         [ -z "$service" ] && continue
         echo "--> Checking service: $service"
         if systemctl is-active --quiet "$service"; then
-            if [ "$systemd_changed" = true ] || { [ "$service" = "thermald.service" ] && [ "$thermald_changed" = true ]; }; then
+            if [ "$systemd_changed" = true ] || { [ "$service" = "thermald.service" ] && [ "$thermald_changed" = true ]; } || { [ "$service" = "steinerd-iio-bridge.service" ] && [ "$steinerd_changed" = true ]; }; then
                 echo "    Restarting $service to apply changes..."
                 run_root systemctl restart "$service" || true
             else

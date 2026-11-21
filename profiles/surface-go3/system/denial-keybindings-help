@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Searchable Denial Mobile keybindings reference popup (Super+K)
+set -euo pipefail
+
+exec zenity --list \
+  --title="Denial Mobile — Keybindings" \
+  --text="Type to filter shortcuts (Esc or Super+W to close)" \
+  --width=780 --height=600 \
+  --column="Category" --column="Shortcut" --column="Action" \
+  "Navigation" "Super / Super + Space" "Mobile Home / App Grid" \
+  "Navigation" "Super + G / 3-Finger Up" "Mobile Recents Overview" \
+  "Navigation" "Super + Tab / 3-Finger Left" "Next open app" \
+  "Navigation" "Super + Shift + Tab / 3-Finger Right" "Previous open app" \
+  "Navigation" "Super + D" "Quick Settings & Notifications shade" \
+  "Windows" "Super + W" "Close focused app" \
+  "Windows" "Super + M" "Minimize window" \
+  "Windows" "Super + F" "Toggle fullscreen" \
+  "Windows" "Super + O" "Toggle always-on-top (Desktop view)" \
+  "Apps" "Super + Enter" "Terminal (Foot)" \
+  "Apps" "Super + Shift + Enter / B" "Browser (Zen Browser)" \
+  "Apps" "Super + Shift + Alt + B" "Browser Private (Zen)" \
+  "Apps" "Super + Shift + F" "File Manager (Nautilus)" \
+  "Apps" "Super + Shift + N" "Editor (Neovim in Foot)" \
+  "Apps" "Super + Shift + O" "Obsidian" \
+  "Apps" "Super + Shift + Y" "YouTube (Brave Origin webapp)" \
+  "Apps" "Super + Shift + Alt + M" "Music TUI (cliamp)" \
+  "Apps" "Super + Shift + A" "ChatGPT webapp" \
+  "Apps" "Super + Shift + X" "X webapp" \
+  "Apps" "Super + Shift + Alt + G" "WhatsApp webapp" \
+  "System" "Super + K" "This keybindings sheet" \
+  "System" "Super + Ctrl + V" "Clipboard history" \
+  "System" "Super + Ctrl + L / Super + L" "Lock screen" \
+  "System" "Super + Ctrl + D" "Denial Settings" \
+  "System" "Print / Super + Shift + S" "Screenshot" \
+  "System" "Ctrl + Alt + BackSpace" "Log out to SDDM" \
+  "Editing (keyd)" "Super + C / V / X / A" "Copy / Paste / Cut / Select All (works in Foot & GUI)" \
+  "Editing (keyd)" "Super + Z / Super + Shift + Z" "Undo / Redo" \
+  "Editing (keyd)" "Super + Left / Right / Up / Down" "Line start/end & Doc start/end" \
+  "Editing (keyd)" "Super + Shift + Arrows" "Select to line/doc start/end" \
+  "Editing (keyd)" "Alt + Left / Right" "Word left / right" \
+  "Editing (keyd)" "Alt + Shift + Left / Right" "Select word left / right" \
+  "Editing (keyd)" "Alt + BackSpace / Delete" "Delete word backward / forward" \
+  "Editing (keyd)" "Super + BackSpace / Delete" "Delete line backward / forward" \
+  >/dev/null 2>&1 || true

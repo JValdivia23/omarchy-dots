@@ -1,0 +1,270 @@
+#!/usr/bin/env python3
+"""Persistent uinput touchscreen gesture injector for Denial Mobile shortcuts.
+
+Listens on a local Unix stream socket (/run/denial-mobile-gestures.sock) and
+injects smooth, orientation-aware multi-touch gestures matching Denial's
+BottomGestureHandle thresholds (home, recents, next, prev, shade, back).
+"""
+
+import fcntl
+import logging
+import os
+import pwd
+import signal
+import socket
+import struct
+import sys
+import time
+
+SOCK_PATH = "/run/denial-mobile-gestures.sock"
+SOCK_USER = os.environ.get("DENIAL_GESTURE_USER", "user")
+
+# Linux input constants (x86_64)
+EV_SYN = 0x00
+EV_KEY = 0x01
+EV_ABS = 0x03
+
+SYN_REPORT = 0
+BTN_TOUCH = 0x14A
+
+ABS_X = 0x00
+ABS_Y = 0x01
+ABS_MT_SLOT = 0x2F
+ABS_MT_POSITION_X = 0x35
+ABS_MT_POSITION_Y = 0x36
+ABS_MT_TRACKING_ID = 0x39
+
+INPUT_PROP_DIRECT = 0x01
+
+UI_SET_EVBIT = 0x40045564
+UI_SET_KEYBIT = 0x40045565
+UI_SET_ABSBIT = 0x40045567
+UI_SET_PROPBIT = 0x4004556E
+UI_DEV_SETUP = 0x405C5503
+UI_ABS_SETUP = 0x401C5504
+UI_DEV_CREATE = 0x5501
+UI_DEV_DESTROY = 0x5502
+BUS_VIRTUAL = 0x06
+
+INPUT_EVENT_FMT = "llHHi"
+AXIS_MAX = 10000
+
+_running = True
+
+
+def _stop(_signum, _frame):
+    global _running
+    _running = False
+
+
+def transform_coords(u: float, v: float, transform: str) -> tuple[int, int]:
+    """Map logical normalized (u, v) in [0,1] into physical panel coordinates."""
+    u = max(0.0, min(1.0, u))
+    v = max(0.0, min(1.0, v))
+    t = (transform or "normal").lower()
+    if t in ("90", "rotate90", "rotate-90"):
+        px, py = 1.0 - v, u
+    elif t in ("180", "rotate180", "rotate-180"):
+        px, py = 1.0 - u, 1.0 - v
+    elif t in ("270", "rotate270", "rotate-270"):
+        px, py = v, 1.0 - u
+    else:
+        px, py = u, v
+    return int(round(px * AXIS_MAX)), int(round(py * AXIS_MAX))
+
+
+class VirtualTouchscreen:
+    def __init__(self) -> None:
+        self.fd = os.open("/dev/uinput", os.O_WRONLY | os.O_NONBLOCK)
+        self.tracking_id = 1
+
+        fcntl.ioctl(self.fd, UI_SET_EVBIT, EV_SYN)
+        fcntl.ioctl(self.fd, UI_SET_EVBIT, EV_KEY)
+        fcntl.ioctl(self.fd, UI_SET_EVBIT, EV_ABS)
+        fcntl.ioctl(self.fd, UI_SET_KEYBIT, BTN_TOUCH)
+        fcntl.ioctl(self.fd, UI_SET_PROPBIT, INPUT_PROP_DIRECT)
+
+        for code, lo, hi in (
+            (ABS_X, 0, AXIS_MAX),
+            (ABS_Y, 0, AXIS_MAX),
+            (ABS_MT_SLOT, 0, 9),
+            (ABS_MT_TRACKING_ID, 0, 65535),
+            (ABS_MT_POSITION_X, 0, AXIS_MAX),
+            (ABS_MT_POSITION_Y, 0, AXIS_MAX),
+        ):
+            fcntl.ioctl(self.fd, UI_SET_ABSBIT, code)
+            # struct uinput_abs_setup { __u16 code; __u16 pad; struct input_absinfo (6i); }
+            abs_setup = struct.pack("HH6i", code, 0, 0, lo, hi, 0, 0, 40)
+            fcntl.ioctl(self.fd, UI_ABS_SETUP, abs_setup)
+
+        name = b"Surface Go 3 Gesture Touch".ljust(80, b"\x00")
+        setup = struct.pack("4H80sI", BUS_VIRTUAL, 0x1D6B, 0x0105, 1, name, 0)
+        fcntl.ioctl(self.fd, UI_DEV_SETUP, setup)
+        fcntl.ioctl(self.fd, UI_DEV_CREATE)
+        logging.info("Created persistent uinput virtual touchscreen")
+
+    def _emit_batch(self, events: list[tuple[int, int, int]]) -> None:
+        now = time.time()
+        sec = int(now)
+        usec = int((now - sec) * 1_000_000)
+        payload = b"".join(
+            struct.pack(INPUT_EVENT_FMT, sec, usec, etype, code, val)
+            for etype, code, val in events
+        )
+        os.write(self.fd, payload)
+
+    def swipe(
+        self,
+        u0: float,
+        v0: float,
+        u1: float,
+        v1: float,
+        duration_s: float,
+        steps: int,
+        hold_end_s: float,
+        transform: str,
+    ) -> None:
+        tid = self.tracking_id
+        self.tracking_id = (self.tracking_id % 60000) + 1
+
+        x0, y0 = transform_coords(u0, v0, transform)
+        self._emit_batch(
+            [
+                (EV_ABS, ABS_MT_SLOT, 0),
+                (EV_ABS, ABS_MT_TRACKING_ID, tid),
+                (EV_ABS, ABS_MT_POSITION_X, x0),
+                (EV_ABS, ABS_MT_POSITION_Y, y0),
+                (EV_KEY, BTN_TOUCH, 1),
+                (EV_ABS, ABS_X, x0),
+                (EV_ABS, ABS_Y, y0),
+                (EV_SYN, SYN_REPORT, 0),
+            ]
+        )
+
+        step_dt = duration_s / max(1, steps)
+        for i in range(1, steps + 1):
+            time.sleep(step_dt)
+            frac = i / steps
+            u = u0 + (u1 - u0) * frac
+            v = v0 + (v1 - v0) * frac
+            x, y = transform_coords(u, v, transform)
+            self._emit_batch(
+                [
+                    (EV_ABS, ABS_MT_SLOT, 0),
+                    (EV_ABS, ABS_MT_POSITION_X, x),
+                    (EV_ABS, ABS_MT_POSITION_Y, y),
+                    (EV_ABS, ABS_X, x),
+                    (EV_ABS, ABS_Y, y),
+                    (EV_SYN, SYN_REPORT, 0),
+                ]
+            )
+
+        if hold_end_s > 0:
+            time.sleep(hold_end_s)
+
+        self._emit_batch(
+            [
+                (EV_ABS, ABS_MT_SLOT, 0),
+                (EV_ABS, ABS_MT_TRACKING_ID, -1),
+                (EV_KEY, BTN_TOUCH, 0),
+                (EV_SYN, SYN_REPORT, 0),
+            ]
+        )
+
+    def perform(self, action: str, transform: str) -> bool:
+        if action == "home":
+            # Fast upward flick from bottom pill (> 1100 logical px/s)
+            self.swipe(0.50, 0.975, 0.50, 0.55, duration_s=0.09, steps=9, hold_end_s=0.0, transform=transform)
+            return True
+        if action == "recents":
+            # Slower upward pull past 6% screen height + brief pause so velocity stays below home flick
+            self.swipe(0.50, 0.975, 0.50, 0.78, duration_s=0.30, steps=18, hold_end_s=0.09, transform=transform)
+            return True
+        if action == "next":
+            # Swipe left across bottom pill -> brings next app from the right
+            self.swipe(0.50, 0.975, 0.24, 0.975, duration_s=0.13, steps=12, hold_end_s=0.0, transform=transform)
+            return True
+        if action == "prev":
+            # Swipe right across bottom pill -> brings previous app from the left
+            self.swipe(0.50, 0.975, 0.76, 0.975, duration_s=0.13, steps=12, hold_end_s=0.0, transform=transform)
+            return True
+        if action == "shade":
+            # Pull down from top status bar
+            self.swipe(0.50, 0.015, 0.50, 0.38, duration_s=0.15, steps=12, hold_end_s=0.0, transform=transform)
+            return True
+        if action == "back":
+            # Left edge inward swipe
+            self.swipe(0.006, 0.50, 0.16, 0.50, duration_s=0.12, steps=10, hold_end_s=0.0, transform=transform)
+            return True
+        return False
+
+    def close(self) -> None:
+        try:
+            fcntl.ioctl(self.fd, UI_DEV_DESTROY)
+        except OSError:
+            pass
+        try:
+            os.close(self.fd)
+        except OSError:
+            pass
+
+
+def main() -> int:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    signal.signal(signal.SIGINT, _stop)
+    signal.signal(signal.SIGTERM, _stop)
+
+    if os.path.exists(SOCK_PATH):
+        os.unlink(SOCK_PATH)
+
+    touch = VirtualTouchscreen()
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        srv.bind(SOCK_PATH)
+        try:
+            pw = pwd.getpwnam(SOCK_USER)
+            os.chown(SOCK_PATH, pw.pw_uid, pw.pw_gid)
+            os.chmod(SOCK_PATH, 0o600)
+        except KeyError:
+            os.chmod(SOCK_PATH, 0o660)
+        srv.listen(8)
+        srv.settimeout(1.0)
+        logging.info("Listening on %s for user %s", SOCK_PATH, SOCK_USER)
+
+        while _running:
+            try:
+                conn, _ = srv.accept()
+            except socket.timeout:
+                continue
+            except OSError:
+                break
+            with conn:
+                conn.settimeout(1.0)
+                try:
+                    raw = conn.recv(256).decode("utf-8", errors="ignore").strip()
+                except OSError:
+                    continue
+                if not raw:
+                    continue
+                parts = raw.split()
+                action = parts[0].lower()
+                transform = parts[1] if len(parts) > 1 else "normal"
+                ok = touch.perform(action, transform)
+                logging.info("Gesture %s (transform=%s) -> %s", action, transform, "ok" if ok else "unknown")
+                try:
+                    conn.sendall(b"ok\n" if ok else b"err\n")
+                except OSError:
+                    pass
+    finally:
+        srv.close()
+        if os.path.exists(SOCK_PATH):
+            try:
+                os.unlink(SOCK_PATH)
+            except OSError:
+                pass
+        touch.close()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

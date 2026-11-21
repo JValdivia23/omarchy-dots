@@ -2,6 +2,30 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.43.0] - 2026-11-21
+### Fixed
+- **Surface Go 3 Denial Auto-Rotation `s2idle` Resume Stall (`profiles/surface-go3/`)**:
+  - Added `/etc/udev/rules.d/81-surface-go3-iio-poll.rules` via `profiles/surface-go3/setup.sh` overriding `IIO_SENSOR_PROXY_TYPE="iio-poll-accel"` for Intel ISH `accel_3d`, bypassing the `iio-buffer-accel` ring buffer that stalled with `buffer/enable=1` / `data_available=0` on `s2idle` resume and wedged `iio-sensor-proxy` `ClaimAccelerometer()`.
+  - Updated `profiles/surface-go3/system/steinerd-iio-bridge` to use async `ClaimAccelerometer`/`ReleaseAccelerometer` calls with automatic backoff retry (`2s` -> `4s` -> `8s` -> `10s`) while claimants are active, replaced deprecated `GLib.unix_signal_add` with `GLibUnix.signal_add`, and updated `setup.sh` to clear any stuck `accel_3d` buffer and restart `steinerd-iio-bridge.service` when updated.
+  - Documented the quirk in `profiles/surface-go3/gotchas/11-surface-go3-iio-accel-buffer-suspend-stall.md` and indexed it in `references/gotchas/INDEX.md`.
+
+### Verification
+- `python3 -m py_compile` passed on `steinerd-iio-bridge`, `bash -n` passed on `setup.sh`, and `udevadm verify /etc/udev/rules.d/81-surface-go3-iio-poll.rules` reported `Success: 1, Fail: 0`.
+- Executed `pkexec bash ~/dotfiles/profiles/surface-go3/setup.sh`: confirmed `IIO_SENSOR_PROXY_TYPE=iio-poll-accel`, `buffer/enable=0`, `iio-sensor-proxy.service` and `steinerd-iio-bridge.service` `active` with zero warnings, `monitor-sensor` immediately reported `orientation: normal`, and Denial automatically re-claimed `org.steinerd` and restored `eDP-1` to `transform: "normal"` (`1280x853`).
+
+## [2.42.0] - 2026-11-20
+### Added
+- **Surface Go 3 Denial Mobile Omarchy-Parity Keyboard Workflow & Gesture Bridge (`profiles/surface-go3/`)**:
+  - Updated `profiles/surface-go3/.config/denial/outputs.conf` to `scale=eDP-1,1.5` (`1280x853` logical).
+  - Added `profiles/surface-go3/system/denial-mobile-gesturesd` (`/usr/local/bin/denial-mobile-gesturesd`, `denial-mobile-gestures.service`) and `profiles/surface-go3/system/denial-gesture` (`/usr/local/bin/denial-gesture`) exposing a persistent `uinput` virtual touchscreen (`1d6b:0105`, `ID_INPUT_TOUCHSCREEN=1`) over `/run/denial-mobile-gestures.sock` for orientation-aware Mobile Mode gestures (`home`, `recents`, `next`, `prev`, `shade`, `back`).
+  - Added `profiles/surface-go3/system/denial-keybindings-help` (`/usr/local/bin/denial-keybindings-help`) bound to `Super+K` for a searchable GTK4 (`zenity`) Denial Mobile keybindings sheet matching Omarchy's `Super+K` workflow.
+  - Updated `profiles/surface-go3/system/denial-shortcuts.json` (`revision: 4`) with full Omarchy-parity app bindings (`Super+Enter`, `Super+Shift+Enter/B/Alt+B/F/N/O/Y/Alt+M/A/X/Alt+G`), Mobile Mode gesture bindings (`Super/Super+Space` Home, `Super+G`/3-finger up Recents, `Super+Tab`/`Super+Shift+Tab`/3-finger left-right Next/Prev app, `Super+D` Shade, `Super+Ctrl+V` Clipboard, `Super+Ctrl+L`/`Super+L` Lock, `Super+Ctrl+D` Settings), and removed `Ctrl+Left/Right` so word navigation reaches apps cleanly.
+  - Updated `profiles/surface-go3/system/keyd-default.conf` (Denial-only `keyd`) to add universal `Super+C` (`XF86Copy`), `Super+V` (`XF86Paste`), `Super+X` (`XF86Cut`), and `Super+A` (`Ctrl+A`) — matching Foot's built-in `XF86Copy`/`XF86Paste` bindings while preserving `Ctrl+C` in terminals — and updated `setup.sh` to live-reload `keyd` when active.
+
+### Verification
+- `python3 -m py_compile` passed on `denial-mobile-gesturesd` and `denial-gesture`; `bash -n` passed on `denial-keybindings-help` and `setup.sh`; `python3 -m json.tool` passed on `denial-shortcuts.json`; `keyd check` reported `No errors found.`
+- Verified live `denial-mobile-gestures.service` (`active`), `ID_INPUT_TOUCHSCREEN=1`, and live `home`/`recents`/`next`/`prev` gesture delivery at `scale 1.500`.
+
 ## [2.41.0] - 2026-11-20
 ### Added
 - **Surface Go 3 Denial Keybindings, Touchpad Tuning & Denial-Only `keyd` (`profiles/surface-go3/`)**:

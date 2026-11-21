@@ -13,6 +13,11 @@ import sys
 
 from gi.repository import Gio, GLib
 
+try:
+    from gi.repository import GLibUnix
+except ImportError:
+    GLibUnix = None
+
 STEINERD_NAME = "org.steinerd"
 STEINERD_PATH = "/org/steinerd"
 STEINERD_IFACE = "org.steinerd.Sensors1"
@@ -65,6 +70,9 @@ class SteinerdIIOBridge:
         self.proxy: Gio.DBusProxy | None = None
         self.claimants: set[str] = set()
         self.accel_claimed = False
+        self.claim_in_flight = False
+        self.retry_source_id = 0
+        self.retry_delay_s = 2
         self.has_orientation = False
         self.orientation = "undefined"
         self.reg_id = 0
@@ -126,7 +134,10 @@ class SteinerdIIOBridge:
     def _on_proxy_owner_changed(self, proxy: Gio.DBusProxy, _pspec) -> None:
         owner = proxy.get_name_owner()
         logging.info("iio-sensor-proxy owner changed: %s", owner)
+        self._cancel_retry()
         self.accel_claimed = False
+        self.claim_in_flight = False
+        self.retry_delay_s = 2
         if owner:
             if self.claimants:
                 self._ensure_accel_claim(True)
@@ -177,37 +188,82 @@ class SteinerdIIOBridge:
                 GLib.Variant("(sa{sv}as)", (STEINERD_IFACE, changed, [])),
             )
 
+    def _cancel_retry(self) -> None:
+        if self.retry_source_id:
+            GLib.source_remove(self.retry_source_id)
+            self.retry_source_id = 0
+
+    def _schedule_retry(self) -> None:
+        if not self.claimants or self.accel_claimed or self.retry_source_id:
+            return
+        delay = self.retry_delay_s
+        self.retry_delay_s = min(self.retry_delay_s * 2, 10)
+        logging.info("Scheduling ClaimAccelerometer retry in %ds", delay)
+        self.retry_source_id = GLib.timeout_add_seconds(delay, self._on_retry_timer)
+
+    def _on_retry_timer(self) -> bool:
+        self.retry_source_id = 0
+        if self.claimants and not self.accel_claimed:
+            self._ensure_accel_claim(True)
+        return GLib.SOURCE_REMOVE
+
+    def _on_claim_done(self, proxy: Gio.DBusProxy, result: Gio.AsyncResult) -> None:
+        self.claim_in_flight = False
+        try:
+            proxy.call_finish(result)
+        except GLib.Error as exc:
+            logging.warning("ClaimAccelerometer failed: %s", exc)
+            if self.claimants and proxy.get_name_owner():
+                self._schedule_retry()
+            return
+        self.retry_delay_s = 2
+        self.accel_claimed = True
+        logging.info("Claimed iio-sensor-proxy accelerometer")
+        if not self.claimants:
+            self._ensure_accel_claim(False)
+            return
+        self._sync_from_proxy()
+
+    def _on_release_done(self, proxy: Gio.DBusProxy, result: Gio.AsyncResult) -> None:
+        try:
+            proxy.call_finish(result)
+            logging.info("Released iio-sensor-proxy accelerometer")
+        except GLib.Error as exc:
+            logging.warning("ReleaseAccelerometer failed: %s", exc)
+
     def _ensure_accel_claim(self, want: bool) -> None:
         if self.proxy is None or not self.proxy.get_name_owner():
+            self._cancel_retry()
             self.accel_claimed = False
+            self.claim_in_flight = False
             return
-        if want and not self.accel_claimed:
-            try:
-                self.proxy.call_sync(
-                    "ClaimAccelerometer",
-                    None,
-                    Gio.DBusCallFlags.NONE,
-                    5000,
-                    None,
-                )
-                self.accel_claimed = True
-                logging.info("Claimed iio-sensor-proxy accelerometer")
-                self._sync_from_proxy()
-            except GLib.Error as exc:
-                logging.warning("ClaimAccelerometer failed: %s", exc)
-        elif not want and self.accel_claimed:
-            try:
-                self.proxy.call_sync(
-                    "ReleaseAccelerometer",
-                    None,
-                    Gio.DBusCallFlags.NONE,
-                    5000,
-                    None,
-                )
-                logging.info("Released iio-sensor-proxy accelerometer")
-            except GLib.Error as exc:
-                logging.warning("ReleaseAccelerometer failed: %s", exc)
+        if want:
+            if self.accel_claimed or self.claim_in_flight:
+                return
+            self._cancel_retry()
+            self.claim_in_flight = True
+            self.proxy.call(
+                "ClaimAccelerometer",
+                None,
+                Gio.DBusCallFlags.NONE,
+                10000,
+                None,
+                self._on_claim_done,
+            )
+        else:
+            self._cancel_retry()
+            self.retry_delay_s = 2
+            if not self.accel_claimed:
+                return
             self.accel_claimed = False
+            self.proxy.call(
+                "ReleaseAccelerometer",
+                None,
+                Gio.DBusCallFlags.NONE,
+                5000,
+                None,
+                self._on_release_done,
+            )
 
     def _on_name_owner_changed(
         self, _conn, _sender, _path, _iface, _signal, params: GLib.Variant
@@ -271,7 +327,20 @@ class SteinerdIIOBridge:
         raise KeyError(prop)
 
     def shutdown(self) -> None:
-        self._ensure_accel_claim(False)
+        self._cancel_retry()
+        if self.accel_claimed and self.proxy is not None and self.proxy.get_name_owner():
+            try:
+                self.proxy.call_sync(
+                    "ReleaseAccelerometer",
+                    None,
+                    Gio.DBusCallFlags.NONE,
+                    2000,
+                    None,
+                )
+                logging.info("Released iio-sensor-proxy accelerometer")
+            except GLib.Error as exc:
+                logging.warning("ReleaseAccelerometer failed during shutdown: %s", exc)
+        self.accel_claimed = False
 
 
 def main() -> int:
@@ -286,8 +355,9 @@ def main() -> int:
         bridge.shutdown()
         loop.quit()
 
-    GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, _stop)
-    GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM, _stop)
+    signal_add = GLibUnix.signal_add if GLibUnix is not None else GLib.unix_signal_add
+    signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, _stop)
+    signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM, _stop)
 
     bridge.start()
     loop.run()

@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+"""Trigger a Denial Mobile touch gesture via denial-mobile-gesturesd."""
+
+import json
+import socket
+import subprocess
+import sys
+
+SOCK_PATH = "/run/denial-mobile-gestures.sock"
+
+
+def get_transform() -> str:
+    try:
+        out = subprocess.check_output(
+            ["denialctl", "--json", "outputs"],
+            stderr=subprocess.DEVNULL,
+            timeout=0.5,
+            text=True,
+        )
+        data = json.loads(out)
+        for item in data.get("outputs", []):
+            name = item.get("name", "")
+            if name.startswith(("eDP-", "DSI-", "LVDS-")) and item.get("enabled"):
+                return str(item.get("transform", "normal"))
+        if data.get("outputs"):
+            return str(data["outputs"][0].get("transform", "normal"))
+    except Exception:
+        pass
+    return "normal"
+
+
+def main() -> int:
+    if len(sys.argv) < 2:
+        print("Usage: denial-gesture <home|recents|next|prev|shade|back>", file=sys.stderr)
+        return 2
+    action = sys.argv[1].strip().lower()
+    transform = get_transform()
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+        s.settimeout(2.0)
+        s.connect(SOCK_PATH)
+        s.sendall(f"{action} {transform}\n".encode("utf-8"))
+        resp = s.recv(32).decode("utf-8", errors="ignore").strip()
+    return 0 if resp == "ok" else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

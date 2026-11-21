@@ -3,6 +3,8 @@
 ^setup\.sh$
 ^pre-install\.sh$
 ^gotchas
+^sddm
+^system
 ^\.stow-local-ignore$
 ^__pycache__
 \.pyc$

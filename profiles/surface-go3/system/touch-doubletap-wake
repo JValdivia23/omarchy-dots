@@ -1,0 +1,281 @@
+#!/usr/bin/env python3
+"""Passive ELAN9038 double-tap-to-wake daemon (emits KEY_WAKEUP via uinput).
+
+Watches the Surface Go 3 touchscreen without grabbing it. Only when the built-in
+eDP-1 panel is powered off (DPMS != On or backlight bl_power != 0), a clean
+single-finger double-tap injects KEY_WAKEUP so compositors like Denial wake the
+panel natively through synchronize_wake_key.
+"""
+
+import errno
+import fcntl
+import glob
+import logging
+import os
+import select
+import signal
+import struct
+import sys
+import time
+
+TARGET_NAME = "ELAN9038:00 04F3:2A1C"
+
+# Linux input constants (x86_64)
+EV_SYN = 0x00
+EV_KEY = 0x01
+EV_ABS = 0x03
+
+SYN_REPORT = 0
+KEY_WAKEUP = 143
+BTN_TOUCH = 0x14A
+
+ABS_X = 0x00
+ABS_Y = 0x01
+ABS_MT_SLOT = 0x2F
+ABS_MT_POSITION_X = 0x35
+ABS_MT_POSITION_Y = 0x36
+ABS_MT_TRACKING_ID = 0x39
+
+INPUT_EVENT_FMT = "llHHi"
+INPUT_EVENT_SIZE = struct.calcsize(INPUT_EVENT_FMT)
+
+# ioctl constants for uinput & evdev (x86_64)
+UI_SET_EVBIT = 0x40045564
+UI_SET_KEYBIT = 0x40045565
+UI_DEV_SETUP = 0x405C5503
+UI_DEV_CREATE = 0x5501
+UI_DEV_DESTROY = 0x5502
+BUS_VIRTUAL = 0x06
+
+EVIOCGABS_BASE = 0x80184540
+
+# Gesture tuning
+MAX_TAP_DURATION_S = 0.35
+MAX_DOUBLE_TAP_GAP_S = 0.50
+TAP_MOVE_FRACTION = 0.08
+DOUBLE_TAP_DIST_FRACTION = 0.12
+WAKE_COOLDOWN_S = 1.0
+
+_running = True
+
+
+def _handle_signal(_signum, _frame):
+    global _running
+    _running = False
+
+
+def read_abs_max(fd: int, code: int, default: int) -> int:
+    try:
+        buf = bytearray(24)
+        fcntl.ioctl(fd, EVIOCGABS_BASE + code, buf)
+        _val, minimum, maximum, _fuzz, _flat, _res = struct.unpack("6i", buf)
+        span = maximum - minimum
+        return span if span > 0 else default
+    except OSError:
+        return default
+
+
+def find_touchscreen_event() -> str | None:
+    for name_path in sorted(glob.glob("/sys/class/input/event*/device/name")):
+        try:
+            with open(name_path, "r", encoding="utf-8", errors="ignore") as f:
+                if f.read().strip() == TARGET_NAME:
+                    ev = name_path.split("/")[4]
+                    dev = f"/dev/input/{ev}"
+                    if os.path.exists(dev):
+                        return dev
+        except OSError:
+            continue
+    return None
+
+
+def is_panel_off() -> bool:
+    for dpms_path in glob.glob("/sys/class/drm/card*-eDP-1/dpms"):
+        try:
+            with open(dpms_path, "r", encoding="utf-8") as f:
+                if f.read().strip() != "On":
+                    return True
+        except OSError:
+            continue
+    for bl_path in glob.glob("/sys/class/backlight/*/bl_power"):
+        try:
+            with open(bl_path, "r", encoding="utf-8") as f:
+                if f.read().strip() != "0":
+                    return True
+        except OSError:
+            continue
+    return False
+
+
+class WakeKeyEmitter:
+    def __init__(self) -> None:
+        self.fd = os.open("/dev/uinput", os.O_WRONLY | os.O_NONBLOCK)
+        fcntl.ioctl(self.fd, UI_SET_EVBIT, EV_KEY)
+        fcntl.ioctl(self.fd, UI_SET_EVBIT, EV_SYN)
+        fcntl.ioctl(self.fd, UI_SET_KEYBIT, KEY_WAKEUP)
+        # struct uinput_setup { struct input_id id (4H); char name[80]; __u32 ff_effects_max (I); }
+        name = b"Surface Go 3 Touch Wake".ljust(80, b"\x00")
+        setup = struct.pack("4H80sI", BUS_VIRTUAL, 0x1D6B, 0x0104, 1, name, 0)
+        fcntl.ioctl(self.fd, UI_DEV_SETUP, setup)
+        fcntl.ioctl(self.fd, UI_DEV_CREATE)
+        logging.info("Created uinput wake-key device")
+
+    def emit_wakeup(self) -> None:
+        now = time.time()
+        sec = int(now)
+        usec = int((now - sec) * 1_000_000)
+        events = (
+            struct.pack(INPUT_EVENT_FMT, sec, usec, EV_KEY, KEY_WAKEUP, 1)
+            + struct.pack(INPUT_EVENT_FMT, sec, usec, EV_SYN, SYN_REPORT, 0)
+            + struct.pack(INPUT_EVENT_FMT, sec, usec, EV_KEY, KEY_WAKEUP, 0)
+            + struct.pack(INPUT_EVENT_FMT, sec, usec, EV_SYN, SYN_REPORT, 0)
+        )
+        os.write(self.fd, events)
+        logging.info("Double-tap detected while panel off -> emitted KEY_WAKEUP")
+
+    def close(self) -> None:
+        try:
+            fcntl.ioctl(self.fd, UI_DEV_DESTROY)
+        except OSError:
+            pass
+        try:
+            os.close(self.fd)
+        except OSError:
+            pass
+
+
+def watch_device(dev_path: str, emitter: WakeKeyEmitter) -> None:
+    fd = os.open(dev_path, os.O_RDONLY | os.O_NONBLOCK)
+    try:
+        span_x = read_abs_max(fd, ABS_MT_POSITION_X, read_abs_max(fd, ABS_X, 32767))
+        span_y = read_abs_max(fd, ABS_MT_POSITION_Y, read_abs_max(fd, ABS_Y, 32767))
+        max_move_x = span_x * TAP_MOVE_FRACTION
+        max_move_y = span_y * TAP_MOVE_FRACTION
+        max_dist_x = span_x * DOUBLE_TAP_DIST_FRACTION
+        max_dist_y = span_y * DOUBLE_TAP_DIST_FRACTION
+        logging.info("Watching %s (span=%dx%d)", dev_path, span_x, span_y)
+
+        cur_slot = 0
+        active_slots: set[int] = set()
+        slot_pos: dict[int, list[int]] = {}
+        touch_active = False
+        touch_start_t = 0.0
+        touch_start_pos: tuple[int, int] | None = None
+        touch_cur_pos: tuple[int, int] | None = None
+        touch_invalid = False
+        touch_started_off = False
+
+        last_tap_t = 0.0
+        last_tap_pos: tuple[int, int] | None = None
+        last_wake_t = 0.0
+
+        buf = b""
+        while _running:
+            r, _, _ = select.select([fd], [], [], 1.0)
+            if not r:
+                continue
+            try:
+                chunk = os.read(fd, 4096)
+            except OSError as exc:
+                if exc.errno in (errno.EAGAIN, errno.EINTR):
+                    continue
+                raise
+            if not chunk:
+                return
+            buf += chunk
+            while len(buf) >= INPUT_EVENT_SIZE:
+                _sec, _usec, ev_type, code, value = struct.unpack_from(
+                    INPUT_EVENT_FMT, buf, 0
+                )
+                buf = buf[INPUT_EVENT_SIZE:]
+
+                if ev_type == EV_ABS:
+                    if code == ABS_MT_SLOT:
+                        cur_slot = value
+                    elif code == ABS_MT_TRACKING_ID:
+                        if value >= 0:
+                            active_slots.add(cur_slot)
+                            if len(active_slots) > 1:
+                                touch_invalid = True
+                        else:
+                            active_slots.discard(cur_slot)
+                    elif code in (ABS_MT_POSITION_X, ABS_X):
+                        pos = slot_pos.setdefault(cur_slot, [0, 0])
+                        pos[0] = value
+                    elif code in (ABS_MT_POSITION_Y, ABS_Y):
+                        pos = slot_pos.setdefault(cur_slot, [0, 0])
+                        pos[1] = value
+                elif ev_type == EV_SYN and code == SYN_REPORT:
+                    if touch_active and 0 in slot_pos:
+                        cur = (slot_pos[0][0], slot_pos[0][1])
+                        if touch_start_pos is None:
+                            touch_start_pos = cur
+                        touch_cur_pos = cur
+                elif ev_type == EV_KEY and code == BTN_TOUCH:
+                    now = time.monotonic()
+                    if value == 1:
+                        touch_active = True
+                        touch_start_t = now
+                        touch_start_pos = None
+                        touch_cur_pos = None
+                        touch_invalid = len(active_slots) > 1
+                        touch_started_off = is_panel_off()
+                    elif value == 0 and touch_active:
+                        touch_active = False
+                        duration = now - touch_start_t
+                        if (
+                            touch_started_off
+                            and not touch_invalid
+                            and duration <= MAX_TAP_DURATION_S
+                            and touch_start_pos is not None
+                            and touch_cur_pos is not None
+                        ):
+                            dx = abs(touch_cur_pos[0] - touch_start_pos[0])
+                            dy = abs(touch_cur_pos[1] - touch_start_pos[1])
+                            if dx <= max_move_x and dy <= max_move_y:
+                                if (
+                                    last_tap_pos is not None
+                                    and (now - last_tap_t) <= MAX_DOUBLE_TAP_GAP_S
+                                    and abs(touch_cur_pos[0] - last_tap_pos[0])
+                                    <= max_dist_x
+                                    and abs(touch_cur_pos[1] - last_tap_pos[1])
+                                    <= max_dist_y
+                                    and (now - last_wake_t) >= WAKE_COOLDOWN_S
+                                    and is_panel_off()
+                                ):
+                                    emitter.emit_wakeup()
+                                    last_wake_t = now
+                                    last_tap_pos = None
+                                    last_tap_t = 0.0
+                                else:
+                                    last_tap_t = now
+                                    last_tap_pos = touch_cur_pos
+                        active_slots.clear()
+    finally:
+        os.close(fd)
+
+
+def main() -> int:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    signal.signal(signal.SIGINT, _handle_signal)
+    signal.signal(signal.SIGTERM, _handle_signal)
+
+    emitter = WakeKeyEmitter()
+    try:
+        while _running:
+            dev_path = find_touchscreen_event()
+            if not dev_path:
+                time.sleep(1.0)
+                continue
+            try:
+                watch_device(dev_path, emitter)
+            except OSError as exc:
+                logging.warning("Touchscreen %s interrupted (%s); re-scanning", dev_path, exc)
+                time.sleep(1.0)
+    finally:
+        emitter.close()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

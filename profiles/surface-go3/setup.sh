@@ -36,6 +36,7 @@ install_root_file() {
 #    ModemManager 1.24 does not loop on "SIM identifier has changed" reprobing.
 udev_changed=false
 systemd_changed=false
+dbus_changed=false
 thermald_changed=false
 rapl_changed=false
 pstore_changed=false
@@ -385,6 +386,109 @@ if install_root_file 644 /etc/limine-entry-tool.d/pstore.conf <<'EOF'; then
 KERNEL_CMDLINE[default]+=" efi_pstore.pstore_disable=0"
 EOF
     pstore_changed=true
+fi
+
+# Deploy Surface Go 3 Denial Mobile Wayland session, modern SDDM session chooser,
+# IIO-to-org.steinerd orientation bridge, and ELAN9038 double-tap-to-wake daemon.
+install_root_file 644 /usr/local/share/wayland-sessions/denial-mobile.desktop <<'EOF' || true
+[Desktop Entry]
+Name=Denial Mobile
+Comment=Denial touch-first mobile and tablet Wayland shell
+Exec=env DENIAL_SHELL_PROFILE=mobile /usr/bin/denial-session
+TryExec=/usr/bin/denial-session
+Type=Application
+DesktopNames=Denial
+Keywords=wayland;compositor;mobile;tablet;flutter;
+EOF
+
+if [ -d "$SCRIPT_DIR/sddm/surface-go3-chooser" ]; then
+    for theme_file in Main.qml metadata.desktop theme.conf omarchy-logo.png; do
+        if [ -f "$SCRIPT_DIR/sddm/surface-go3-chooser/$theme_file" ]; then
+            install_root_file 644 "/usr/share/sddm/themes/surface-go3-chooser/$theme_file" < "$SCRIPT_DIR/sddm/surface-go3-chooser/$theme_file" || true
+        fi
+    done
+fi
+
+install_root_file 644 /etc/sddm.conf.d/zz-surface-go3-session-chooser.conf <<'EOF' || true
+# Surface Go 3 session chooser: disable Omarchy autologin and select the
+# touch-friendly glassmorphic chooser for Omarchy (Hyprland) vs. Denial Mobile.
+[Autologin]
+User=
+Session=
+
+[Theme]
+Current=surface-go3-chooser
+
+[Users]
+RememberLastUser=true
+RememberLastSession=true
+EOF
+
+if [ -f "$SCRIPT_DIR/system/steinerd-iio-bridge" ]; then
+    install_root_file 755 /usr/local/bin/steinerd-iio-bridge < "$SCRIPT_DIR/system/steinerd-iio-bridge" || true
+fi
+
+if install_root_file 644 /etc/dbus-1/system.d/org.steinerd.conf <<'EOF'; then
+<!DOCTYPE busconfig PUBLIC
+ "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <policy user="root">
+    <allow own="org.steinerd"/>
+  </policy>
+  <policy context="default">
+    <allow send_destination="org.steinerd" send_interface="org.steinerd.Sensors1"/>
+    <allow send_destination="org.steinerd" send_interface="org.freedesktop.DBus.Properties"/>
+    <allow send_destination="org.steinerd" send_interface="org.freedesktop.DBus.Introspectable"/>
+    <allow send_destination="org.steinerd" send_interface="org.freedesktop.DBus.Peer"/>
+  </policy>
+</busconfig>
+EOF
+    dbus_changed=true
+fi
+
+if install_root_file 644 /etc/systemd/system/steinerd-iio-bridge.service <<'EOF'; then
+[Unit]
+Description=IIO-to-org.steinerd orientation bridge for Denial
+After=dbus.service iio-sensor-proxy.service
+Wants=iio-sensor-proxy.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/steinerd-iio-bridge
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemd_changed=true
+fi
+
+if [ -f "$SCRIPT_DIR/system/touch-doubletap-wake" ]; then
+    install_root_file 755 /usr/local/bin/touch-doubletap-wake < "$SCRIPT_DIR/system/touch-doubletap-wake" || true
+fi
+
+if install_root_file 644 /etc/systemd/system/touch-doubletap-wake.service <<'EOF'; then
+[Unit]
+Description=Surface Go 3 ELAN9038 double-tap-to-wake (KEY_WAKEUP)
+After=systemd-udevd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/touch-doubletap-wake
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemd_changed=true
+fi
+
+if [ "$dbus_changed" = true ]; then
+    echo "--> Reloading D-Bus configuration..."
+    run_root systemctl reload dbus || true
 fi
 
 if [ "$udev_changed" = true ]; then

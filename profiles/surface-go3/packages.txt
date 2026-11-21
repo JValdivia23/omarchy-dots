@@ -4,3 +4,4 @@ fcitx5-qt
 modemmanager
 libmbim
 libqmi
+iio-sensor-proxy

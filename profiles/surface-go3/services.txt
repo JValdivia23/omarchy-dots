@@ -1,3 +1,6 @@
 ModemManager.service
 thermald.service
 systemd-pstore.service
+iio-sensor-proxy.service
+steinerd-iio-bridge.service
+touch-doubletap-wake.service

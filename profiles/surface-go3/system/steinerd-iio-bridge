@@ -1,0 +1,298 @@
+#!/usr/bin/env python3
+"""Minimal system D-Bus bridge from iio-sensor-proxy to org.steinerd.Sensors1.
+
+Exposes the orientation subset of Phonewave's steinerd API so Denial's native
+orientation_sensor.rs works with standard Linux IIO accelerometers via
+iio-sensor-proxy.
+"""
+
+import logging
+import os
+import signal
+import sys
+
+from gi.repository import Gio, GLib
+
+STEINERD_NAME = "org.steinerd"
+STEINERD_PATH = "/org/steinerd"
+STEINERD_IFACE = "org.steinerd.Sensors1"
+
+PROXY_NAME = "net.hadess.SensorProxy"
+PROXY_PATH = "/net/hadess/SensorProxy"
+PROXY_IFACE = "net.hadess.SensorProxy"
+
+VALID_ORIENTATIONS = {"normal", "bottom-up", "left-up", "right-up", "undefined"}
+
+SWAP_LR = os.environ.get("STEINERD_BRIDGE_SWAP_LR", "0") == "1"
+
+INTROSPECTION_XML = """
+<node>
+  <interface name="org.steinerd.Sensors1">
+    <method name="Claim">
+      <arg type="s" name="sensor" direction="in"/>
+    </method>
+    <method name="Release">
+      <arg type="s" name="sensor" direction="in"/>
+    </method>
+    <property type="b" name="HasOrientation" access="read"/>
+    <property type="b" name="HasLight" access="read"/>
+    <property type="b" name="HasProximity" access="read"/>
+    <property type="b" name="HasAccel" access="read"/>
+    <property type="b" name="HasGyro" access="read"/>
+    <property type="b" name="HasCompass" access="read"/>
+    <property type="s" name="Orientation" access="read"/>
+  </interface>
+</node>
+"""
+
+
+def map_orientation(raw: str) -> str:
+    val = (raw or "undefined").strip()
+    if val not in VALID_ORIENTATIONS:
+        return "undefined"
+    if SWAP_LR:
+        if val == "left-up":
+            return "right-up"
+        if val == "right-up":
+            return "left-up"
+    return val
+
+
+class SteinerdIIOBridge:
+    def __init__(self, loop: GLib.MainLoop) -> None:
+        self.loop = loop
+        self.conn: Gio.DBusConnection | None = None
+        self.proxy: Gio.DBusProxy | None = None
+        self.claimants: set[str] = set()
+        self.accel_claimed = False
+        self.has_orientation = False
+        self.orientation = "undefined"
+        self.reg_id = 0
+        self.name_watch_id = 0
+
+    def start(self) -> None:
+        self.conn = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
+        node_info = Gio.DBusNodeInfo.new_for_xml(INTROSPECTION_XML)
+        self.reg_id = self.conn.register_object(
+            STEINERD_PATH,
+            node_info.interfaces[0],
+            self._on_method_call,
+            self._on_get_property,
+            None,
+        )
+
+        self.conn.signal_subscribe(
+            "org.freedesktop.DBus",
+            "org.freedesktop.DBus",
+            "NameOwnerChanged",
+            "/org/freedesktop/DBus",
+            None,
+            Gio.DBusSignalFlags.NONE,
+            self._on_name_owner_changed,
+        )
+
+        self._connect_sensor_proxy()
+
+        Gio.bus_own_name_on_connection(
+            self.conn,
+            STEINERD_NAME,
+            Gio.BusNameOwnerFlags.NONE,
+            self._on_name_acquired,
+            self._on_name_lost,
+        )
+
+    def _connect_sensor_proxy(self) -> None:
+        assert self.conn is not None
+        self.proxy = Gio.DBusProxy.new_sync(
+            self.conn,
+            Gio.DBusProxyFlags.NONE,
+            None,
+            PROXY_NAME,
+            PROXY_PATH,
+            PROXY_IFACE,
+            None,
+        )
+        self.proxy.connect("g-properties-changed", self._on_proxy_props_changed)
+        self.proxy.connect("notify::g-name-owner", self._on_proxy_owner_changed)
+        self._sync_from_proxy()
+
+    def _on_name_acquired(self, _conn, name: str) -> None:
+        logging.info("Acquired system bus name %s", name)
+
+    def _on_name_lost(self, _conn, name: str) -> None:
+        logging.error("Lost or could not acquire system bus name %s", name)
+        self.loop.quit()
+
+    def _on_proxy_owner_changed(self, proxy: Gio.DBusProxy, _pspec) -> None:
+        owner = proxy.get_name_owner()
+        logging.info("iio-sensor-proxy owner changed: %s", owner)
+        self.accel_claimed = False
+        if owner:
+            if self.claimants:
+                self._ensure_accel_claim(True)
+            self._sync_from_proxy()
+        else:
+            self._update_state(False, "undefined")
+
+    def _on_proxy_props_changed(
+        self, _proxy: Gio.DBusProxy, changed: GLib.Variant, _invalidated
+    ) -> None:
+        props = changed.unpack()
+        has_accel = props.get("HasAccelerometer", self.has_orientation)
+        orient = props.get("AccelerometerOrientation", None)
+        new_orient = (
+            map_orientation(orient) if orient is not None else self.orientation
+        )
+        self._update_state(bool(has_accel), new_orient)
+
+    def _sync_from_proxy(self) -> None:
+        if self.proxy is None or not self.proxy.get_name_owner():
+            self._update_state(False, "undefined")
+            return
+        v_has = self.proxy.get_cached_property("HasAccelerometer")
+        v_ori = self.proxy.get_cached_property("AccelerometerOrientation")
+        has_accel = bool(v_has.unpack()) if v_has is not None else False
+        orient = map_orientation(v_ori.unpack()) if v_ori is not None else "undefined"
+        self._update_state(has_accel, orient)
+
+    def _update_state(self, has_orientation: bool, orientation: str) -> None:
+        changed: dict[str, GLib.Variant] = {}
+        if has_orientation != self.has_orientation:
+            self.has_orientation = has_orientation
+            changed["HasOrientation"] = GLib.Variant("b", has_orientation)
+        if orientation != self.orientation:
+            self.orientation = orientation
+            changed["Orientation"] = GLib.Variant("s", orientation)
+        if changed and self.conn is not None:
+            logging.info(
+                "State update: HasOrientation=%s Orientation=%s",
+                self.has_orientation,
+                self.orientation,
+            )
+            self.conn.emit_signal(
+                None,
+                STEINERD_PATH,
+                "org.freedesktop.DBus.Properties",
+                "PropertiesChanged",
+                GLib.Variant("(sa{sv}as)", (STEINERD_IFACE, changed, [])),
+            )
+
+    def _ensure_accel_claim(self, want: bool) -> None:
+        if self.proxy is None or not self.proxy.get_name_owner():
+            self.accel_claimed = False
+            return
+        if want and not self.accel_claimed:
+            try:
+                self.proxy.call_sync(
+                    "ClaimAccelerometer",
+                    None,
+                    Gio.DBusCallFlags.NONE,
+                    5000,
+                    None,
+                )
+                self.accel_claimed = True
+                logging.info("Claimed iio-sensor-proxy accelerometer")
+                self._sync_from_proxy()
+            except GLib.Error as exc:
+                logging.warning("ClaimAccelerometer failed: %s", exc)
+        elif not want and self.accel_claimed:
+            try:
+                self.proxy.call_sync(
+                    "ReleaseAccelerometer",
+                    None,
+                    Gio.DBusCallFlags.NONE,
+                    5000,
+                    None,
+                )
+                logging.info("Released iio-sensor-proxy accelerometer")
+            except GLib.Error as exc:
+                logging.warning("ReleaseAccelerometer failed: %s", exc)
+            self.accel_claimed = False
+
+    def _on_name_owner_changed(
+        self, _conn, _sender, _path, _iface, _signal, params: GLib.Variant
+    ) -> None:
+        name, old_owner, new_owner = params.unpack()
+        if old_owner and not new_owner and old_owner in self.claimants:
+            self.claimants.discard(old_owner)
+            logging.info(
+                "Claimant %s vanished (%d remaining)", old_owner, len(self.claimants)
+            )
+            if not self.claimants:
+                self._ensure_accel_claim(False)
+
+    def _on_method_call(
+        self,
+        _conn,
+        sender: str,
+        _path: str,
+        _iface: str,
+        method: str,
+        params: GLib.Variant,
+        invocation: Gio.DBusMethodInvocation,
+    ) -> None:
+        (sensor,) = params.unpack()
+        if method == "Claim":
+            if sensor == "orientation":
+                self.claimants.add(sender)
+                logging.info(
+                    "Claim(orientation) from %s (%d active)",
+                    sender,
+                    len(self.claimants),
+                )
+                self._ensure_accel_claim(True)
+            invocation.return_value(None)
+        elif method == "Release":
+            if sensor == "orientation":
+                self.claimants.discard(sender)
+                logging.info(
+                    "Release(orientation) from %s (%d active)",
+                    sender,
+                    len(self.claimants),
+                )
+                if not self.claimants:
+                    self._ensure_accel_claim(False)
+            invocation.return_value(None)
+        else:
+            invocation.return_dbus_error(
+                "org.freedesktop.DBus.Error.UnknownMethod",
+                f"Unknown method: {method}",
+            )
+
+    def _on_get_property(
+        self, _conn, _sender, _path, _iface, prop: str
+    ) -> GLib.Variant:
+        if prop == "HasOrientation":
+            return GLib.Variant("b", self.has_orientation)
+        if prop == "Orientation":
+            return GLib.Variant("s", self.orientation)
+        if prop in ("HasLight", "HasProximity", "HasAccel", "HasGyro", "HasCompass"):
+            return GLib.Variant("b", False)
+        raise KeyError(prop)
+
+    def shutdown(self) -> None:
+        self._ensure_accel_claim(False)
+
+
+def main() -> int:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s %(message)s",
+    )
+    loop = GLib.MainLoop()
+    bridge = SteinerdIIOBridge(loop)
+
+    def _stop(*_args):
+        bridge.shutdown()
+        loop.quit()
+
+    GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, _stop)
+    GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM, _stop)
+
+    bridge.start()
+    loop.run()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

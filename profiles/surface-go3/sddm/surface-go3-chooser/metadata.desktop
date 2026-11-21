@@ -1,0 +1,15 @@
+[SddmGreeterTheme]
+Name=Surface Go 3 Session Chooser
+Description=Modern touch-friendly glassmorphic SDDM session chooser for Omarchy and Denial Mobile
+Author=surface-go3 dotfiles
+License=MIT
+Type=sddm-theme
+Version=1.0
+Website=
+Screenshot=
+MainScript=Main.qml
+ConfigFile=theme.conf
+TranslationsDirectory=translations
+Theme-Id=surface-go3-chooser
+Theme-API=2.0
+QtVersion=6

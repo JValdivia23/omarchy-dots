@@ -2,6 +2,23 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.40.0] - 2026-11-20
+### Added
+- **Surface Go 3 Denial Mobile Session, Modern SDDM Session Chooser & Hardware Bridges (`profiles/surface-go3/`)**:
+  - Installed `denial 0.6.8-1` and `denial-flutter-engine 1:0.6.8-1` from the signed first-party `[denial]` Arch repository (`/etc/pacman.d/denial.conf`, GPG key `AE4108FA5E91E26BE0EE331E0F5B3AD16E023091`, `/etc/pacman.conf` backed up to `/etc/pacman.conf.pre-denial.bak`), plus `iio-sensor-proxy 3.9-1` (tracked in `profiles/surface-go3/packages.txt`).
+  - Added `/usr/local/share/wayland-sessions/denial-mobile.desktop` (`Exec=env DENIAL_SHELL_PROFILE=mobile /usr/bin/denial-session`) and stowed `profiles/surface-go3/.config/denial/outputs.conf` (`scale=eDP-1,2.0` for `960x640` logical tablet scaling on the 10.5" `1920x1280` panel).
+  - Created a modern, touch-friendly Qt6 QML SDDM theme (`profiles/surface-go3/sddm/surface-go3-chooser/` -> `/usr/share/sddm/themes/surface-go3-chooser/`) featuring side-by-side glassmorphic session cards for **Omarchy** and **Denial Mobile**, expandable secondary sessions, live clock/date, keyboard shortcuts (`Alt+Left/Right`, `Ctrl+Tab`), a collapsible built-in touch on-screen keyboard (`KB`), and Suspend/Reboot/Power Off controls.
+  - Added `/etc/sddm.conf.d/zz-surface-go3-session-chooser.conf` via `profiles/surface-go3/setup.sh` to disable Omarchy autologin (`User=`, `Session=`), activate `surface-go3-chooser`, and remember the last user/session.
+  - Added `profiles/surface-go3/system/steinerd-iio-bridge` (`/usr/local/bin/steinerd-iio-bridge`, `/etc/dbus-1/system.d/org.steinerd.conf`, `steinerd-iio-bridge.service`) bridging `iio-sensor-proxy` (`accel_3d`) to `org.steinerd.Sensors1` for Denial native auto-rotation and rotation lock.
+  - Added `profiles/surface-go3/system/touch-doubletap-wake` (`/usr/local/bin/touch-doubletap-wake`, `touch-doubletap-wake.service`) passively monitoring `ELAN9038:00 04F3:2A1C` and injecting `KEY_WAKEUP` via `uinput` on single-finger double-tap while `eDP-1` is DPMS-off.
+  - Updated `profiles/surface-go3/services.txt`, `profiles/surface-go3/.stow-local-ignore` (`^sddm`, `^system`), and `profiles/surface-go3/setup.sh` so the entire SDDM chooser and Denial hardware setup is tracked in the `surface-go3` dotfiles profile.
+
+### Verification
+- `bash -n ~/dotfiles/profiles/surface-go3/setup.sh` and `~/dotfiles/install.sh --dry-run </dev/null` passed cleanly.
+- Executed `pkexec bash ~/dotfiles/profiles/surface-go3/setup.sh` and `~/dotfiles/install.sh --only-stow </dev/null`: installed `/usr/local/share/wayland-sessions/denial-mobile.desktop`, `/usr/share/sddm/themes/surface-go3-chooser/*`, `/etc/sddm.conf.d/zz-surface-go3-session-chooser.conf`, and stowed `~/.config/denial/outputs.conf`.
+- Verified `QT_QPA_PLATFORM=offscreen sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/surface-go3-chooser` discovered both `denial-mobile.desktop` and `omarchy.desktop` and loaded `Main.qml` with zero QML errors.
+- Confirmed `iio-sensor-proxy.service`, `steinerd-iio-bridge.service`, and `touch-doubletap-wake.service` are `active`, `busctl` reports `HasOrientation=true` / `Orientation="normal"`, and live double-tap-to-wake emitted `KEY_WAKEUP` while DPMS-off.
+
 ## [2.39.0] - 2026-11-13
 ### Added
 - **Surface Go 3 LTE (`045e:09a5`) Profile Package, Service & Initialization Fix (`/home/user/dotfiles/profiles/surface-go3/`)**:

@@ -486,6 +486,88 @@ EOF
     systemd_changed=true
 fi
 
+# Deploy Denial-only keyd (macOS text editing shortcuts active ONLY inside Denial sessions)
+# and keep keyd.service disabled at boot so Omarchy/Hyprland & SDDM remain 100% untouched.
+TARGET_USER="${SUDO_USER:-}"
+if [ -z "$TARGET_USER" ] && [ -n "${PKEXEC_UID:-}" ]; then
+    TARGET_USER="$(getent passwd "$PKEXEC_UID" | cut -d: -f1 || true)"
+fi
+TARGET_USER="${TARGET_USER:-$USER}"
+TARGET_HOME="$(getent passwd "$TARGET_USER" | cut -d: -f6 || echo "$HOME")"
+
+if ! command -v keyd >/dev/null 2>&1; then
+    echo "--> Installing keyd..."
+    run_root pacman -S --needed --noconfirm keyd
+fi
+
+if [ -f "$SCRIPT_DIR/system/keyd-default.conf" ]; then
+    install_root_file 644 /etc/keyd/default.conf < "$SCRIPT_DIR/system/keyd-default.conf" || true
+    run_root keyd check /etc/keyd/default.conf
+fi
+
+install_root_file 644 /etc/libinput/local-overrides.quirks <<'EOF' || true
+[Serial Keyboards]
+MatchUdevType=keyboard
+MatchName=keyd virtual keyboard
+AttrKeyboardIntegration=internal
+EOF
+
+install_root_file 644 /etc/polkit-1/rules.d/50-surface-go3-denial-keyd.rules <<EOF || true
+// Allow active local user session to start/stop ONLY keyd.service for Denial sessions
+polkit.addRule(function(action, subject) {
+    if (action.id === "org.freedesktop.systemd1.manage-units" &&
+        action.lookup("unit") === "keyd.service" &&
+        subject.user === "$TARGET_USER" &&
+        subject.local &&
+        subject.active) {
+        return polkit.Result.YES;
+    }
+});
+EOF
+
+if systemctl is-enabled --quiet keyd.service 2>/dev/null; then
+    echo "--> Keeping keyd.service disabled at boot (started only by Denial sessions)..."
+    run_root systemctl disable keyd.service || true
+fi
+
+# Apply Denial touchpad settings (preserving other user preferences) & shortcuts
+if [ -n "$TARGET_HOME" ] && [ -d "$TARGET_HOME" ]; then
+    DENIAL_CFG_DIR="$TARGET_HOME/.config/denial"
+    run_root install -d -m 700 -o "$TARGET_USER" -g "$TARGET_USER" "$DENIAL_CFG_DIR"
+
+    if [ -f "$SCRIPT_DIR/system/denial-shortcuts.json" ]; then
+        if [ ! -f "$DENIAL_CFG_DIR/shortcuts.json" ] || ! cmp -s "$SCRIPT_DIR/system/denial-shortcuts.json" "$DENIAL_CFG_DIR/shortcuts.json"; then
+            echo "--> Updating $DENIAL_CFG_DIR/shortcuts.json..."
+            run_root install -m 600 -o "$TARGET_USER" -g "$TARGET_USER" "$SCRIPT_DIR/system/denial-shortcuts.json" "$DENIAL_CFG_DIR/shortcuts.json"
+        fi
+    fi
+
+    if [ -f "$DENIAL_CFG_DIR/settings.json" ]; then
+        python3 - "$DENIAL_CFG_DIR/settings.json" <<'PYEOF'
+import json, os, sys
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+tp = data.setdefault("touchpad", {})
+changed = False
+for k, v in [("naturalScrollEnabled", True), ("scrollSpeedFactor", 0.4), ("tapToClickEnabled", True)]:
+    if tp.get(k) != v:
+        tp[k] = v
+        changed = True
+if changed:
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+    st = os.stat(path)
+    os.chmod(tmp, 0o600)
+    os.chown(tmp, st.st_uid, st.st_gid)
+    os.replace(tmp, path)
+    print("--> Updated Denial touchpad settings in", path)
+PYEOF
+    fi
+fi
+
 if [ "$dbus_changed" = true ]; then
     echo "--> Reloading D-Bus configuration..."
     run_root systemctl reload dbus || true

@@ -5,3 +5,4 @@ modemmanager
 libmbim
 libqmi
 iio-sensor-proxy
+keyd

@@ -1,0 +1,485 @@
+{
+  "version": 12,
+  "revision": 2,
+  "shortcuts": [
+    {
+      "shortcut": "Ctrl+Alt+Backspace",
+      "target": {
+        "type": "denialAction",
+        "action": "shutdown"
+      }
+    },
+    {
+      "shortcut": "Super",
+      "target": {
+        "type": "pluginAction",
+        "id": "denial_launcher.openApplications"
+      }
+    },
+    {
+      "shortcut": "Super+Space",
+      "target": {
+        "type": "pluginAction",
+        "id": "denial_launcher.openApplications"
+      }
+    },
+    {
+      "shortcut": "Super+Enter",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "foot"
+        ],
+        "desktopFileId": "foot.desktop"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+Y",
+      "target": {
+        "type": "spawn",
+        "command": [
+          "brave-origin",
+          "--new-window",
+          "--ozone-platform=wayland",
+          "--app=https://youtube.com",
+          "--name=YouTube",
+          "--class=YouTube"
+        ]
+      }
+    },
+    {
+      "shortcut": "Super+A",
+      "target": {
+        "type": "denialAction",
+        "action": "openOverview"
+      }
+    },
+    {
+      "shortcut": "ThreeFingerSwipeUp",
+      "target": {
+        "type": "denialAction",
+        "action": "openOverview"
+      }
+    },
+    {
+      "shortcut": "Super+Tab",
+      "target": {
+        "type": "denialAction",
+        "action": "windowSwitcher"
+      }
+    },
+    {
+      "shortcut": "Super+V",
+      "target": {
+        "type": "denialAction",
+        "action": "openClipboard"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+S",
+      "target": {
+        "type": "denialAction",
+        "action": "captureRegion"
+      }
+    },
+    {
+      "shortcut": "Super+M",
+      "target": {
+        "type": "denialAction",
+        "action": "minimizeWindow"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+M",
+      "target": {
+        "type": "denialAction",
+        "action": "minimizeAllWindows"
+      }
+    },
+    {
+      "shortcut": "Super+W",
+      "target": {
+        "type": "denialAction",
+        "action": "closeWindow"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+F",
+      "target": {
+        "type": "denialAction",
+        "action": "toggleMaximize"
+      }
+    },
+    {
+      "shortcut": "Super+F",
+      "target": {
+        "type": "denialAction",
+        "action": "toggleFullscreen"
+      }
+    },
+    {
+      "shortcut": "Super+Escape",
+      "target": {
+        "type": "denialAction",
+        "action": "releasePointer"
+      }
+    },
+    {
+      "shortcut": "Super+L",
+      "target": {
+        "type": "denialAction",
+        "action": "lockScreen"
+      }
+    },
+    {
+      "shortcut": "VolumeUp",
+      "target": {
+        "type": "denialAction",
+        "action": "volumeUp"
+      }
+    },
+    {
+      "shortcut": "VolumeDown",
+      "target": {
+        "type": "denialAction",
+        "action": "volumeDown"
+      }
+    },
+    {
+      "shortcut": "VolumeMute",
+      "target": {
+        "type": "denialAction",
+        "action": "volumeMute"
+      }
+    },
+    {
+      "shortcut": "BrightnessUp",
+      "target": {
+        "type": "denialAction",
+        "action": "brightnessUp"
+      }
+    },
+    {
+      "shortcut": "BrightnessDown",
+      "target": {
+        "type": "denialAction",
+        "action": "brightnessDown"
+      }
+    },
+    {
+      "shortcut": "Super+VolumeUp",
+      "target": {
+        "type": "denialAction",
+        "action": "brightnessUp"
+      }
+    },
+    {
+      "shortcut": "Super+VolumeDown",
+      "target": {
+        "type": "denialAction",
+        "action": "brightnessDown"
+      }
+    },
+    {
+      "shortcut": "Super+Ctrl+Space",
+      "target": {
+        "type": "denialAction",
+        "action": "nextKeyboardLayout"
+      }
+    },
+    {
+      "shortcut": "Super+Ctrl+Shift+Space",
+      "target": {
+        "type": "denialAction",
+        "action": "previousKeyboardLayout"
+      }
+    },
+    {
+      "shortcut": "ThreeFingerSwipeLeft",
+      "target": {
+        "type": "denialAction",
+        "action": "nextWorkspace"
+      }
+    },
+    {
+      "shortcut": "ThreeFingerSwipeRight",
+      "target": {
+        "type": "denialAction",
+        "action": "previousWorkspace"
+      }
+    },
+    {
+      "shortcut": "Ctrl+Left",
+      "target": {
+        "type": "denialAction",
+        "action": "focusLeft"
+      }
+    },
+    {
+      "shortcut": "Ctrl+Right",
+      "target": {
+        "type": "denialAction",
+        "action": "focusRight"
+      }
+    },
+    {
+      "shortcut": "Ctrl+Up",
+      "target": {
+        "type": "denialAction",
+        "action": "focusUp"
+      }
+    },
+    {
+      "shortcut": "Ctrl+Down",
+      "target": {
+        "type": "denialAction",
+        "action": "focusDown"
+      }
+    },
+    {
+      "shortcut": "Ctrl+Shift+Left",
+      "target": {
+        "type": "denialAction",
+        "action": "swapLeft"
+      }
+    },
+    {
+      "shortcut": "Ctrl+Shift+Right",
+      "target": {
+        "type": "denialAction",
+        "action": "swapRight"
+      }
+    },
+    {
+      "shortcut": "Ctrl+Shift+Up",
+      "target": {
+        "type": "denialAction",
+        "action": "swapUp"
+      }
+    },
+    {
+      "shortcut": "Ctrl+Shift+Down",
+      "target": {
+        "type": "denialAction",
+        "action": "swapDown"
+      }
+    },
+    {
+      "shortcut": "Super+Alt+Left",
+      "target": {
+        "type": "denialAction",
+        "action": "previousWorkspace"
+      }
+    },
+    {
+      "shortcut": "Super+Alt+Right",
+      "target": {
+        "type": "denialAction",
+        "action": "nextWorkspace"
+      }
+    },
+    {
+      "shortcut": "Super+Alt+Shift+Left",
+      "target": {
+        "type": "denialAction",
+        "action": "moveToPreviousWorkspace"
+      }
+    },
+    {
+      "shortcut": "Super+Alt+Shift+Right",
+      "target": {
+        "type": "denialAction",
+        "action": "moveToNextWorkspace"
+      }
+    },
+    {
+      "shortcut": "Super+1",
+      "target": {
+        "type": "denialAction",
+        "action": "switchWorkspace1"
+      }
+    },
+    {
+      "shortcut": "Super+2",
+      "target": {
+        "type": "denialAction",
+        "action": "switchWorkspace2"
+      }
+    },
+    {
+      "shortcut": "Super+3",
+      "target": {
+        "type": "denialAction",
+        "action": "switchWorkspace3"
+      }
+    },
+    {
+      "shortcut": "Super+4",
+      "target": {
+        "type": "denialAction",
+        "action": "switchWorkspace4"
+      }
+    },
+    {
+      "shortcut": "Super+5",
+      "target": {
+        "type": "denialAction",
+        "action": "switchWorkspace5"
+      }
+    },
+    {
+      "shortcut": "Super+6",
+      "target": {
+        "type": "denialAction",
+        "action": "switchWorkspace6"
+      }
+    },
+    {
+      "shortcut": "Super+7",
+      "target": {
+        "type": "denialAction",
+        "action": "switchWorkspace7"
+      }
+    },
+    {
+      "shortcut": "Super+8",
+      "target": {
+        "type": "denialAction",
+        "action": "switchWorkspace8"
+      }
+    },
+    {
+      "shortcut": "Super+9",
+      "target": {
+        "type": "denialAction",
+        "action": "switchWorkspace9"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+1",
+      "target": {
+        "type": "denialAction",
+        "action": "moveToWorkspace1"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+2",
+      "target": {
+        "type": "denialAction",
+        "action": "moveToWorkspace2"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+3",
+      "target": {
+        "type": "denialAction",
+        "action": "moveToWorkspace3"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+4",
+      "target": {
+        "type": "denialAction",
+        "action": "moveToWorkspace4"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+5",
+      "target": {
+        "type": "denialAction",
+        "action": "moveToWorkspace5"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+6",
+      "target": {
+        "type": "denialAction",
+        "action": "moveToWorkspace6"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+7",
+      "target": {
+        "type": "denialAction",
+        "action": "moveToWorkspace7"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+8",
+      "target": {
+        "type": "denialAction",
+        "action": "moveToWorkspace8"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+9",
+      "target": {
+        "type": "denialAction",
+        "action": "moveToWorkspace9"
+      }
+    },
+    {
+      "shortcut": "FourFingerSwipeRight",
+      "target": {
+        "type": "denialAction",
+        "action": "previousWorkspace"
+      }
+    },
+    {
+      "shortcut": "FourFingerSwipeLeft",
+      "target": {
+        "type": "denialAction",
+        "action": "nextWorkspace"
+      }
+    },
+    {
+      "shortcut": "FourFingerSwipeDown",
+      "target": {
+        "type": "denialAction",
+        "action": "previousWorkspace"
+      }
+    },
+    {
+      "shortcut": "FourFingerSwipeUp",
+      "target": {
+        "type": "denialAction",
+        "action": "nextWorkspace"
+      }
+    },
+    {
+      "shortcut": "Super+Minus",
+      "target": {
+        "type": "denialAction",
+        "action": "resizeShrinkWidth"
+      }
+    },
+    {
+      "shortcut": "Super+Equal",
+      "target": {
+        "type": "denialAction",
+        "action": "resizeGrowWidth"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+Minus",
+      "target": {
+        "type": "denialAction",
+        "action": "resizeShrinkHeight"
+      }
+    },
+    {
+      "shortcut": "Super+Shift+Equal",
+      "target": {
+        "type": "denialAction",
+        "action": "resizeGrowHeight"
+      }
+    },
+    {
+      "shortcut": "Super+Alt+P",
+      "target": {
+        "type": "pluginAction",
+        "id": "denial_desktop.colorTuning"
+      }
+    }
+  ]
+}

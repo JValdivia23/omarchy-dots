@@ -2,6 +2,19 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.41.0] - 2026-11-20
+### Added
+- **Surface Go 3 Denial Keybindings, Touchpad Tuning & Denial-Only `keyd` (`profiles/surface-go3/`)**:
+  - Installed `keyd 2.6.0-5` (tracked in `profiles/surface-go3/packages.txt`) and deployed `/etc/keyd/default.conf` from `profiles/surface-go3/system/keyd-default.conf` (excluding `1d6b:0104` `Surface Go 3 Touch Wake`) with macOS-style text editing bindings (`Super+Arrows`, `Super+Shift+Arrows`, `Alt+Arrows`, `Alt+Shift+Arrows`, `Alt+BackSpace/Delete`, `Super+Z/Shift+Z`, `Super+BackSpace/Delete`).
+  - Deployed `/etc/libinput/local-overrides.quirks` (`AttrKeyboardIntegration=internal` for `keyd virtual keyboard`) and `/etc/polkit-1/rules.d/50-surface-go3-denial-keyd.rules` allowing the active local user session to start/stop exclusively `keyd.service`.
+  - Kept `keyd.service` **disabled at boot** and stowed `profiles/surface-go3/.config/systemd/user/denial-keyd.service` (`WantedBy=denial-session.target`, `PartOf=denial-session.target`) so `keyd` runs **only** inside Denial sessions with zero interference in Omarchy/Hyprland or SDDM.
+  - Applied native Denial touchpad overrides (`naturalScrollEnabled: true`, `scrollSpeedFactor: 0.4`, `tapToClickEnabled: true`) into `~/.config/denial/settings.json` and deployed `profiles/surface-go3/system/denial-shortcuts.json` (`Super+W` close, `Super+Enter` Foot, `Super+Space` launcher, `Super+Shift+Y` YouTube, `Ctrl+Arrows` focus, `Ctrl+Shift+Arrows` swap, 3-finger horizontal swipe workspaces).
+
+### Verification
+- `keyd check /etc/keyd/default.conf` reported `No errors found.`
+- Live-tested `systemctl --user start denial-keyd.service` (`keyd.service` -> `active`, passwordless via Polkit rule) and `systemctl --user stop denial-keyd.service` (`keyd.service` stopped and remains `disabled` at boot).
+- Confirmed `systemctl --user is-enabled denial-keyd.service` (`enabled` under `denial-session.target.wants`) and `jq '.touchpad' ~/.config/denial/settings.json` matches `naturalScrollEnabled: true`, `scrollSpeedFactor: 0.4`, `tapToClickEnabled: true`.
+
 ## [2.40.0] - 2026-11-20
 ### Added
 - **Surface Go 3 Denial Mobile Session, Modern SDDM Session Chooser & Hardware Bridges (`profiles/surface-go3/`)**:

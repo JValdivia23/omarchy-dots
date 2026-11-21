@@ -1,0 +1,13 @@
+[Unit]
+Description=Start system keyd only during Denial sessions
+PartOf=denial-session.target
+After=denial-session.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/systemctl start keyd.service
+ExecStop=/usr/bin/systemctl stop keyd.service
+
+[Install]
+WantedBy=denial-session.target

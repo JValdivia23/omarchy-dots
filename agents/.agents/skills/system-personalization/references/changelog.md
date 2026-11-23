@@ -3,25 +3,15 @@
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
 ## [2.46.0] - 2026-11-23
-### Added
-- **GPU VeilShell Touch Gestures at Omarchy Login** *(XPS Device Setting)*:
-  - Added `profiles/xps/.config/systemd/user/veilshell-gaps.service` and its
-    `.config/veilshell/gap-session` helper. The service runs the existing
-    local release build on `eDP-1` with hardware rendering and uses a private
-    control socket under `$XDG_RUNTIME_DIR/veilshell-gaps/`.
-  - After GPU readiness, temporarily disables native border dragging for
-    the gap strips. Restores the prior policy when the service stops or
-    startup fails, without editing the Hyprland config. Scoped to Omarchy's
-    Hyprland session target; enabled for the next login, not started now.
-  - Recorded the physical GPU trial and the rollback in
-    [the XPS gotcha](../../../../../profiles/xps/gotchas/04-veilshell-gap-gestures.md).
+### Changed
+- **VeilShell login setup withdrawn** *(XPS Device Setting)*: Removed the
+  experimental GPU overlay login unit and helper at the user's request,
+  before it ran at login. Rendering work remains in the VeilShell project,
+  not in the desktop startup configuration.
 
 ### Verification
-- `bash -n` on the helper and `systemd-analyze --user verify` with the
-  installed target dependency passed. An isolated Hyprland rehearsal checked
-  no-touch refusal, real GPU/no-touch failure restoration, and successful
-  arming/restoration with mock strip status. The active desktop was not
-  reloaded or restarted; the service's first real login is pending.
+- `veilshell-gaps.service` not loaded, no autostart link or running
+  VeilShell process, and the native `resize_on_border` setting still true.
 
 ## [2.45.0] - 2026-11-23
 ### Added

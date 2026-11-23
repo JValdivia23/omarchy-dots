@@ -80,6 +80,19 @@ The universal `~/.config/omarchy/hooks/theme-set.d/20-opencode-system-refresh` h
 
 ---
 
+## SSH Configuration (`~/.ssh/` & `~/.dotfiles-private`)
+
+Shared cross-platform SSH host profiles are managed separately from the public `~/dotfiles` repository in the private `JValdivia23/dotfiles-private` repository cloned at `~/.dotfiles-private`.
+
+| Path | Purpose | Customization & Edit Rules |
+|------|---------|----------------------------|
+| `~/.dotfiles-private/ssh/config` | Shared SSH connection profiles (aliases, hosts, users, ports, jump hosts, connection sharing) | Edit shared connection metadata here and sync via `git -C ~/.dotfiles-private`. Never store private keys, passwords, tokens, or `known_hosts` in this repo. |
+| `~/.ssh/config` | Local OpenSSH entrypoint | Managed include block inserted by `bash ~/.dotfiles-private/install.sh` (mode `600`, not a symlink). |
+| `~/.ssh/config.local` | Machine-specific `IdentityFile` and local overrides | Optional, untracked, mode `600`; included before `~/.dotfiles-private/ssh/config`. |
+| `~/.ssh/sockets/` | OpenSSH connection-sharing control sockets | Created by `install.sh` with mode `700`. |
+
+---
+
 ## System Configuration (Requires Elevated Sudo)
 
 | Path | Purpose | Safe Editing Pattern |

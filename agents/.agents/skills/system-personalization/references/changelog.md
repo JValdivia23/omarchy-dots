@@ -2,6 +2,40 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.45.0] - 2026-11-23
+### Added
+- **EdgePad Physical-Millimeter Edge Autoscaling (`core/.local/bin/edgepad-launch`, `tests/test_edgepad_launch.py`)** *(General User Setting)*:
+  - Added standard-library Python launcher `core/.local/bin/edgepad-launch` (symlinked to `~/.local/bin/edgepad-launch`) that queries the active touchpad's physical X width via Linux evdev `EVIOCGABS` (`ABS_MT_POSITION_X` / `ABS_X`) with `udevadm` `ID_INPUT_WIDTH_MM` fallback, computes the exact normalized `--edge-width` for `EDGEPAD_EDGE_MM` (default `5.0 mm`, clamped to `[0.02, 0.15]`), and replaces itself via `os.execv` with `edgepad daemon` so systemd `Type=notify` and `SIGHUP` reloads continue targeting the native daemon process directly.
+  - Added 7 isolated unit tests in `tests/test_edgepad_launch.py` covering multi-device width scaling, clamping, ambiguous/explicit device discovery, `udevadm` fallback, and graceful fallback to `edgepad.toml`.
+
+### Changed
+- **Restricted EdgePad Edge Zones to ≤ 5.0 mm (`core/.config/edgepad/edgepad.toml`, `core/.config/systemd/user/edgepad.service`)**:
+  - Updated `core/.config/systemd/user/edgepad.service` to start via `%h/.local/bin/edgepad-launch` with `Environment=EDGEPAD_EDGE_MM=5.0`.
+  - Reduced the fallback `edge_width` in `core/.config/edgepad/edgepad.toml` from `0.10` (11.7 mm per side on the XPS 13) to `0.045` (~5 mm fallback on typical ~110 mm laptop touchpads).
+  - On the XPS 13 (`117.3 mm × 66.5 mm` touchpad), EdgePad now claims `edge_width = 0.0426` (**5.00 mm** on left and right edges, down from 11.7 mm per side), freeing ~13.5 mm of center trackpad width and drastically reducing accidental horizontal/multi-finger triggers.
+
+### Verification
+- `python3 -B -m unittest discover -s ~/dotfiles/tests -p 'test_edgepad_launch.py' -v` (7/7 tests passed).
+- `~/.local/bin/edgepad-launch --dry-run` resolved `/dev/input/event9` (`117.3mm`) → `--edge-width 0.0426` (`5.00mm`).
+- `systemctl --user daemon-reload && systemctl --user restart edgepad.service` started cleanly (`Main PID` is native `edgepad`, `edge_widths=left=0.043 right=0.043`); `edgepad doctor` passed (`ok=15 warn=0 fail=0`).
+
+## [2.44.0] - 2026-11-23
+### Added
+- **Spotify Soloist + Omarchy Spotify Combo** *(General User Setting)*:
+  - Installed Spotify Soloist (`1.4.0.6`, official Linux `x86_64` headless Connect receiver) into `~/.local/lib/spotify-soloist/` with symlink `~/.local/bin/soloist`.
+  - Added and enabled user systemd unit `~/.config/systemd/user/spotify-soloist.service` (`--device-name "XPS Soloist" --cache-size 256`, starts at login; stoppable anytime with `systemctl --user stop spotify-soloist`) to bypass Spotify's server-side `librespot` `error audio key 0 1` block.
+  - Installed and enabled Omarchy Spotify (`quickshell.spotify` from `stappmus/Omarchy-Spotify`) at release tag `v1.1.0` (`4a97f51`) with its attested native backend (`~/.local/lib/omarchy-spotify/omarchy-spotify-backend`) for Quickshell bar mini-player, theme-synced browsing UI, and Spotify Connect control.
+
+### Changed / Fixed
+- **Patched `quickshell.spotify/Service.qml` & `manifest.json` (`v1.1.0`)**:
+  - Fixed upstream `ReferenceError: localVolumePreferred is not defined` in `mergeConnectDevices()` (opened upstream PR `stappmus/Omarchy-Spotify#130`) and defaulted `supportsVolume` to `item.supports_volume !== false` so remote Connect devices like `XPS Soloist` sync and allow volume control.
+  - Added `"builtInReceiver": "On" | "Off"` setting (set to `"Off"` in `~/.config/omarchy/shell.json`) so Omarchy Spotify no longer auto-starts its unused `librespot` daemon (`omarchy-spotify.service`), saving ~12 MiB PSS and keeping `XPS Soloist` as the sole local receiver.
+- **Switched active bar from `jairo.bar` to built-in `omarchy.bar`**: Re-enabled `omarchy.bar` and disabled `jairo.bar` (`~/.config/omarchy/shell.json`) because Omarchy restricts third-party/cloned bars to a service-less bar entry facade (`pluginShellForBarEntry`), which prevented `quickshell.spotify`'s `BarWidget.qml` from reading live playback state.
+
+### Verification
+- `~/.local/bin/soloist --version` reports `soloist 1.4.0.6` (`linux/x86_64`); `spotify-soloist.service` active and streaming audio as `XPS Soloist`.
+- `omarchy plugin list` reports `omarchy.bar` enabled, `jairo.bar` disabled, and `quickshell.spotify` enabled in `~/.config/omarchy/shell.json` (`bar.layout.left`).
+
 ## [2.43.0] - 2026-11-21
 ### Fixed
 - **Surface Go 3 Denial Auto-Rotation `s2idle` Resume Stall (`profiles/surface-go3/`)**:
@@ -55,6 +89,20 @@ A dated log of all package changes, configurations, script modifications, and ha
 - Executed `pkexec bash ~/dotfiles/profiles/surface-go3/setup.sh` and `~/dotfiles/install.sh --only-stow </dev/null`: installed `/usr/local/share/wayland-sessions/denial-mobile.desktop`, `/usr/share/sddm/themes/surface-go3-chooser/*`, `/etc/sddm.conf.d/zz-surface-go3-session-chooser.conf`, and stowed `~/.config/denial/outputs.conf`.
 - Verified `QT_QPA_PLATFORM=offscreen sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/surface-go3-chooser` discovered both `denial-mobile.desktop` and `omarchy.desktop` and loaded `Main.qml` with zero QML errors.
 - Confirmed `iio-sensor-proxy.service`, `steinerd-iio-bridge.service`, and `touch-doubletap-wake.service` are `active`, `busctl` reports `HasOrientation=true` / `Orientation="normal"`, and live double-tap-to-wake emitted `KEY_WAKEUP` while DPMS-off.
+
+## [2.39.1] - 2026-11-15
+### Added
+- **Private SSH Connection Profiles (`~/.dotfiles-private` / `JValdivia23/dotfiles-private`)**:
+  - Cloned private repository `https://github.com/JValdivia23/dotfiles-private.git` into `~/.dotfiles-private` (mode `0700`).
+  - Ran `bash ~/.dotfiles-private/install.sh`, creating `~/.ssh/config` (mode `0600`) with the managed include block loading optional `~/.ssh/config.local` and `~/.dotfiles-private/ssh/config`, creating `~/.ssh/sockets` (mode `0700`), and enabling the repo's pre-commit staged-file safety hook (`scripts/check-staged.sh`).
+  - Preserved existing device keys and host pinning in `~/.ssh/` (`nanokvm_cachy_asus_ed25519*`, `nanokvm_cachy_asus_known_hosts`) without adding any machine-local credentials to `dotfiles-private`.
+  - Documented the private SSH layout in `references/config-paths.md`.
+
+### Verification
+- `bash ~/.dotfiles-private/install.sh --dry-run` and `bash ~/.dotfiles-private/install.sh` completed cleanly.
+- Verified permissions (`~/.dotfiles-private`, `~/.ssh`, `~/.ssh/sockets` at `0700`; `~/.ssh/config` at `0600`).
+- `python3 -m unittest discover -s tests -v` in `~/.dotfiles-private`: all 18 tests passed.
+- `ssh -G casper` resolved `user jairovp`, `hostname casper.hpc.ucar.edu`, and `controlpath /home/jairo/.ssh/sockets/jairovp@casper.hpc.ucar.edu:22`.
 
 ## [2.39.0] - 2026-11-13
 ### Added

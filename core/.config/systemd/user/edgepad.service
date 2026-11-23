@@ -8,12 +8,13 @@ PartOf=graphical-session.target
 Type=notify
 NotifyAccess=main
 TimeoutStartSec=45s
-ExecStart=%h/.local/bin/edgepad daemon --config %h/.config/edgepad/edgepad.toml
+ExecStart=%h/.local/bin/edgepad-launch --config %h/.config/edgepad/edgepad.toml
 ExecReload=kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=1s
 Environment=PATH=%h/.local/bin:/usr/share/omarchy/bin:/usr/local/bin:/usr/bin:/bin
 Environment=OMARCHY_PATH=/usr/share/omarchy
+Environment=EDGEPAD_EDGE_MM=5.0
 
 [Install]
 WantedBy=graphical-session.target

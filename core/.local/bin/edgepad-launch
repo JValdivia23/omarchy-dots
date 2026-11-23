@@ -1,0 +1,322 @@
+#!/usr/bin/env python3
+"""Launch edgepad daemon with physical-millimeter edge width autoscaling.
+
+Measures the active touchpad's physical X width (in mm) via Linux evdev
+EVIOCGABS (with udev ID_INPUT_WIDTH_MM fallback), computes the fractional
+`--edge-width` corresponding to the configured millimeter target (default:
+5.0 mm), and execs `edgepad daemon` directly so systemd Type=notify and
+SIGHUP reloads continue targeting the edgepad process itself.
+"""
+
+from __future__ import annotations
+
+import argparse
+import fcntl
+import os
+import re
+import shutil
+import struct
+import subprocess
+import sys
+import time
+import tomllib
+from pathlib import Path
+from typing import Callable, Sequence
+
+ABS_X = 0x00
+ABS_MT_POSITION_X = 0x35
+EVIOCGABS_BASE = 0x80184540
+
+DEFAULT_EDGE_MM = 5.0
+MIN_EDGE_WIDTH = 0.02
+MAX_EDGE_WIDTH = 0.15
+MIN_PLAUSIBLE_WIDTH_MM = 20.0
+MAX_PLAUSIBLE_WIDTH_MM = 400.0
+DISCOVERY_ATTEMPTS = 5
+DISCOVERY_RETRY_SECONDS = 0.5
+
+TOUCHPAD_LINE_RE = re.compile(r"^(/dev/input/event\d+)\s+kind=touchpad\b")
+
+
+def log(msg: str) -> None:
+    print(f"edgepad-launch: {msg}", file=sys.stderr, flush=True)
+
+
+def parse_target_edge_mm(cli_value: float | None, env_value: str | None) -> float | None:
+    """Resolve target edge width in mm from CLI or EDGEPAD_EDGE_MM env var."""
+    if cli_value is not None:
+        return cli_value if cli_value > 0 else None
+    if env_value is None or not env_value.strip():
+        return DEFAULT_EDGE_MM
+    raw = env_value.strip().lower()
+    if raw in {"0", "off", "false", "none", "disabled"}:
+        return None
+    try:
+        parsed = float(raw)
+    except ValueError:
+        log(f"ignoring invalid EDGEPAD_EDGE_MM={env_value!r}; using default {DEFAULT_EDGE_MM} mm")
+        return DEFAULT_EDGE_MM
+    return parsed if parsed > 0 else None
+
+
+def read_config_device(config_path: Path) -> str:
+    """Read top-level `device` setting from edgepad.toml, defaulting to 'auto'."""
+    try:
+        with config_path.open("rb") as fh:
+            data = tomllib.load(fh)
+    except (OSError, tomllib.TOMLDecodeError):
+        return "auto"
+    device = data.get("device")
+    if isinstance(device, str) and device.strip():
+        return device.strip()
+    return "auto"
+
+
+def parse_edgepad_devices_output(output: str) -> list[str]:
+    """Extract touchpad event paths from `edgepad devices` stdout."""
+    devices: list[str] = []
+    for line in output.splitlines():
+        match = TOUCHPAD_LINE_RE.match(line.strip())
+        if match:
+            devices.append(match.group(1))
+    return devices
+
+
+def discover_touchpad_device(
+    edgepad_bin: str,
+    device_setting: str,
+    input_root: str | None = None,
+    *,
+    attempts: int = DISCOVERY_ATTEMPTS,
+    retry_seconds: float = DISCOVERY_RETRY_SECONDS,
+    runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
+    sleeper: Callable[[float], None] = time.sleep,
+) -> str | None:
+    """Resolve the single touchpad event device path, or None if unavailable/ambiguous."""
+    if device_setting and device_setting != "auto":
+        return device_setting
+
+    cmd = [edgepad_bin, "devices"]
+    if input_root:
+        cmd.extend(["--input-root", input_root])
+
+    for attempt in range(max(1, attempts)):
+        try:
+            result = runner(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError):
+            result = None
+
+        if result is not None and result.returncode == 0:
+            candidates = parse_edgepad_devices_output(result.stdout)
+            if len(candidates) == 1:
+                return candidates[0]
+            if len(candidates) > 1:
+                log(
+                    f"multiple touchpads detected ({', '.join(candidates)}); "
+                    "skipping autoscaling and using edgepad.toml edge_width"
+                )
+                return None
+
+        if attempt + 1 < attempts:
+            sleeper(retry_seconds)
+
+    return None
+
+
+def is_plausible_width_mm(width_mm: float) -> bool:
+    return MIN_PLAUSIBLE_WIDTH_MM <= width_mm <= MAX_PLAUSIBLE_WIDTH_MM
+
+
+def read_evdev_width_mm(device_path: str) -> float | None:
+    """Query physical X width in mm via evdev EVIOCGABS ioctl."""
+    try:
+        with open(device_path, "rb") as fh:
+            for axis in (ABS_MT_POSITION_X, ABS_X):
+                buf = bytearray(24)
+                try:
+                    fcntl.ioctl(fh, EVIOCGABS_BASE + axis, buf)
+                except OSError:
+                    continue
+                _val, minimum, maximum, _fuzz, _flat, resolution = struct.unpack("6i", buf)
+                if resolution > 0 and maximum > minimum:
+                    width_mm = (maximum - minimum) / float(resolution)
+                    if is_plausible_width_mm(width_mm):
+                        return width_mm
+    except OSError:
+        return None
+    return None
+
+
+def read_udev_width_mm(
+    device_path: str,
+    *,
+    runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
+) -> float | None:
+    """Fallback: query physical X width in mm via udev ID_INPUT_WIDTH_MM."""
+    try:
+        result = runner(
+            ["udevadm", "info", "--query=property", f"--name={device_path}"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+    if result.returncode != 0:
+        return None
+
+    for line in result.stdout.splitlines():
+        if line.startswith("ID_INPUT_WIDTH_MM="):
+            raw = line.split("=", 1)[1].strip()
+            try:
+                width_mm = float(raw)
+            except ValueError:
+                return None
+            if is_plausible_width_mm(width_mm):
+                return width_mm
+    return None
+
+
+def detect_touchpad_width_mm(
+    device_path: str,
+    *,
+    evdev_reader: Callable[[str], float | None] = read_evdev_width_mm,
+    udev_reader: Callable[[str], float | None] = read_udev_width_mm,
+) -> float | None:
+    """Return physical touchpad width in mm using evdev first, then udev."""
+    width_mm = evdev_reader(device_path)
+    if width_mm is not None:
+        return width_mm
+    return udev_reader(device_path)
+
+
+def compute_edge_width_fraction(
+    target_mm: float,
+    touchpad_width_mm: float,
+    *,
+    min_fraction: float = MIN_EDGE_WIDTH,
+    max_fraction: float = MAX_EDGE_WIDTH,
+) -> float:
+    """Convert target physical mm into a clamped normalized edgepad fraction."""
+    raw = target_mm / touchpad_width_mm
+    clamped = max(min_fraction, min(max_fraction, raw))
+    return round(clamped, 4)
+
+
+def resolve_edgepad_bin(explicit: str | None = None) -> str:
+    if explicit:
+        return explicit
+    sibling = Path(__file__).resolve().with_name("edgepad")
+    if sibling.is_file() and os.access(sibling, os.X_OK):
+        return str(sibling)
+    found = shutil.which("edgepad")
+    if found:
+        return found
+    return str(Path.home() / ".local/bin/edgepad")
+
+
+def default_config_path() -> Path:
+    xdg = os.environ.get("XDG_CONFIG_HOME")
+    base = Path(xdg) if xdg else Path.home() / ".config"
+    return base / "edgepad/edgepad.toml"
+
+
+def build_daemon_command(
+    *,
+    edgepad_bin: str,
+    config_path: Path,
+    device_override: str | None,
+    input_root: str | None,
+    edge_width_override: float | None,
+    target_edge_mm: float | None,
+    extra_args: Sequence[str] = (),
+    device_discoverer: Callable[..., str | None] = discover_touchpad_device,
+    width_detector: Callable[[str], float | None] = detect_touchpad_width_mm,
+) -> tuple[list[str], str]:
+    """Construct the `edgepad daemon` argv and a human-readable summary."""
+    argv = [edgepad_bin, "daemon", "--config", str(config_path)]
+    if input_root:
+        argv.extend(["--input-root", input_root])
+    if device_override:
+        argv.extend(["--device", device_override])
+
+    if edge_width_override is not None:
+        argv.extend(["--edge-width", f"{edge_width_override:.4f}"])
+        summary = f"explicit --edge-width={edge_width_override:.4f}"
+    elif target_edge_mm is None:
+        summary = "autoscaling disabled; using edgepad.toml edge_width"
+    else:
+        device_setting = device_override or read_config_device(config_path)
+        device_path = device_discoverer(edgepad_bin, device_setting, input_root)
+        width_mm = width_detector(device_path) if device_path else None
+        if device_path and width_mm is not None:
+            fraction = compute_edge_width_fraction(target_edge_mm, width_mm)
+            effective_mm = fraction * width_mm
+            argv.extend(["--edge-width", f"{fraction:.4f}"])
+            summary = (
+                f"device={device_path} physical_width={width_mm:.1f}mm "
+                f"target={target_edge_mm:.1f}mm -> edge_width={fraction:.4f} "
+                f"({effective_mm:.2f}mm)"
+            )
+        else:
+            summary = (
+                f"could not measure touchpad width (device={device_path or device_setting}); "
+                "falling back to edgepad.toml edge_width"
+            )
+
+    argv.extend(extra_args)
+    return argv, summary
+
+
+def parse_args(argv: Sequence[str]) -> tuple[argparse.Namespace, list[str]]:
+    parser = argparse.ArgumentParser(
+        description="Launch edgepad daemon with physical-mm edge autoscaling."
+    )
+    parser.add_argument("--config", type=Path, default=default_config_path())
+    parser.add_argument("--edgepad-bin", default=None)
+    parser.add_argument("--device", default=None)
+    parser.add_argument("--input-root", default=None)
+    parser.add_argument("--edge-mm", type=float, default=None)
+    parser.add_argument("--edge-width", type=float, default=None)
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print the resolved edgepad daemon command and exit without exec.",
+    )
+    return parser.parse_known_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args, extra = parse_args(sys.argv[1:] if argv is None else argv)
+    edgepad_bin = resolve_edgepad_bin(args.edgepad_bin)
+    target_mm = parse_target_edge_mm(args.edge_mm, os.environ.get("EDGEPAD_EDGE_MM"))
+
+    daemon_argv, summary = build_daemon_command(
+        edgepad_bin=edgepad_bin,
+        config_path=args.config,
+        device_override=args.device,
+        input_root=args.input_root,
+        edge_width_override=args.edge_width,
+        target_edge_mm=target_mm,
+        extra_args=extra,
+    )
+    log(summary)
+
+    if args.dry_run:
+        print(" ".join(daemon_argv))
+        return 0
+
+    os.execv(daemon_argv[0], daemon_argv)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

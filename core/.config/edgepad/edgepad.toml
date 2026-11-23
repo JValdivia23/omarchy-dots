@@ -3,7 +3,10 @@
 
 device = "auto"
 palm_rejection = true
-edge_width = 0.10
+# Fallback edge fraction (~5 mm on a ~110 mm touchpad).
+# edgepad-launch dynamically autoscales this to EDGEPAD_EDGE_MM (5.0 mm)
+# based on the active touchpad's physical width.
+edge_width = 0.045
 tap_min_duration_ms = 40
 tap_max_duration_ms = 180
 double_tap_timeout_ms = 300

@@ -58,6 +58,12 @@ Clone the built-in bar plugin into user space via Omarchy's official plugin syst
 3. Hold `Super` + drag off the bar: the ghost dims and releasing removes the widget.
 4. Dragging off the bar without Super snaps the widget safely back to its position without deletion.
 
+## Caveats & Trade-offs
+
+- **Switching back to `omarchy.bar` silently disables the lock**: Leaving `"locked": true` in `shell.json` has no effect if `bar.id` is changed back to `"omarchy.bar"`. Upstream `omarchy.bar` ignores `"locked": true` and re-enables bare left-click drag removal.
+- **Third-party widget service facade limitation**: Omarchy gives cloned/replacement bars (such as `jairo.bar`) a service-less `pluginShellForBarEntry` facade instead of `pluginShellForId` (`/usr/share/omarchy/shell/plugins/bar/Bar.qml`). Third-party bar widgets that depend on `bar.shell.serviceFor("<plugin-id>")` (for example, `quickshell.spotify`'s live track bar mini-player) cannot read their live service state inside `jairo.bar`.
+- **Atomic rewrites break Stow symlinks**: Dragging/editing bar layout via the shell atomically replaces `~/.config/omarchy/shell.json` with a standalone file, detaching it from `~/dotfiles/core/.config/omarchy/shell.json`. Re-symlink (or run `~/dotfiles/install.sh --only-stow`) after intentional layout changes.
+
 ## Related References
 - [`references/config-paths.md`](../config-paths.md)
 - [`core/.config/omarchy/shell.json`](../../../../core/.config/omarchy/shell.json)

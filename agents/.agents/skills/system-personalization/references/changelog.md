@@ -2,6 +2,31 @@
 
 A dated log of all package changes, configurations, script modifications, and hardware upgrades.
 
+## [2.48.0] - 2026-11-23
+### Added
+- **Custom `jairo.spotify` Bar Widget Backed by Spotify Soloist Local API** *(General User Setting)*:
+  - Enabled Soloist's localhost-only WebSocket API (`--ws 127.0.0.1:0`) in `~/.config/systemd/user/spotify-soloist.service`.
+  - Created `~/.config/omarchy/plugins/jairo.spotify/` (`manifest.json`, `BarWidget.qml`, `SoloistModel.js`, `i18n/en.json`, `test_model.js`) using `soloist ctl trace` (real-time event stream) and `soloist ctl` (`play`, `pause`, `next`, `prev`, `seek`, `volume`, `shuffle`, `repeat`) so live now-playing metadata, cover art, seek, transport, volume, and Soloist start/stop work natively inside locked `jairo.bar` without requiring `bar.shell.serviceFor(...)`.
+  - Wired **Open full player** (and bar right-click) to `omarchy-shell shell toggle quickshell.spotify` while keeping `quickshell.spotify` (`builtInReceiver: "Off"`) enabled in `shell.json` `plugins` and swapping `jairo.spotify` into `bar.layout.left`.
+
+### Verification
+- `node ~/.config/omarchy/plugins/jairo.spotify/test_model.js` passed (including markup-neutralization and cover-URL validation checks).
+- `omarchy plugin validate ~/.config/omarchy/plugins/jairo.spotify` and `qmllint` exited 0.
+- `omarchy plugin list` confirms `jairo.bar`, `jairo.spotify`, and `quickshell.spotify` enabled; `soloist ctl trace` active; zero QML errors in `omarchy-shell`.
+
+## [2.47.0] - 2026-11-23
+### Fixed
+- **Restored `omarchy.clock` & Re-enabled Locked `jairo.bar` (`core/.config/omarchy/shell.json`)** *(General User Setting)*:
+  - Restored `omarchy.clock` (`format: "dddd HH:mm"`, `formatAlt: "d MMMM 'W'ww yyyy"`, `verticalFormat: "HH\n—\nmm"`) to `bar.layout.center` after an accidental drag-removal occurred while running stock `omarchy.bar` (which ignores `"locked": true`).
+  - Switched `bar.id` back from `omarchy.bar` to `jairo.bar` so `"locked": true` + `Super`-drag protection is active again, while syncing `"background": "glassy"` and the `quickshell.spotify` (`builtInReceiver: "Off"`) layout entry into `~/dotfiles/core/.config/omarchy/shell.json` and re-symlinking `~/.config/omarchy/shell.json`.
+  - Updated `references/gotchas/07-omarchy-bar-accidental-drag-removal.md` with the `omarchy.bar` silent-unlock, `pluginShellForBarEntry` service-facade trade-off, and atomic-rewrite symlink caveats.
+
+### Verification
+- `python3 -m json.tool ~/dotfiles/core/.config/omarchy/shell.json` passed; `~/.config/omarchy/shell.json` re-symlinked to `../../dotfiles/core/.config/omarchy/shell.json` (previous file backed up to `~/.config/omarchy/shell.json.bak.*`).
+- Synced `~/.config/omarchy/plugins/jairo.bar` as real files (replacing the legacy Nov 4 directory symlink) so `omarchy plugin validate ~/.config/omarchy/plugins/jairo.bar` exits 0, then ran `omarchy restart shell`.
+- `omarchy plugin list` reports `jairo.bar`, `omarchy.clock`, and `quickshell.spotify` `enabled` (`omarchy.bar` `disabled`).
+- `omarchy-shell shell debugBarGeometry` confirms `omarchy.clock` is `visible: true` in `center` (`x: 963`, `width: 121`, `height: 30`) alongside all active left, center, and right widgets.
+
 ## [2.46.0] - 2026-11-23
 ### Changed
 - **VeilShell login setup withdrawn** *(XPS Device Setting)*: Removed the

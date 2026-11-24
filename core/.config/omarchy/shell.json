@@ -1,6 +1,7 @@
 {
   "bar": {
-    "background": "none",
+    "background": "glassy",
+    "id": "jairo.bar",
     "layout": {
       "center": [
         {
@@ -67,6 +68,9 @@
           "id": "osesantos.vitals",
           "module": "sensors",
           "widget": "text"
+        },
+        {
+          "id": "jairo.spotify"
         }
       ],
       "right": [
@@ -107,9 +111,8 @@
         }
       ]
     },
-    "position": "top",
-    "id": "jairo.bar",
-    "locked": true
+    "locked": true,
+    "position": "top"
   },
   "dock": {
     "pinned": [
@@ -130,6 +133,10 @@
   "plugins": [
     {
       "id": "typecraft.omacast"
+    },
+    {
+      "builtInReceiver": "Off",
+      "id": "quickshell.spotify"
     }
   ],
   "version": 1

@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "jairo.spotify",
+  "name": "Spotify Soloist",
+  "version": "1.0.0",
+  "author": "Jairo",
+  "description": "Lightweight Spotify bar widget and mini-player backed by Spotify Soloist's local API",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Spotify Soloist",
+    "description": "Live now-playing label and mini-player controls via Spotify Soloist, with one-click access to the full Omarchy Spotify window",
+    "category": "Media",
+    "aliases": [
+      "spotify",
+      "soloist",
+      "music"
+    ],
+    "defaultSection": "left",
+    "allowMultiple": false,
+    "defaults": {
+      "showTrackTitle": "On",
+      "showArtistName": "Off",
+      "showPausedTrack": "On",
+      "maxBarTextWidth": "220"
+    },
+    "schema": [
+      {
+        "key": "showTrackTitle",
+        "type": "enum",
+        "label": "Show track title in bar",
+        "options": [
+          "On",
+          "Off"
+        ],
+        "defaultValue": "On"
+      },
+      {
+        "key": "showArtistName",
+        "type": "enum",
+        "label": "Show artist name in bar",
+        "options": [
+          "On",
+          "Off"
+        ],
+        "defaultValue": "Off"
+      },
+      {
+        "key": "showPausedTrack",
+        "type": "enum",
+        "label": "Show paused track in bar",
+        "options": [
+          "On",
+          "Off"
+        ],
+        "defaultValue": "On"
+      },
+      {
+        "key": "maxBarTextWidth",
+        "type": "string",
+        "label": "Maximum bar text width",
+        "defaultValue": "220",
+        "description": "Width in px (120 to 480). Use 0 for unlimited."
+      }
+    ]
+  }
+}

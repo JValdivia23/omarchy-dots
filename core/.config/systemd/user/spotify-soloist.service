@@ -1,0 +1,13 @@
+[Unit]
+Description=Spotify Soloist Connect Receiver
+After=network-online.target pipewire.service pipewire-pulse.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/soloist --device-name "XPS Soloist" --cache-size 256 --ws 127.0.0.1:0
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,17 @@
+{
+  "spotify.title": "Spotify",
+  "spotify.nothingPlaying": "Nothing playing",
+  "spotify.offline": "Soloist stopped",
+  "spotify.offlineHint": "Start Soloist to play audio on this computer",
+  "spotify.openFull": "Open full player",
+  "spotify.startSoloist": "Start Soloist",
+  "spotify.stopSoloist": "Stop Soloist",
+  "spotify.play": "Play",
+  "spotify.pause": "Pause",
+  "spotify.previous": "Previous track",
+  "spotify.next": "Next track",
+  "spotify.shuffle": "Toggle shuffle",
+  "spotify.repeat": "Cycle repeat mode",
+  "spotify.mute": "Mute or unmute",
+  "spotify.volumePercent": "%1%"
+}
